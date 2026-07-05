@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "is-ci || husky",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -13,11 +14,13 @@
     "lint-dry": "eslint . --fix-dry-run --max-warnings=0 --cache --cache-location ./node_modules/.cache/eslint",
     "format": "prettier --write \"**/*.{ts,tsx,html,md,css,json}\"",
     "test": "vitest",
-    "test:ci": "vitest --run --passWithNoTests"
+    "test:ci": "vitest --run --passWithNoTests",
+    "test:lint-staged": "vitest --run --changed --passWithNoTests --bail 1"
   },
   "dependencies": {
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "tailwind-merge": "3.6.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
@@ -30,6 +33,9 @@
     "@vitejs/plugin-react": "6.0.3",
     "eslint": "9.39.4",
     "happy-dom": "20.10.6",
+    "husky": "9.1.7",
+    "is-ci": "4.1.0",
+    "lint-staged": "17.0.8",
     "prettier": "3.8.5",
     "prettier-plugin-tailwindcss": "0.8.0",
     "tailwindcss": "4.3.1",

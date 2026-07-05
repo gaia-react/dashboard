@@ -1,0 +1,8 @@
+{
+  "**/*.{ts,tsx}": [
+    "eslint --fix --max-warnings=0 --cache --cache-location ./node_modules/.cache/eslint",
+    "prettier --write"
+  ],
+  "**/*.css": ["prettier --write"],
+  "**/*.{html,md,json}": ["prettier --write"]
+}
