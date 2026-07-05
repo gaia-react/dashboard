@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: 'Fraunces', georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    ui-monospace, sfmono-regular, menlo, monaco, consolas, 'Liberation Mono',
+    'Courier New', monospace;
+
+  --color-bg: #141413;
+  --color-bg-elev: #1f1e1d;
+  --color-bg-elev-2: #262624;
+  --color-bg-tint: #181c1e;
+
+  --color-fg: #faf9f5;
+  --color-fg-dim: #b0aea5;
+  --color-fg-mute: #87867f;
+
+  --color-accent: #d97757;
+  --color-accent-2: #c96442;
+  --color-accent-soft: #efa58e;
+
+  --color-secondary: #5b8a8a;
+  --color-secondary-2: #436c6c;
+  --color-secondary-soft: #8eb4b4;
+
+  --color-warn: #d9a857;
+  --color-warn-2: #b88a3f;
+  --color-warn-soft: #ecc781;
+
+  --color-border: #3d3d3a;
+  --color-border-soft: #2e2e2b;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-bg font-sans text-fg;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-light;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  a {
+    @apply text-accent no-underline hover:text-accent-2 hover:underline;
+  }
+}

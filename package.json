@@ -1,0 +1,44 @@
+{
+  "name": "gaia-dashboard",
+  "version": "0.1.0",
+  "description": "Local dashboard for GAIA adopters and maintainers: cost, models, and activity for a GAIA project.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --fix --max-warnings=0 --cache --cache-location ./node_modules/.cache/eslint",
+    "lint-dry": "eslint . --fix-dry-run --max-warnings=0 --cache --cache-location ./node_modules/.cache/eslint",
+    "format": "prettier --write \"**/*.{ts,tsx,html,md,css,json}\"",
+    "test": "vitest",
+    "test:ci": "vitest --run --passWithNoTests"
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@gaia-react/lint": "1.9.0",
+    "@tailwindcss/vite": "4.3.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "eslint": "9.39.4",
+    "happy-dom": "20.10.6",
+    "prettier": "3.8.5",
+    "prettier-plugin-tailwindcss": "0.8.0",
+    "tailwindcss": "4.3.1",
+    "typescript": "6.0.3",
+    "vite": "8.0.16",
+    "vitest": "4.1.9"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "packageManager": "pnpm@11.9.0"
+}
