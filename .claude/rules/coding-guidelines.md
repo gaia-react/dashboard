@@ -27,7 +27,6 @@ Define verifiable success criteria before starting, then loop until verified. Bo
 When building new features or fixing bugs, follow the TDD workflow described in `.claude/skills/tdd/SKILL.md` (read it on demand, do not preload).
 
 - Use Vitest to test individual functions and components work in isolation
-- Use Playwright to test user flows required by the feature specifications
 
 ## 6. Always Verify Your Work
 

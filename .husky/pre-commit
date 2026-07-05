@@ -1,0 +1,18 @@
+printf '\n🔎 Running pre-commit check\n'
+
+HAS_APP_CHANGED=$(git diff --cached --name-only --diff-filter=ACDM | grep 'app/' || true)
+HAS_TEST_CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep 'test/' || true)
+
+if [ -n "$HAS_APP_CHANGED" ] || [ -n "$HAS_TEST_CHANGED" ]
+then
+  printf "\x1b[33m"
+  printf "⚠️ Changes detected - running lint-staged\n"
+  printf "\x1b[0m"
+	pnpm typecheck
+	pnpm exec lint-staged
+	pnpm test:lint-staged
+else
+  printf "\x1b[32m"
+  printf "✅ No changed files -- skipping lint-staged\n\n"
+  printf "\x1b[0m"
+fi
