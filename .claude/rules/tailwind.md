@@ -12,28 +12,46 @@ Authoring patterns live in `.claude/skills/tailwind/SKILL.md`. This rule covers 
 
 Config lives in `app/styles/tailwind.css` under `@theme` / `@layer` / `@utility`. There is no `tailwind.config.ts`.
 
-## Dark mode
+## Single dark theme (no light mode)
 
-Class strategy: `@custom-variant dark (&:where(.dark, .dark *))`. Always pair light/dark in one utility call (`bg-white dark:bg-gray-900`).
+This dashboard is **dark-only** (SPEC section 7). The GAIA tokens in
+`app/styles/tailwind.css` are a single dark surface; `../studio/branding/DESIGN.md`
+defines no light palette. There is nothing to pair against.
 
-Prefer the project's semantic `@utility` tokens over raw paired classes:
+- **Do not** write light/dark pairs (`bg-white dark:bg-gray-900`) or reach for a
+  `dark:` variant. There is one theme; style it directly.
+- **Do not** use neutral-gray template utilities (`bg-gray-*`, `text-gray-*`,
+  `border-gray-*`) or invent semantic aliases like `bg-body` / `text-secondary`.
+  Those belong to the fresh-scaffold baseline, not this GAIA product surface.
 
-| Token              | Expands to                             |
-| ------------------ | -------------------------------------- |
-| `bg-body`          | `bg-white dark:bg-gray-900`            |
-| `bg-secondary`     | `bg-gray-100 dark:bg-gray-800`         |
-| `text-body`        | `text-gray-900 dark:text-white`        |
-| `text-secondary`   | `text-gray-500 dark:text-gray-400`     |
-| `text-disabled`    | `text-gray-900/15 dark:text-white/15`  |
-| `text-placeholder` | `text-gray-400 dark:text-gray-600`     |
-| `text-invalid`     | `text-red-600 dark:text-red-500`       |
-| `border-normal`    | `border-gray-300 dark:border-gray-600` |
-| `border-strong`    | `border-gray-400 dark:border-gray-500` |
-| `border-medium`    | `border-gray-200 dark:border-gray-700` |
-| `border-light`     | `border-gray-100 dark:border-gray-800` |
-| `border-disabled`  | `border-gray-300 dark:border-gray-700` |
-| `input-invalid`    | error ring + border combo              |
+## Use the GAIA tokens
+
+Reference the `@theme` tokens from `app/styles/tailwind.css` (backed by
+`DESIGN.md`). No hex literals in components, ever, tokens only.
+
+| Role                         | Tokens                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Surfaces                     | `bg-bg`, `bg-bg-elev` (cards), `bg-bg-elev-2` (table headers), `bg-bg-tint` (slate-tinted / alt rows)                                                               |
+| Text                         | `text-fg` (primary), `text-fg-dim` (secondary), `text-fg-mute` (captions, table dashes)                                                                             |
+| Primary brand (burnt orange) | `text-accent` / `bg-accent`, `accent-2` (hover), `accent-soft` (eyebrows on warm sections)                                                                          |
+| Secondary (slate teal)       | `secondary`, `secondary-2` (borders/hover), `secondary-soft` (eyebrows on cool sections). Plays the "yes / checkmark / confidence" role, there is no success green. |
+| Semantic (amber)             | `warn`, `warn-2` (borders), `warn-soft` (titles). Partial states, "coming soon", warnings.                                                                          |
+| Borders                      | `border-border` (primary), `border-border-soft` (inner rules, subtle dividers)                                                                                      |
+
+Chart palette in series order (SPEC section 7): `accent`, `secondary`, `warn`,
+then `accent-soft`, `secondary-soft`, `warn-soft`; neutrals (`fg-mute`,
+`border`) for axes and grids. Single-metric encodings (heatmap, one-series bars)
+stay on the accent ramp. More than ~6 concurrent series means group the tail
+into "other".
 
 ## No arbitrary colors
 
-Use palette tokens (`blue-500`, `red-600`) with opacity modifiers (`bg-blue-900/15`). No hex literals in `[]`.
+Palette tokens only, with opacity modifiers where needed (`bg-accent/15`). No hex
+literals in `[]`. Follow `DESIGN.md`: no purple, no cool grays, no Inter, no
+dedicated success green, no fourth coequal hue.
+
+## Not covered here
+
+Light-mode support, theme toggling, and semantic light/dark aliases are out of
+scope for v1. If a light palette is ever added, define it in `DESIGN.md` first,
+then propagate, per the design-system source-of-truth rule.
