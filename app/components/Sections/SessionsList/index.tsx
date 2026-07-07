@@ -1,10 +1,10 @@
-import type {ChangeEventHandler, FC, ReactNode} from 'react';
+import type {ChangeEventHandler, FC, MouseEvent, ReactNode} from 'react';
 import {useEffect, useRef} from 'react';
 import {twJoin, twMerge} from 'tailwind-merge';
 import EmptyState from '~/components/EmptyState';
 import {
   ALL_MODELS_FILTER_VALUE,
-  costEntryAnchorId,
+  costViewForEntryType,
   countSessionsByAttribution,
   filterSessions,
   formatSessionDateTime,
@@ -20,6 +20,7 @@ import {
   totalPageCount,
   totalTokenCount,
   uniqueModelNames,
+  workTabHref,
 } from '~/components/Sections/SessionsList/format';
 import {shimmer} from '~/components/Skeleton';
 import {formatModelName} from '~/data/format/model-name';
@@ -27,6 +28,9 @@ import type {SessionSummary} from '~/data/schemas/api';
 import {useQueryParams} from '~/hooks/useQueryParams';
 
 export type SessionsListProps = {
+  /** Navigates to the Work tab, targeting one cost entry: the attribution
+   * badge's jump-link, symmetric to CostTable's "View in sessions" (feedback). */
+  onViewEntry?: (key: string, table: 'plans' | 'specs') => void;
   /** `ActivityResponse.sessions`, reverse-chronological (the API's order). */
   sessions: SessionSummary[];
 };
@@ -60,15 +64,29 @@ const dollarsCaptionClassName =
 
 const SessionAttributionBadge: FC<{
   attribution: SessionSummary['attribution'];
-}> = ({attribution}) =>
-  attribution ?
+  onViewEntry?: (key: string, table: 'plans' | 'specs') => void;
+}> = ({attribution, onViewEntry}) => {
+  if (!attribution) {
+    return <span className={adHocBadgeClassName}>Ad hoc</span>;
+  }
+
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>): void => {
+    if (onViewEntry) {
+      event.preventDefault();
+      onViewEntry(attribution.key, costViewForEntryType(attribution.entryType));
+    }
+  };
+
+  return (
     <a
       className={attributedBadgeClassName}
-      href={`#${costEntryAnchorId(attribution.key)}`}
+      href={workTabHref(attribution.key, attribution.entryType)}
+      onClick={handleClick}
     >
       {attribution.key}
     </a>
-  : <span className={adHocBadgeClassName}>Ad hoc</span>;
+  );
+};
 
 const SessionDollars: FC<{dollars: SessionSummary['dollars']}> = ({
   dollars,
@@ -101,10 +119,11 @@ const SessionDollars: FC<{dollars: SessionSummary['dollars']}> = ({
   );
 };
 
-const SessionRow: FC<{isTarget: boolean; session: SessionSummary}> = ({
-  isTarget,
-  session,
-}) => (
+const SessionRow: FC<{
+  isTarget: boolean;
+  onViewEntry?: (key: string, table: 'plans' | 'specs') => void;
+  session: SessionSummary;
+}> = ({isTarget, onViewEntry, session}) => (
   <li
     className={twJoin(
       'border-border-soft flex flex-col gap-2 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
@@ -137,7 +156,10 @@ const SessionRow: FC<{isTarget: boolean; session: SessionSummary}> = ({
     </div>
     <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1.5">
       <SessionDollars dollars={session.dollars} />
-      <SessionAttributionBadge attribution={session.attribution} />
+      <SessionAttributionBadge
+        attribution={session.attribution}
+        onViewEntry={onViewEntry}
+      />
     </div>
   </li>
 );
@@ -155,18 +177,18 @@ const EmptyChrome: FC<{children: ReactNode}> = ({children}) => (
 /**
  * SPEC 6.6: reverse-chronological sessions list. The type and model filters
  * and the page live in the URL (`?type=&model=&page=`, feedback) so the view
- * is shareable and a cross-tab jump-link (`?session=`) lands on a clean,
+ * is shareable and a cross-tab jump-link (`?id=`) lands on a clean,
  * unfiltered page with the target scrolled into view. Client-side pagination
  * at 50/page (PLAN D5); filters narrow the list BEFORE paging. "GAIA" is a
  * session attributed to a spec/plan; recorded and estimated dollars never sum,
  * and an estimated lower-bound figure carries an explicit marker.
  */
-const SessionsList: FC<SessionsListProps> = ({sessions}) => {
+const SessionsList: FC<SessionsListProps> = ({onViewEntry, sessions}) => {
   const [params, setQueryParams] = useQueryParams();
   const typeFilter = resolveSessionTypeFilter(params.get('type'));
   const modelFilter = params.get('model') ?? ALL_MODELS_FILTER_VALUE;
   const pageParam = params.get('page');
-  const targetSessionId = params.get('session');
+  const targetSessionId = params.get('id');
   const scrolledForRef = useRef<null | string>(null);
 
   const {adHoc, attributed} = countSessionsByAttribution(sessions);
@@ -174,7 +196,7 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
   const filteredSessions = filterSessions(sessions, typeFilter, modelFilter);
   const pageCount = totalPageCount(filteredSessions.length);
 
-  // An explicit `?page=` wins; otherwise a `?session=` jump derives the page
+  // An explicit `?page=` wins; otherwise an `?id=` jump derives the page
   // that holds its target so the row is on-screen to scroll to.
   const targetPage =
     targetSessionId === null ? null : (
@@ -205,25 +227,25 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
 
   const handleChangeType: ChangeEventHandler<HTMLSelectElement> = (event) => {
     setQueryParams({
+      id: null,
       page: null,
-      session: null,
       type: event.target.value === 'all' ? null : event.target.value,
     });
   };
 
   const handleChangeModel: ChangeEventHandler<HTMLSelectElement> = (event) => {
     setQueryParams({
+      id: null,
       model:
         event.target.value === ALL_MODELS_FILTER_VALUE ?
           null
         : event.target.value,
       page: null,
-      session: null,
     });
   };
 
   const goToPage = (page: number): void => {
-    setQueryParams({page: page <= 1 ? null : String(page), session: null});
+    setQueryParams({id: null, page: page <= 1 ? null : String(page)});
   };
 
   if (sessions.length === 0) {
@@ -296,6 +318,7 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
             <SessionRow
               key={session.sessionId}
               isTarget={session.sessionId === targetSessionId}
+              onViewEntry={onViewEntry}
               session={session}
             />
           ))}

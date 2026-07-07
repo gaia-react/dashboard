@@ -29,7 +29,38 @@ const getServerSnapshot = (): string => '';
 /** `null` or `''` deletes the key; any other value sets it. */
 export type QueryPatch = Record<string, null | string>;
 
-export type UseQueryParams = [URLSearchParams, (patch: QueryPatch) => void];
+export type UseQueryParams = [
+  URLSearchParams,
+  (patch: QueryPatch) => void,
+  (next: QueryPatch) => void,
+];
+
+const applyPatch = (
+  base: URLSearchParams,
+  patch: QueryPatch
+): URLSearchParams => {
+  const next = new URLSearchParams(base);
+
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null || value === '') {
+      next.delete(key);
+    } else {
+      next.set(key, value);
+    }
+  }
+
+  return next;
+};
+
+const commit = (next: URLSearchParams): void => {
+  const queryString = next.toString();
+  const url = `${window.location.pathname}${
+    queryString === '' ? '' : `?${queryString}`
+  }${window.location.hash}`;
+
+  window.history.pushState(null, '', url);
+  window.dispatchEvent(new Event(QUERY_CHANGE_EVENT));
+};
 
 export const useQueryParams = (): UseQueryParams => {
   const search = useSyncExternalStore(
@@ -42,24 +73,17 @@ export const useQueryParams = (): UseQueryParams => {
   const setQueryParams = useCallback((patch: QueryPatch) => {
     // Read the live URL rather than the snapshot so batched patches from
     // different callers in one tick each see the previous write.
-    const next = new URLSearchParams(window.location.search);
-
-    for (const [key, value] of Object.entries(patch)) {
-      if (value === null || value === '') {
-        next.delete(key);
-      } else {
-        next.set(key, value);
-      }
-    }
-
-    const queryString = next.toString();
-    const url = `${window.location.pathname}${
-      queryString === '' ? '' : `?${queryString}`
-    }${window.location.hash}`;
-
-    window.history.pushState(null, '', url);
-    window.dispatchEvent(new Event(QUERY_CHANGE_EVENT));
+    commit(applyPatch(new URLSearchParams(window.location.search), patch));
   }, []);
 
-  return [params, setQueryParams];
+  /**
+   * Replaces the whole query with `next`, dropping every param not named in
+   * it (a tab switch or a cross-tab jump-link, where a filter left over from
+   * the previous view could hide the thing being navigated to).
+   */
+  const resetQueryParams = useCallback((next: QueryPatch) => {
+    commit(applyPatch(new URLSearchParams(), next));
+  }, []);
+
+  return [params, setQueryParams, resetQueryParams];
 };

@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {
   costEntryAnchorId,
+  costViewForEntryType,
   countSessionsByAttribution,
   filterSessions,
   formatSessionDateTime,
@@ -17,6 +18,7 @@ import {
   totalPageCount,
   totalTokenCount,
   uniqueModelNames,
+  workTabHref,
 } from '~/components/Sections/SessionsList/format';
 import {activityResponseSchema} from '~/data/schemas/api';
 import type {SessionSummary} from '~/data/schemas/api';
@@ -165,6 +167,21 @@ test('costEntryAnchorId slugs the cost-entry key for SPEC/PLAN/slug rows', () =>
   expect(costEntryAnchorId('PLAN-002')).toBe('cost-entry-PLAN-002');
   expect(costEntryAnchorId('slug:vintage-plan')).toBe(
     'cost-entry-slug-vintage-plan'
+  );
+});
+
+test('costViewForEntryType maps entry types to the specs/plans view', () => {
+  expect(costViewForEntryType('spec')).toBe('specs');
+  expect(costViewForEntryType('plan')).toBe('plans');
+  expect(costViewForEntryType('plan-slug')).toBe('plans');
+});
+
+test('workTabHref builds the Work-tab deep link for an entry', () => {
+  expect(workTabHref('SPEC-001', 'spec')).toBe(
+    '?tab=work&work=specs&entry=SPEC-001'
+  );
+  expect(workTabHref('slug:vintage-plan', 'plan-slug')).toBe(
+    '?tab=work&work=plans&entry=slug%3Avintage-plan'
   );
 });
 

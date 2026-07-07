@@ -5,7 +5,11 @@ import {sortAlphabetically} from '~/data/sort';
 
 export {costEntryAnchorId} from '~/components/Sections/anchor-ids';
 
+export {costViewForEntryType} from '~/components/Sections/anchor-ids';
+
 export {sessionAnchorId} from '~/components/Sections/anchor-ids';
+
+export {workTabHref} from '~/components/Sections/anchor-ids';
 
 /** SPEC 6.6 / PLAN D5: client-side pagination, 50 sessions per page. */
 export const SESSIONS_PAGE_SIZE = 50;
@@ -77,7 +81,7 @@ export const filterSessions = (
 
 /**
  * The 1-indexed page a session lands on within an already-filtered list, or
- * null if it is not in the list (e.g. filtered out). Drives the `?session=`
+ * null if it is not in the list (e.g. filtered out). Drives the `?id=`
  * jump-link: the Sessions tab pages to the target so it can be scrolled in.
  */
 export const pageForSession = (

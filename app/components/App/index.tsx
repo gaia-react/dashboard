@@ -54,7 +54,7 @@ const App = () => {
     CostsResponse,
     ActivityResponse
   >();
-  const [params, setQueryParams] = useQueryParams();
+  const [params, , resetQueryParams] = useQueryParams();
   const tab = resolveTabId(params.get('tab'));
 
   const headerState = combineResourceStates(costs.state, activity.state);
@@ -63,20 +63,22 @@ const App = () => {
       activity.state.data.sessions
     : undefined;
 
+  // Switching tabs clears every other param (feedback): a filter or
+  // deep-link left over from the previous tab must not leak into the next.
   const selectTab = (id: string): void => {
-    setQueryParams({tab: id});
+    resetQueryParams({tab: id});
   };
 
   // A cross-tab jump to one session lands on the Sessions tab with no filter
   // or page so the target can never be filtered out of view (feedback).
   const viewSession = (sessionId: string): void => {
-    setQueryParams({
-      model: null,
-      page: null,
-      session: sessionId,
-      tab: 'sessions',
-      type: null,
-    });
+    resetQueryParams({id: sessionId, tab: 'sessions'});
+  };
+
+  // A cross-tab jump to one cost entry (the Sessions attribution badge) lands
+  // on the Work tab with its table selected, symmetric to viewSession.
+  const viewEntry = (key: string, table?: 'plans' | 'specs'): void => {
+    resetQueryParams({entry: key, tab: 'work', work: table ?? null});
   };
 
   return (
@@ -136,7 +138,10 @@ const App = () => {
               state={activity.state}
             >
               {(activityData) => (
-                <SessionsList sessions={activityData.sessions} />
+                <SessionsList
+                  onViewEntry={viewEntry}
+                  sessions={activityData.sessions}
+                />
               )}
             </AsyncSection>
           </TabPanel>

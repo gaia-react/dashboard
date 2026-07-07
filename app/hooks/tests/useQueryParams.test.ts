@@ -85,4 +85,53 @@ describe('useQueryParams', () => {
 
     expect(window.location.search).toBe('');
   });
+
+  test('resetQueryParams replaces the whole query, dropping params not in the patch', () => {
+    window.history.replaceState(null, '', '/?tab=sessions&type=gaia&page=3');
+
+    const {result} = renderHook(() => useQueryParams());
+
+    act(() => {
+      result.current[2]({tab: 'work'});
+    });
+
+    expect(window.location.search).toBe('?tab=work');
+    expect(result.current[0].get('type')).toBeNull();
+    expect(result.current[0].get('page')).toBeNull();
+  });
+
+  test('resetQueryParams sets every non-null key from the given patch', () => {
+    const {result} = renderHook(() => useQueryParams());
+
+    act(() => {
+      result.current[2]({entry: 'SPEC-001', tab: 'work', work: 'specs'});
+    });
+
+    expect(window.location.search).toBe('?entry=SPEC-001&tab=work&work=specs');
+  });
+
+  test('resetQueryParams omits null values from the patch rather than erroring', () => {
+    const {result} = renderHook(() => useQueryParams());
+
+    act(() => {
+      result.current[2]({entry: null, tab: 'work'});
+    });
+
+    expect(window.location.search).toBe('?tab=work');
+  });
+
+  test('setQueryParams still merges (unaffected by resetQueryParams)', () => {
+    window.history.replaceState(null, '', '/?tab=work');
+
+    const {result} = renderHook(() => useQueryParams());
+
+    act(() => {
+      result.current[2]({tab: 'sessions'});
+    });
+    act(() => {
+      result.current[1]({id: 'abc'});
+    });
+
+    expect(window.location.search).toBe('?tab=sessions&id=abc');
+  });
 });

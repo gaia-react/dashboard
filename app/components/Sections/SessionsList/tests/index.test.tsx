@@ -1,5 +1,5 @@
 import {fireEvent, render, screen, within} from '@testing-library/react';
-import {afterEach, expect, test} from 'vitest';
+import {afterEach, expect, test, vi} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import SessionsList, {
@@ -153,9 +153,9 @@ test('reads the filters from the URL on first render', () => {
   expect(getRows()).toHaveLength(2);
 });
 
-test('a ?session= jump pages to and highlights the target row', () => {
+test('an ?id= jump pages to and highlights the target row', () => {
   const targetId = sessions[52]?.sessionId ?? '';
-  window.history.replaceState(null, '', `/?session=${targetId}`);
+  window.history.replaceState(null, '', `/?id=${targetId}`);
 
   render(<SessionsList sessions={sessions} />);
 
@@ -168,17 +168,26 @@ test('a ?session= jump pages to and highlights the target row', () => {
   expect(targetRow).toHaveClass('ring-1');
 });
 
-test('the attribution badge links to the matching CostTable row', () => {
+test('the attribution badge links to the matching entry on the Work tab', () => {
   render(<SessionsList sessions={sessions} />);
 
   expect(screen.getByRole('link', {name: 'SPEC-001'})).toHaveAttribute(
     'href',
-    '#cost-entry-SPEC-001'
+    '?tab=work&work=specs&entry=SPEC-001'
   );
   expect(screen.getByRole('link', {name: 'slug:vintage-plan'})).toHaveAttribute(
     'href',
-    '#cost-entry-slug-vintage-plan'
+    '?tab=work&work=plans&entry=slug%3Avintage-plan'
   );
+});
+
+test('clicking the attribution badge calls onViewEntry with the entry key and table', () => {
+  const onViewEntry = vi.fn();
+  render(<SessionsList onViewEntry={onViewEntry} sessions={sessions} />);
+
+  fireEvent.click(screen.getByRole('link', {name: 'SPEC-001'}));
+
+  expect(onViewEntry).toHaveBeenCalledWith('SPEC-001', 'specs');
 });
 
 test("each session row carries the anchor id CostTable's jump-link points at", () => {
