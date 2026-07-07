@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+coverage
+.vite
+
+# Test fixtures are committed sample data, some intentionally malformed
+# (e.g. a non-JSON "unparseable" rate table). Prettier must not touch them:
+# reformatting would defeat their purpose and it cannot parse the invalid ones.
+# Mirrors the ESLint ignore of test/fixtures/**.
+test/fixtures/

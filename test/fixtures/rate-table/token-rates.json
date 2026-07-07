@@ -1,0 +1,11 @@
+{
+  "cache_multipliers": { "read": 0.1, "write_5m": 1.25, "write_1h": 2.0 },
+  "future_field": "tolerated by the loose schema",
+  "models": {
+    "claude-intro-1": [
+      { "input": 2, "output": 10, "effective_through": "2026-06-30" },
+      { "input": 3, "output": 15 }
+    ],
+    "claude-flat-1": [{ "input": 1, "output": 5 }]
+  }
+}

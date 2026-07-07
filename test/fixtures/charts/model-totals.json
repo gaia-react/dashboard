@@ -1,0 +1,6 @@
+[
+  {"label": "claude-opus-4", "value": 8200000},
+  {"label": "claude-sonnet-4-5", "value": 3100000},
+  {"label": "claude-haiku-4", "value": 900000},
+  {"label": "claude-3-7-sonnet", "value": 400000}
+]

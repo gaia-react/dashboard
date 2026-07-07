@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "plans": [
+    {
+      "id": "PLAN-001",
+      "allocated_at": "2026-06-20T08:45:00Z",
+      "source": "allocated",
+      "subject": "Fixture: pre-SPEC-024 execute rows resolved by max-seq fallback.",
+      "status": "completed",
+      "completed_at": "2026-06-20T09:20:00Z"
+    }
+  ]
+}

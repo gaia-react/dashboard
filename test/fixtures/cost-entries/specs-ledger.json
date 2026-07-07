@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "specs": [
+    {
+      "id": "SPEC-200",
+      "allocated_at": "2026-06-01T08:00:00Z",
+      "source": "allocated",
+      "status": "merged",
+      "intent": "Fixture: multi-session spec (two execute sessions plus a spec session).",
+      "merged_at": "2026-06-02T10:00:00Z"
+    },
+    {
+      "id": "SPEC-201",
+      "allocated_at": "2026-06-03T07:00:00Z",
+      "source": "allocated",
+      "status": "draft",
+      "intent": "Fixture: mixed sources (native spec phase, backfill execute phase)."
+    },
+    {
+      "id": "SPEC-202",
+      "allocated_at": "2026-06-10T08:00:00Z",
+      "source": "allocated",
+      "status": "draft",
+      "intent": "Fixture: no cost from any source."
+    }
+  ]
+}

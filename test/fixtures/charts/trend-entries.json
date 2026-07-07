@@ -1,0 +1,8 @@
+[
+  {"id": "SPEC-001", "label": "Add token rollup", "kind": "dollars", "value": 12.5},
+  {"id": "SPEC-002", "label": "Backfill archive", "kind": "tokens", "value": 5400000},
+  {"id": "PLAN-001", "label": "Dashboard plan", "kind": "dollars", "value": 3.2},
+  {"id": "SPEC-003", "label": "Ledger repair", "kind": "dollars", "value": 21.75},
+  {"id": "PLAN-002", "label": "Docs sweep", "kind": "tokens", "value": 1200000},
+  {"id": "SPEC-004", "label": "Session scan", "kind": "tokens", "value": 8000000}
+]

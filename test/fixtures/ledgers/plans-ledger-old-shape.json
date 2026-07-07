@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "plans": [
+    {
+      "id": "PLAN-001",
+      "allocated_at": "2026-06-20T08:00:00Z",
+      "source": "allocated",
+      "subject": "Old-shape plan row without lifecycle fields."
+    },
+    {
+      "id": "PLAN-002",
+      "allocated_at": "2026-06-21T09:00:00Z",
+      "source": "backfilled",
+      "subject": ""
+    }
+  ]
+}

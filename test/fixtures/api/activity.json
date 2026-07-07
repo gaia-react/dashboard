@@ -1,0 +1,69 @@
+{
+  "scan": {
+    "sessionCount": 2,
+    "fileCount": 3,
+    "scannedAt": "2026-07-05T12:00:00Z",
+    "activitySince": "2026-05-05T00:00:00Z"
+  },
+  "kpis": {
+    "totalBuckets": {
+      "freshInput": 1000,
+      "cacheWrite": 2000,
+      "cacheRead": 30000,
+      "output": 500
+    },
+    "activeDays": 2,
+    "estimatedAdHocDollars": {"value": 1.25, "lowerBound": false}
+  },
+  "heatmap": [
+    {
+      "date": "2026-07-04",
+      "buckets": {
+        "freshInput": 1000,
+        "cacheWrite": 2000,
+        "cacheRead": 30000,
+        "output": 500
+      },
+      "sessionCount": 2
+    }
+  ],
+  "modelTotals": [
+    {
+      "model": "claude-opus-4-8",
+      "buckets": {
+        "freshInput": 1000,
+        "cacheWrite": 2000,
+        "cacheRead": 30000,
+        "output": 500
+      }
+    }
+  ],
+  "modelWeekly": [
+    {"weekStart": "2026-06-29", "outputByModel": {"claude-opus-4-8": 500}}
+  ],
+  "sessions": [
+    {
+      "sessionId": "3158fe6d-4480-42d3-8e70-1c4ecbfc2057",
+      "title": "Wire cost telemetry into the ledger",
+      "startedAt": "2026-07-04T16:01:52Z",
+      "endedAt": "2026-07-04T16:30:07Z",
+      "durationSeconds": 1695,
+      "models": ["claude-opus-4-8"],
+      "buckets": {
+        "freshInput": 1000,
+        "cacheWrite": 2000,
+        "cacheRead": 30000,
+        "output": 500
+      },
+      "turnCount": 12,
+      "gitBranch": "spec-023-cost-artifacts",
+      "attribution": {"entryType": "spec", "key": "SPEC-023"},
+      "dollars": {"basis": "recorded", "value": 14.35, "lowerBound": false}
+    }
+  ],
+  "parseHealth": {
+    "skippedLines": 0,
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

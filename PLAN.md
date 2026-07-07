@@ -23,7 +23,7 @@ Every mark is a rectangle plus text. No curves, no brushing, no zoom, no polar c
 - **visx**: closer fit (headless, modular), but for band + linear scales and rect marks it buys us ~100 lines of scale math at the price of 8-10 packages and their upgrade surface. We would still hand-compose every chart.
 - **Hand-rolled**: the heatmap is hand-rolled regardless (SPEC §8), the remaining three charts are rect layout over two trivial scale helpers (linear, band). Full token theming for free, matches DESIGN.md's hand-coded ethos, zero bundle cost.
 
-Verdict: a small internal chart kit in `app/components/charts/`: `scale-helpers.ts` (linear + band), `date-helpers.ts` (local-tz week/month grid math via `Intl`), shared `ChartTooltip` and `ChartLegend` components, and the four chart components. Read the `dataviz` skill before building any of it (SPEC §7). Escape hatch: if a post-v1 chart ever needs curves or interaction physics, revisit visx; nothing in the kit's public props precludes swapping internals.
+Verdict: a small internal chart kit in `app/components/Charts/`: `scale-helpers.ts` (linear + band), `date-helpers.ts` (local-tz week/month grid math via `Intl`), shared `ChartTooltip` and `ChartLegend` components, and the four chart components. Read the `dataviz` skill before building any of it (SPEC §7). Escape hatch: if a post-v1 chart ever needs curves or interaction physics, revisit visx; nothing in the kit's public props precludes swapping internals.
 
 ### D2. API granularity: two endpoints, split by cost of production
 
@@ -93,9 +93,9 @@ app/hooks/
   useDashboardData.ts        # composes costs + activity + refresh
 
 app/components/
-  charts/                    # kit: scale-helpers.ts, date-helpers.ts, ChartTooltip/, ChartLegend/,
+  Charts/                    # kit: scale-helpers.ts, date-helpers.ts, ChartTooltip/, ChartLegend/,
                              #      CalendarHeatmap/, HorizontalBars/, StackedWeeklyBars/, TrendBars/
-  sections/                  # DashboardHeader/, KpiRow/, CostTable/, ActivityHeatmap/,
+  Sections/                  # DashboardHeader/, KpiRow/, CostTable/, ActivityHeatmap/,
                              #      ModelMix/, SessionsList/, CostTrend/, ParseHealth/
   App/                       # page composition (exists; grows a section grid)
 
@@ -304,6 +304,8 @@ Walk SPEC §9 end to end:
 ## 5. Execution orchestration: Workflow fan-out
 
 Execution MUST use the Workflow tool to fan out agent teams, phase by phase, parallel wherever the dependency graph allows. Do not run the parallel phases as one long solo session.
+
+**Model policy (user-set 2026-07-07):** the orchestrator session runs on Opus; every spawned agent (build, verify, integrate, sequential phases) runs on Sonnet via `model: 'sonnet'` in the `agent()` opts. Escalate a single agent to Opus only when it repeatedly fails its exit criteria or an integration cannot converge, and record the escalation in the checkpoint report. (P0-P2 and P4 predate this policy and ran on Fable.)
 
 **Checkpoint policy (user-approved 2026-07-05):** run continuously, but STOP and wait for user review after P1 (parsers proven on fixtures), after P3 (first live `../gaia` contact: report perf timings and read-only audit results), and after P5 (full UI composed: user reviews the rendered dashboard before acceptance). Other phase boundaries advance without approval once exit criteria pass. Hard blockers (new dependency needed, perf budget failure, unresolvable gate failure, contract mismatch vs real data) stop execution at any point.
 

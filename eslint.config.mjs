@@ -11,7 +11,10 @@ export default defineConfig([
   // @stylistic namespaces in universal (no-`files`) config objects, but only
   // registers those plugins for JS/TS scopes, so a non-JS file has no matching
   // plugin. Mirrors gaia's own `lint.ignores({extra: ['.gaia/**']})`.
-  ...lint.ignores({extra: ['test/fixtures/**']}),
+  // `.claude/**` holds vendored Claude Code skills and hooks (third-party
+  // scripts, e.g. .claude/skills/impeccable/), not project source; the
+  // project gate must not lint them.
+  ...lint.ignores({extra: ['test/fixtures/**', '.claude/**']}),
   ...lint.base,
   ...lint.react,
   ...lint.testing,

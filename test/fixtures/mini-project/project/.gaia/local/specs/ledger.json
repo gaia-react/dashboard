@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "specs": [
+    {
+      "id": "SPEC-100",
+      "allocated_at": "2026-06-28T09:00:00Z",
+      "source": "allocated",
+      "status": "merged",
+      "intent": "Fixture: worktree cost tracking end to end.",
+      "merged_at": "2026-07-02T09:00:00Z"
+    },
+    {
+      "id": "SPEC-102",
+      "allocated_at": "2026-07-02T10:00:00Z",
+      "source": "backfilled",
+      "status": "merged",
+      "intent": "Fixture: vintage backfill coverage for an archived spec.",
+      "merged_at": "2026-07-03T13:00:00Z"
+    },
+    {
+      "id": "SPEC-103",
+      "allocated_at": "2026-07-05T08:00:00Z",
+      "source": "allocated",
+      "status": "draft",
+      "intent": "Fixture: allocated spec with no cost from any source."
+    }
+  ]
+}
