@@ -10,34 +10,34 @@ const entry = (sortAt: string, recordedDollars: null | number): SpendEntry => ({
   totals: {recordedDollars},
 });
 
-const adHocSession = (endedAt: string, value: number): AdHocSession => ({
+const adHocSession = (startedAt: string, value: number): AdHocSession => ({
   attribution: null,
   dollars: {basis: 'estimated', lowerBound: false, value},
-  endedAt,
+  startedAt,
 });
 
 /** Attributed to a spec/plan; deriveEstimatedAdHocDollars excludes it. */
-const attributedSession = (endedAt: string, value: number): AdHocSession => ({
+const attributedSession = (startedAt: string, value: number): AdHocSession => ({
   attribution: {entryType: 'spec', key: 'SPEC-001'},
   dollars: {basis: 'estimated', lowerBound: false, value},
-  endedAt,
+  startedAt,
 });
 
 /** Ad hoc but priced by the RECORDED path; deriveEstimatedAdHocDollars
  * excludes it too, the estimate and the record never sum. */
 const recordedAdHocSession = (
-  endedAt: string,
+  startedAt: string,
   value: number
 ): AdHocSession => ({
   attribution: null,
   dollars: {basis: 'recorded', lowerBound: false, value},
-  endedAt,
+  startedAt,
 });
 
-const unpricedSession = (endedAt: string): AdHocSession => ({
+const unpricedSession = (startedAt: string): AdHocSession => ({
   attribution: null,
   dollars: null,
-  endedAt,
+  startedAt,
 });
 
 describe('buildPeriodSpend', () => {

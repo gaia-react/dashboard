@@ -115,6 +115,41 @@ test('recorded appears only in its priced weeks while ad hoc spans the whole act
   ).toBeInTheDocument();
 });
 
+test('a recorded entry backfilled earlier than activitySince still counts, not clipped out of the window', () => {
+  // Cost tracking and session history are reconciled from two separate
+  // sources (OVERVIEW.md), so either side's "since" mark can predate the
+  // other's. activitySince alone (Jun 1) would clip this May 25 backfilled
+  // entry out of the window; costs.coverage.costSince and the entry's own
+  // sortAt must pull the start back to include it.
+  const [firstEntry, ...restEntries] = multiPeriodCosts.entries;
+  const backfilledCosts: CostsResponse = {
+    ...multiPeriodCosts,
+    coverage: {costSince: '2026-05-25T00:00:00Z'},
+    entries: [
+      {
+        ...firstEntry,
+        sortAt: '2026-05-25T09:00:00Z',
+        totals: {...firstEntry.totals, recordedDollars: 7},
+      },
+      ...restEntries,
+    ],
+  };
+
+  render(
+    <CostTrend
+      activity={populatedActivity}
+      costs={backfilledCosts}
+      locale="en-US"
+    />
+  );
+
+  expect(
+    screen.getByRole('graphics-symbol', {
+      name: `${weekLabel('2026-05-25')}: spec & plan (recorded) $7.00, ad hoc (estimated) $0.00`,
+    })
+  ).toBeInTheDocument();
+});
+
 test('the ad-hoc series sums to the same total as kpis.estimatedAdHocDollars', () => {
   render(
     <CostTrend

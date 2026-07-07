@@ -52,26 +52,68 @@ const formatPeriodLabel = (
     );
 
 /**
+ * Earliest / latest of a set of possibly-null ISO-8601 timestamps, or
+ * undefined when none are dated. ISO-8601 strings sort chronologically under
+ * default lexicographic order, so `toSorted()` yields the min/max. Do NOT
+ * "simplify" these to `Math.min`/`Math.max` (which coerce the strings to NaN
+ * and collapse the whole window) or to a bare `reduce` (reduce-initial-value).
+ */
+const earliestOf = (
+  values: (null | string | undefined)[]
+): string | undefined => {
+  const dated = values.filter(
+    (value): value is string => value !== null && value !== undefined
+  );
+
+  return dated.toSorted((a, b) => a.localeCompare(b)).at(0);
+};
+
+const latestOf = (
+  values: (null | string | undefined)[]
+): string | undefined => {
+  const dated = values.filter(
+    (value): value is string => value !== null && value !== undefined
+  );
+
+  return dated.toSorted((a, b) => a.localeCompare(b)).at(-1);
+};
+
+/**
  * The window spans the whole project's activity (SPEC 6.7 ad-hoc overlay),
- * not just where cost tracking exists: `activity.scan.activitySince` is the
- * earliest timed session across the whole scan, the same "since" shape as
- * `coverage.costSince` on the cost side. Ends at the later of the activity
- * scan's own snapshot time and the last cost entry (both should track
- * "now" closely; the comparison is a cheap safety net, not a real gap).
+ * not just where cost tracking exists, and it must never clip a real dollar
+ * in either series: costs and activity are two separately-reconciled data
+ * sources (OVERVIEW.md), so either one's "since" mark can predate the
+ * other's. Start is the earliest of both sides' "since" marks and both
+ * series' actual earliest dated dollar; end is the latest of "now"
+ * (`scannedAt`) and both series' actual latest dated dollar. Falls back to
+ * `scannedAt` (always present) when nothing is dated at all.
  */
 const resolveWindow = (
   costs: CostsResponse,
   activity: ActivityResponse
 ): {end: string; start: string} => {
+  // Same predicate as buildPeriodSpend/deriveEstimatedAdHocDollars: only
+  // ad-hoc, estimated-basis sessions carry a real ad-hoc dollar.
+  const adHocStartedAt = activity.sessions
+    .filter(
+      (session) =>
+        session.attribution === null && session.dollars?.basis === 'estimated'
+    )
+    .map((session) => session.startedAt);
+
   const start =
-    activity.scan.activitySince ??
-    costs.entries.at(0)?.sortAt ??
-    activity.scan.scannedAt;
-  const lastEntryIso = costs.entries.at(-1)?.sortAt;
+    earliestOf([
+      activity.scan.activitySince,
+      costs.coverage.costSince,
+      costs.entries.at(0)?.sortAt,
+      ...adHocStartedAt,
+    ]) ?? activity.scan.scannedAt;
   const end =
-    lastEntryIso !== undefined && lastEntryIso > activity.scan.scannedAt ?
-      lastEntryIso
-    : activity.scan.scannedAt;
+    latestOf([
+      activity.scan.scannedAt,
+      costs.entries.at(-1)?.sortAt,
+      ...adHocStartedAt,
+    ]) ?? activity.scan.scannedAt;
 
   return {end, start};
 };
@@ -134,8 +176,11 @@ const Chrome: FC<{children: ReactNode; periodWord: string}> = ({
  * prompting. The window spans the whole project's activity (not clamped to
  * where cost tracking exists), so the ad-hoc series shows the full history
  * while the recorded series naturally sits at 0 before cost tracking began.
- * Both `costs.entries` and `activity.sessions` already arrive chronological.
- * The empty state only fires when BOTH series total 0: either series alone
+ * `costs.entries` arrives chronological; `activity.sessions` arrives
+ * reverse-chronological (API contract), so `resolveWindow` never assumes
+ * session order, only `buildPeriodSpend`'s per-session bucketing, which is
+ * order-independent. The empty state only fires when BOTH series total 0:
+ * either series alone
  * carrying a nonzero total is still a real comparison worth showing.
  */
 const CostTrend: FC<CostTrendProps> = ({activity, costs, locale}) => {

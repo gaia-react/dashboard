@@ -5,7 +5,8 @@ import {toDayKey} from '~/components/Charts/date-helpers';
  * `deriveEstimatedAdHocDollars` (app/data/aggregate/activity.ts) reads off a
  * `SessionSummary`, so the same filter (attribution-null AND estimated
  * basis) reproduces its total, just bucketed by period instead of summed
- * once.
+ * once. Bucketed by `startedAt` (when the ad-hoc work began), not
+ * `endedAt`.
  */
 export type AdHocSession = {
   attribution: null | {entryType: string; key: string};
@@ -14,7 +15,7 @@ export type AdHocSession = {
     lowerBound: boolean;
     value: number;
   };
-  endedAt: string;
+  startedAt: string;
 };
 
 export type PeriodSpend = {
@@ -24,7 +25,7 @@ export type PeriodSpend = {
 
 export type PeriodSpendBucket = {
   /** Estimated ad-hoc dollars in this period; 0 where no ad-hoc session
-   * ended here. */
+   * started here. */
   adHocDollars: number;
   /** Local calendar day-key (YYYY-MM-DD) marking the period's start. */
   periodStart: string;
@@ -125,7 +126,7 @@ export const buildPeriodSpend = (
       session.attribution === null &&
       session.dollars?.basis === 'estimated'
     ) {
-      const key = toDayKey(periodStartOf(session.endedAt, granularity));
+      const key = toDayKey(periodStartOf(session.startedAt, granularity));
 
       adHocSums.set(key, (adHocSums.get(key) ?? 0) + session.dollars.value);
     }
