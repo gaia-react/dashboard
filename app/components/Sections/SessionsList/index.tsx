@@ -1,8 +1,7 @@
-import type {ChangeEventHandler, FC} from 'react';
-import {useState} from 'react';
+import type {ChangeEventHandler, FC, ReactNode} from 'react';
+import {useEffect, useRef} from 'react';
 import {twJoin, twMerge} from 'tailwind-merge';
 import EmptyState from '~/components/EmptyState';
-import type {AttributionFilterValue} from '~/components/Sections/SessionsList/format';
 import {
   ALL_MODELS_FILTER_VALUE,
   costEntryAnchorId,
@@ -11,8 +10,11 @@ import {
   formatSessionDateTime,
   formatSessionDollars,
   formatSessionDuration,
+  formatSessionModels,
   formatSessionTokenCount,
+  pageForSession,
   paginateSessions,
+  resolveSessionTypeFilter,
   sessionAnchorId,
   sessionDisplayTitle,
   totalPageCount,
@@ -20,7 +22,9 @@ import {
   uniqueModelNames,
 } from '~/components/Sections/SessionsList/format';
 import {shimmer} from '~/components/Skeleton';
+import {formatModelName} from '~/data/format/model-name';
 import type {SessionSummary} from '~/data/schemas/api';
+import {useQueryParams} from '~/hooks/useQueryParams';
 
 export type SessionsListProps = {
   /** `ActivityResponse.sessions`, reverse-chronological (the API's order). */
@@ -70,7 +74,7 @@ const SessionDollars: FC<{dollars: SessionSummary['dollars']}> = ({
   dollars,
 }) => {
   if (!dollars) {
-    return <span className="text-fg-mute text-xs">no data</span>;
+    return <span className="text-fg-mute text-xs">-</span>;
   }
 
   if (dollars.basis === 'recorded') {
@@ -97,9 +101,15 @@ const SessionDollars: FC<{dollars: SessionSummary['dollars']}> = ({
   );
 };
 
-const SessionRow: FC<{session: SessionSummary}> = ({session}) => (
+const SessionRow: FC<{isTarget: boolean; session: SessionSummary}> = ({
+  isTarget,
+  session,
+}) => (
   <li
-    className="border-border-soft flex flex-col gap-2 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+    className={twJoin(
+      'border-border-soft flex flex-col gap-2 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
+      isTarget && 'bg-accent/5 ring-accent/40 -mx-2 rounded-sm px-2 ring-1'
+    )}
     data-testid={`session-row-${session.sessionId}`}
     id={sessionAnchorId(session.sessionId)}
   >
@@ -115,7 +125,7 @@ const SessionRow: FC<{session: SessionSummary}> = ({session}) => (
         <span>{session.gitBranch ?? 'no branch'}</span>
       </p>
       <p className="text-fg-dim mt-0.5 flex flex-wrap gap-x-1 text-xs">
-        <span>{session.models.join(', ') || 'no model data'}</span>
+        <span>{formatSessionModels(session.models) || 'no model data'}</span>
         <span aria-hidden={true}>·</span>
         <span>{formatSessionTokenCount(session.buckets.output)} output</span>
         <span aria-hidden={true}>/</span>
@@ -132,68 +142,100 @@ const SessionRow: FC<{session: SessionSummary}> = ({session}) => (
   </li>
 );
 
+const EmptyChrome: FC<{children: ReactNode}> = ({children}) => (
+  <div className={sectionChromeClassName}>
+    <header>
+      <p className={eyebrowClassName}>Sessions</p>
+      <h2 className={headingClassName}>Every session</h2>
+    </header>
+    {children}
+  </div>
+);
+
 /**
- * SPEC 6.6: reverse-chronological sessions list. Client-side pagination at
- * 50/page (PLAN D5, no virtualization dependency); attribution and model
- * filters narrow the list BEFORE paging, never after. The attribution badge
- * links to the matching CostTable row (`cost-entry-<key>` anchor, SPEC
- * section 6.3's jump-link contract); recorded and estimated dollars are
- * never summed, and an estimated lower-bound figure carries an explicit
- * marker, not just a color cue (accessibility rule).
+ * SPEC 6.6: reverse-chronological sessions list. The type and model filters
+ * and the page live in the URL (`?type=&model=&page=`, feedback) so the view
+ * is shareable and a cross-tab jump-link (`?session=`) lands on a clean,
+ * unfiltered page with the target scrolled into view. Client-side pagination
+ * at 50/page (PLAN D5); filters narrow the list BEFORE paging. "GAIA" is a
+ * session attributed to a spec/plan; recorded and estimated dollars never sum,
+ * and an estimated lower-bound figure carries an explicit marker.
  */
 const SessionsList: FC<SessionsListProps> = ({sessions}) => {
-  const [attributionFilter, setAttributionFilter] =
-    useState<AttributionFilterValue>('all');
-  const [modelFilter, setModelFilter] = useState(ALL_MODELS_FILTER_VALUE);
-  const [page, setPage] = useState(1);
+  const [params, setQueryParams] = useQueryParams();
+  const typeFilter = resolveSessionTypeFilter(params.get('type'));
+  const modelFilter = params.get('model') ?? ALL_MODELS_FILTER_VALUE;
+  const pageParam = params.get('page');
+  const targetSessionId = params.get('session');
+  const scrolledForRef = useRef<null | string>(null);
 
-  const handleChangeAttributionFilter: ChangeEventHandler<HTMLSelectElement> = (
-    event
-  ) => {
-    setAttributionFilter(event.target.value as AttributionFilterValue);
-    setPage(1);
+  const {adHoc, attributed} = countSessionsByAttribution(sessions);
+  const modelOptions = uniqueModelNames(sessions);
+  const filteredSessions = filterSessions(sessions, typeFilter, modelFilter);
+  const pageCount = totalPageCount(filteredSessions.length);
+
+  // An explicit `?page=` wins; otherwise a `?session=` jump derives the page
+  // that holds its target so the row is on-screen to scroll to.
+  const targetPage =
+    targetSessionId === null ? null : (
+      pageForSession(filteredSessions, targetSessionId)
+    );
+  const requestedPage =
+    pageParam === null ? (targetPage ?? 1) : Number.parseInt(pageParam, 10);
+  const currentPage = Math.min(Math.max(1, requestedPage || 1), pageCount);
+  const pageSessions = paginateSessions(filteredSessions, currentPage);
+
+  useEffect(() => {
+    if (
+      targetSessionId === null ||
+      scrolledForRef.current === targetSessionId
+    ) {
+      return;
+    }
+
+    const element = document.querySelector(
+      `[id="${CSS.escape(sessionAnchorId(targetSessionId))}"]`
+    );
+
+    if (element) {
+      scrolledForRef.current = targetSessionId;
+      element.scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+  }, [pageSessions, targetSessionId]);
+
+  const handleChangeType: ChangeEventHandler<HTMLSelectElement> = (event) => {
+    setQueryParams({
+      page: null,
+      session: null,
+      type: event.target.value === 'all' ? null : event.target.value,
+    });
   };
 
-  const handleChangeModelFilter: ChangeEventHandler<HTMLSelectElement> = (
-    event
-  ) => {
-    setModelFilter(event.target.value);
-    setPage(1);
+  const handleChangeModel: ChangeEventHandler<HTMLSelectElement> = (event) => {
+    setQueryParams({
+      model:
+        event.target.value === ALL_MODELS_FILTER_VALUE ?
+          null
+        : event.target.value,
+      page: null,
+      session: null,
+    });
   };
 
-  const handleClickPreviousPage = (): void => {
-    setPage((currentPage) => Math.max(1, currentPage - 1));
-  };
-
-  const handleClickNextPage = (): void => {
-    setPage((currentPage) => currentPage + 1);
+  const goToPage = (page: number): void => {
+    setQueryParams({page: page <= 1 ? null : String(page), session: null});
   };
 
   if (sessions.length === 0) {
     return (
-      <div className={sectionChromeClassName}>
-        <header>
-          <p className={eyebrowClassName}>Sessions</p>
-          <h2 className={headingClassName}>Every session</h2>
-        </header>
+      <EmptyChrome>
         <EmptyState
           description="Claude Code activity will appear here once a session runs in this project."
           title="No sessions yet"
         />
-      </div>
+      </EmptyChrome>
     );
   }
-
-  const {adHoc, attributed} = countSessionsByAttribution(sessions);
-  const modelOptions = uniqueModelNames(sessions);
-  const filteredSessions = filterSessions(
-    sessions,
-    attributionFilter,
-    modelFilter
-  );
-  const pageCount = totalPageCount(filteredSessions.length);
-  const currentPage = Math.min(page, pageCount);
-  const pageSessions = paginateSessions(filteredSessions, currentPage);
 
   return (
     <div className={sectionChromeClassName}>
@@ -202,24 +244,23 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
           <p className={eyebrowClassName}>Sessions</p>
           <h2 className={headingClassName}>Every session</h2>
           <p className={captionClassName}>
-            {sessions.length} sessions · {attributed} attributed · {adHoc} ad
-            hoc
+            {sessions.length} sessions · {attributed} GAIA · {adHoc} ad hoc
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <label
             className="text-fg-mute flex items-center gap-2 text-xs"
-            htmlFor="sessions-list-attribution-filter"
+            htmlFor="sessions-list-type-filter"
           >
-            Filter by attribution
+            Type
             <select
               className={selectClassName}
-              id="sessions-list-attribution-filter"
-              onChange={handleChangeAttributionFilter}
-              value={attributionFilter}
+              id="sessions-list-type-filter"
+              onChange={handleChangeType}
+              value={typeFilter}
             >
               <option value="all">All sessions</option>
-              <option value="attributed">Attributed</option>
+              <option value="gaia">GAIA</option>
               <option value="ad-hoc">Ad hoc</option>
             </select>
           </label>
@@ -227,17 +268,17 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
             className="text-fg-mute flex items-center gap-2 text-xs"
             htmlFor="sessions-list-model-filter"
           >
-            Filter by model
+            Model
             <select
               className={selectClassName}
               id="sessions-list-model-filter"
-              onChange={handleChangeModelFilter}
+              onChange={handleChangeModel}
               value={modelFilter}
             >
               <option value={ALL_MODELS_FILTER_VALUE}>All models</option>
               {modelOptions.map((model) => (
                 <option key={model} value={model}>
-                  {model}
+                  {formatModelName(model)}
                 </option>
               ))}
             </select>
@@ -247,12 +288,16 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
 
       {pageSessions.length === 0 ?
         <EmptyState
-          description="Try a different attribution or model filter."
+          description="Try a different type or model filter."
           title="No sessions match these filters"
         />
       : <ul>
           {pageSessions.map((session) => (
-            <SessionRow key={session.sessionId} session={session} />
+            <SessionRow
+              key={session.sessionId}
+              isTarget={session.sessionId === targetSessionId}
+              session={session}
+            />
           ))}
         </ul>
       }
@@ -265,7 +310,7 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
           <button
             className={pageButtonClassName}
             disabled={currentPage <= 1}
-            onClick={handleClickPreviousPage}
+            onClick={() => goToPage(currentPage - 1)}
             type="button"
           >
             Previous page
@@ -273,7 +318,7 @@ const SessionsList: FC<SessionsListProps> = ({sessions}) => {
           <button
             className={pageButtonClassName}
             disabled={currentPage >= pageCount}
-            onClick={handleClickNextPage}
+            onClick={() => goToPage(currentPage + 1)}
             type="button"
           >
             Next page
@@ -302,7 +347,7 @@ export const SessionsListSkeleton: FC = () => (
         <p className={twMerge(eyebrowClassName, shimmer)}>Sessions</p>
         <h2 className={twMerge(headingClassName, shimmer)}>Every session</h2>
         <p className={twMerge(captionClassName, shimmer)}>
-          000 sessions · 00 attributed · 00 ad hoc
+          000 sessions · 00 GAIA · 00 ad hoc
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -328,7 +373,7 @@ export const SessionsListSkeleton: FC = () => (
               Jul 7, 2026, 3:00 PM · 42m 00s · main
             </p>
             <p className={twJoin('mt-0.5 text-xs', shimmer)}>
-              claude-opus-4-1 · 8.0K output / 54.2K total tokens
+              Claude Opus 4.8 · 8.0K output / 54.2K total tokens
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1.5">

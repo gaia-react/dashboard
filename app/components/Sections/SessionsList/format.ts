@@ -1,4 +1,5 @@
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
+import {formatModelName} from '~/data/format/model-name';
 import type {Buckets, SessionSummary} from '~/data/schemas/api';
 import {sortAlphabetically} from '~/data/sort';
 
@@ -17,7 +18,17 @@ export type AttributionCounts = {
   attributed: number;
 };
 
-export type AttributionFilterValue = 'ad-hoc' | 'all' | 'attributed';
+/**
+ * Session type filter (feedback): "GAIA" is a session attributed to a spec or
+ * plan, "ad hoc" is everything else. Kept in the URL as `?type=gaia|ad-hoc`
+ * (`all` is the default and carries no param).
+ */
+export type SessionTypeFilter = 'ad-hoc' | 'all' | 'gaia';
+
+export const resolveSessionTypeFilter = (
+  value: null | string
+): SessionTypeFilter =>
+  value === 'gaia' || value === 'ad-hoc' ? value : 'all';
 
 /**
  * Ground-truth attribution split (SPEC section 9.2): computed the same way
@@ -43,26 +54,42 @@ export const uniqueModelNames = (sessions: SessionSummary[]): string[] =>
   ]);
 
 /**
- * Attribution and model filters, applied together (PLAN D5: filters run
- * BEFORE pagination, never after).
+ * Type and model filters, applied together (PLAN D5: filters run BEFORE
+ * pagination, never after).
  */
 export const filterSessions = (
   sessions: SessionSummary[],
-  attributionFilter: AttributionFilterValue,
+  typeFilter: SessionTypeFilter,
   modelFilter: string
 ): SessionSummary[] =>
   sessions.filter((session) => {
     const isAttributed = session.attribution !== null;
-    const matchesAttribution =
-      attributionFilter === 'all' ||
-      (attributionFilter === 'attributed' && isAttributed) ||
-      (attributionFilter === 'ad-hoc' && !isAttributed);
+    const matchesType =
+      typeFilter === 'all' ||
+      (typeFilter === 'gaia' && isAttributed) ||
+      (typeFilter === 'ad-hoc' && !isAttributed);
     const matchesModel =
       modelFilter === ALL_MODELS_FILTER_VALUE ||
       session.models.includes(modelFilter);
 
-    return matchesAttribution && matchesModel;
+    return matchesType && matchesModel;
   });
+
+/**
+ * The 1-indexed page a session lands on within an already-filtered list, or
+ * null if it is not in the list (e.g. filtered out). Drives the `?session=`
+ * jump-link: the Sessions tab pages to the target so it can be scrolled in.
+ */
+export const pageForSession = (
+  sessions: SessionSummary[],
+  sessionId: string
+): null | number => {
+  const index = sessions.findIndex(
+    (session) => session.sessionId === sessionId
+  );
+
+  return index === -1 ? null : Math.floor(index / SESSIONS_PAGE_SIZE) + 1;
+};
 
 /** Slices an already-filtered list to one 1-indexed page. */
 export const paginateSessions = (
@@ -132,3 +159,7 @@ export const formatSessionDateTime = (isoTimestamp: string): string =>
 
 export const formatSessionTokenCount = (value: number): string =>
   formatCompactNumber(value, 'en-US');
+
+/** Humanized, comma-joined model list for a session row (feedback). */
+export const formatSessionModels = (models: string[]): string =>
+  models.map(formatModelName).join(', ');

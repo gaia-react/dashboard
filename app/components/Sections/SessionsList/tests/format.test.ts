@@ -8,7 +8,10 @@ import {
   formatSessionDateTime,
   formatSessionDollars,
   formatSessionDuration,
+  formatSessionModels,
+  pageForSession,
   paginateSessions,
+  resolveSessionTypeFilter,
   sessionDisplayTitle,
   SESSIONS_PAGE_SIZE,
   totalPageCount,
@@ -73,13 +76,34 @@ test('filterSessions with "all" returns every session untouched', () => {
   expect(filterSessions(sessions, 'all', 'all')).toHaveLength(54);
 });
 
-test('filterSessions narrows to attributed sessions only', () => {
-  const attributedOnly = filterSessions(sessions, 'attributed', 'all');
+test('filterSessions narrows to GAIA (attributed) sessions only', () => {
+  const gaiaOnly = filterSessions(sessions, 'gaia', 'all');
 
-  expect(attributedOnly).toHaveLength(3);
-  expect(attributedOnly.every((session) => session.attribution !== null)).toBe(
-    true
+  expect(gaiaOnly).toHaveLength(3);
+  expect(gaiaOnly.every((session) => session.attribution !== null)).toBe(true);
+});
+
+test('resolveSessionTypeFilter maps the URL value, defaulting to all', () => {
+  expect(resolveSessionTypeFilter('gaia')).toBe('gaia');
+  expect(resolveSessionTypeFilter('ad-hoc')).toBe('ad-hoc');
+  expect(resolveSessionTypeFilter(null)).toBe('all');
+  expect(resolveSessionTypeFilter('bogus')).toBe('all');
+});
+
+test('pageForSession finds the 1-indexed page holding a session, else null', () => {
+  const first = sessions[0]?.sessionId ?? '';
+  const onPageTwo = sessions[SESSIONS_PAGE_SIZE]?.sessionId ?? '';
+
+  expect(pageForSession(sessions, first)).toBe(1);
+  expect(pageForSession(sessions, onPageTwo)).toBe(2);
+  expect(pageForSession(sessions, 'not-a-real-id')).toBeNull();
+});
+
+test('formatSessionModels humanizes and joins model ids', () => {
+  expect(formatSessionModels(['claude-opus-4-8', 'claude-sonnet-5'])).toBe(
+    'Claude Opus 4.8, Claude Sonnet 5'
   );
+  expect(formatSessionModels([])).toBe('');
 });
 
 test('filterSessions narrows to ad hoc sessions only', () => {
@@ -96,7 +120,7 @@ test('filterSessions narrows by model', () => {
   expect(haikuOnly[0]?.sessionId).toBe('aaaaaaaa-0000-4000-8000-000000000002');
 });
 
-test('filterSessions applies attribution and model filters together', () => {
+test('filterSessions applies type and model filters together', () => {
   const combined = filterSessions(sessions, 'ad-hoc', 'claude-sonnet-4-5');
 
   // The two ad hoc claude-sonnet-4-5 sessions (one multi-model) plus every
