@@ -7,7 +7,7 @@
   "rateTable": {"id": null, "status": "missing"},
   "coverage": {"costSince": null},
   "kpis": {
-    "plans": {"total": 0},
+    "plans": {"merged": 0, "total": 0},
     "recordedDollars": 0,
     "specs": {"merged": 0, "total": 0}
   },

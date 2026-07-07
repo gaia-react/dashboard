@@ -7,7 +7,7 @@
   "rateTable": {"id": "sha256:fixture", "status": "ok"},
   "coverage": {"costSince": "2026-07-01T00:00:00Z"},
   "kpis": {
-    "plans": {"total": 2},
+    "plans": {"merged": 1, "total": 2},
     "recordedDollars": 34.25,
     "specs": {"merged": 2, "total": 3}
   },

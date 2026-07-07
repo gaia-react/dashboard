@@ -9,7 +9,7 @@
   "kpis": {
     "recordedDollars": 14.35,
     "specs": {"merged": 20, "total": 23},
-    "plans": {"total": 6}
+    "plans": {"merged": 3, "total": 6}
   },
   "entries": [
     {

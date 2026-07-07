@@ -220,13 +220,19 @@ export const getCosts = async (
   const mergedSpecCount = specRead.result.entries.filter(
     (entry) => entry.status === 'merged'
   ).length;
+  const mergedPlanCount = planRead.result.entries.filter(
+    (entry) => entry.status === 'merged'
+  ).length;
 
   return costsResponseSchema.parse({
     coverage: {costSince},
     entries,
     kpis: {
       // Pre-ledger slug plans count toward the plans KPI (SPEC section 4.5).
-      plans: {total: planRead.result.entries.length + slugPlanCount},
+      plans: {
+        merged: mergedPlanCount,
+        total: planRead.result.entries.length + slugPlanCount,
+      },
       recordedDollars,
       specs: {
         merged: mergedSpecCount,

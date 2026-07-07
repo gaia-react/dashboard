@@ -58,8 +58,9 @@ describe('getCosts on the mini-project composite fixture', () => {
     // Earliest coverage: PLAN-001's terminal row started_at.
     expect(response.coverage.costSince).toBe('2026-06-20T09:00:00.000Z');
     expect(response.kpis.specs).toEqual({merged: 2, total: 3});
-    // 1 ledger plan + 1 pre-ledger slug plan.
-    expect(response.kpis.plans).toEqual({total: 2});
+    // 1 ledger plan + 1 pre-ledger slug plan; the ledger plan's legacy
+    // `completed` status is NOT counted as merged (strict normalized vocab).
+    expect(response.kpis.plans).toEqual({merged: 0, total: 2});
     // 1.37 (SPEC-100 native) + 13.58 (legacy-plan backfill), recorded only.
     expect(response.kpis.recordedDollars).toBeCloseTo(14.95, 10);
   });
@@ -133,7 +134,7 @@ describe('getCosts on the empty-project fixture', () => {
     expect(response.entries).toEqual([]);
     expect(response.coverage.costSince).toBeNull();
     expect(response.kpis).toEqual({
-      plans: {total: 0},
+      plans: {merged: 0, total: 0},
       recordedDollars: 0,
       specs: {merged: 0, total: 0},
     });

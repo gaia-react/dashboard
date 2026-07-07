@@ -111,7 +111,7 @@ const validCostsResponse: CostsResponse = {
     },
   ],
   kpis: {
-    plans: {total: 1},
+    plans: {merged: 1, total: 1},
     recordedDollars: 14.95,
     specs: {merged: 2, total: 3},
   },

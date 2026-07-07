@@ -129,7 +129,9 @@ export const costsResponseSchema = z.object({
   /** Section 6.3 rows, chronological. */
   entries: z.array(costEntrySchema),
   kpis: z.object({
-    plans: z.object({total: z.number()}),
+    /** `merged` counts ledger plans with a normalized `merged` status; slug
+     * (pre-ledger) plans have no status and count only toward `total`. */
+    plans: z.object({merged: z.number(), total: z.number()}),
     /** Tiers 1+2 only, never mixed with estimates (SPEC section 5 rule 3). */
     recordedDollars: z.number(),
     specs: z.object({merged: z.number(), total: z.number()}),
