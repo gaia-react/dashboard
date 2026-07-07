@@ -1,0 +1,28 @@
+{
+  "counters": [
+    {
+      "filesScanned": 1,
+      "filesUnparseable": 0,
+      "linesRead": 512,
+      "linesSkipped": 0,
+      "source": "cost.jsonl"
+    },
+    {
+      "filesScanned": 1,
+      "filesUnparseable": 0,
+      "linesRead": 0,
+      "linesSkipped": 0,
+      "source": "specs/ledger.json"
+    },
+    {
+      "filesScanned": 1,
+      "filesUnparseable": 0,
+      "linesRead": 0,
+      "linesSkipped": 0,
+      "source": "plans/ledger.json"
+    }
+  ],
+  "notes": [],
+  "unknownKinds": [],
+  "unknownStatuses": []
+}

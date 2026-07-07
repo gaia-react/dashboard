@@ -32,6 +32,18 @@
 
   --color-border: #3d3d3a;
   --color-border-soft: #2e2e2b;
+
+  --animate-shimmer: shimmer 2s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
 @layer base {
@@ -40,7 +52,7 @@
   }
 
   body {
-    @apply bg-bg font-sans text-fg;
+    @apply bg-bg text-fg font-sans;
   }
 
   h1,
@@ -52,6 +64,15 @@
   }
 
   a {
-    @apply text-accent no-underline hover:text-accent-2 hover:underline;
+    @apply text-accent hover:text-accent-2 no-underline hover:underline;
+  }
+
+  /* Tailwind v4 Preflight sets button { cursor: default }; every enabled
+     button/role="button" in this app is clickable, so restore the pointer
+     cursor here once instead of adding cursor-pointer per component
+     (feedback). Disabled controls keep the default cursor. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
   }
 }

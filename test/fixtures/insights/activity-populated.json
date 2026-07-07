@@ -1,0 +1,87 @@
+{
+  "scan": {
+    "sessionCount": 3,
+    "fileCount": 3,
+    "scannedAt": "2026-07-05T12:00:00.000Z",
+    "activitySince": "2026-06-01T00:00:00.000Z"
+  },
+  "kpis": {
+    "totalBuckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 15000},
+    "activeDays": 2,
+    "estimatedAdHocDollars": null
+  },
+  "heatmap": [
+    {
+      "date": "2026-06-01",
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 1000},
+      "sessionCount": 3
+    },
+    {
+      "date": "2026-06-02",
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 5000},
+      "sessionCount": 7
+    }
+  ],
+  "modelTotals": [
+    {
+      "model": "<synthetic>",
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 9000}
+    },
+    {
+      "model": "claude-opus-4-8",
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 4000}
+    },
+    {
+      "model": "claude-sonnet-5",
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 6000}
+    }
+  ],
+  "modelWeekly": [
+    {
+      "weekStart": "2026-06-01",
+      "outputByModel": {"claude-opus-4-8": 4000, "claude-sonnet-5": 6000}
+    }
+  ],
+  "sessions": [
+    {
+      "sessionId": "s1",
+      "title": "Short check-in",
+      "startedAt": "2026-06-01T09:00:00.000Z",
+      "endedAt": "2026-06-01T09:10:00.000Z",
+      "durationSeconds": 600,
+      "models": ["claude-opus-4-8"],
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 100},
+      "turnCount": 2,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": null
+    },
+    {
+      "sessionId": "s2",
+      "title": "Longest session ever",
+      "startedAt": "2026-06-02T08:00:00.000Z",
+      "endedAt": "2026-06-02T10:00:00.000Z",
+      "durationSeconds": 7200,
+      "models": ["claude-sonnet-5"],
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 3000},
+      "turnCount": 20,
+      "gitBranch": "feat/dashboard-v1",
+      "attribution": {"entryType": "spec", "key": "SPEC-002"},
+      "dollars": {"basis": "recorded", "value": 40, "lowerBound": false}
+    },
+    {
+      "sessionId": "s3",
+      "title": "Second longest",
+      "startedAt": "2026-06-02T11:00:00.000Z",
+      "endedAt": "2026-06-02T12:00:00.000Z",
+      "durationSeconds": 3600,
+      "models": ["claude-opus-4-8"],
+      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 2000},
+      "turnCount": 15,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {"basis": "estimated", "value": 5, "lowerBound": true}
+    }
+  ],
+  "parseHealth": {"counters": [], "notes": [], "unknownKinds": [], "unknownStatuses": []}
+}

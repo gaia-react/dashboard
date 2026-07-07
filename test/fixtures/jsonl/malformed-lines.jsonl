@@ -1,0 +1,7 @@
+{"schema_version":1,"kind":"execute","spec_id":"SPEC-001"}
+{"schema_version":1,"kind":"spec","spec_id":"SPEC-002"}
+this is not json
+{"schema_version":1,"kind":"plan","plan_slug":"demo"}
+
+{ broken json
+{"schema_version":1,"kind":"execute","spec_id":"SPEC-003"}

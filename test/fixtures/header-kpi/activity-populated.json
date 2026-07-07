@@ -1,0 +1,86 @@
+{
+  "heatmap": [],
+  "scan": {
+    "scannedAt": "2026-07-05T12:00:00Z",
+    "fileCount": 5,
+    "sessionCount": 3,
+    "activitySince": "2026-05-05T08:00:00Z"
+  },
+  "kpis": {
+    "activeDays": 62,
+    "estimatedAdHocDollars": {
+      "value": 42.1,
+      "lowerBound": true
+    },
+    "totalBuckets": {
+      "freshInput": 1000000,
+      "cacheWrite": 3000000,
+      "cacheRead": 9000000,
+      "output": 1000000
+    }
+  },
+  "modelTotals": [],
+  "modelWeekly": [],
+  "sessions": [
+    {
+      "sessionId": "3158fe6d-4480-42d3-8e70-1c4ecbfc2057",
+      "startedAt": "2026-07-04T16:01:52Z",
+      "endedAt": "2026-07-04T16:30:07Z",
+      "durationSeconds": 1695,
+      "turnCount": 12,
+      "models": ["claude-opus-4-8"],
+      "buckets": {
+        "freshInput": 60546,
+        "cacheWrite": 854188,
+        "cacheRead": 13369755,
+        "output": 57898
+      },
+      "gitBranch": "spec-023-cost-artifacts",
+      "title": "Cost artifacts and telemetry for the dashboard",
+      "attribution": {"entryType": "spec", "key": "SPEC-023"},
+      "dollars": {"basis": "recorded", "value": 14.35, "lowerBound": false}
+    },
+    {
+      "sessionId": "22222222-2222-2222-2222-222222222222",
+      "startedAt": "2026-06-01T10:00:00Z",
+      "endedAt": "2026-06-01T10:45:00Z",
+      "durationSeconds": 2700,
+      "turnCount": 8,
+      "models": ["claude-haiku-4"],
+      "buckets": {
+        "freshInput": 4000,
+        "cacheWrite": 1200,
+        "cacheRead": 3000,
+        "output": 900
+      },
+      "gitBranch": null,
+      "title": "Ad hoc exploration",
+      "attribution": null,
+      "dollars": {"basis": "estimated", "value": 0.42, "lowerBound": true}
+    },
+    {
+      "sessionId": "33333333-3333-3333-3333-333333333333",
+      "startedAt": "2026-05-05T08:00:00Z",
+      "endedAt": "2026-05-05T08:20:00Z",
+      "durationSeconds": 1200,
+      "turnCount": 5,
+      "models": ["claude-sonnet-4-8"],
+      "buckets": {
+        "freshInput": 2000,
+        "cacheWrite": 600,
+        "cacheRead": 1500,
+        "output": 500
+      },
+      "gitBranch": null,
+      "title": null,
+      "attribution": null,
+      "dollars": {"basis": "estimated", "value": 0.1, "lowerBound": false}
+    }
+  ],
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

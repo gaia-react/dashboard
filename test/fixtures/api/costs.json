@@ -1,0 +1,72 @@
+{
+  "project": {
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {"status": "ok", "id": "sha256:6d17ab141d05c333"},
+  "coverage": {"costSince": "2026-07-03T00:00:00Z"},
+  "kpis": {
+    "recordedDollars": 14.35,
+    "specs": {"merged": 20, "total": 23},
+    "plans": {"merged": 3, "total": 6}
+  },
+  "entries": [
+    {
+      "key": "SPEC-023",
+      "entryType": "spec",
+      "id": "SPEC-023",
+      "title": "Cost artifacts and telemetry for the dashboard.",
+      "status": "merged",
+      "sortAt": "2026-07-04T16:01:52Z",
+      "source": "native",
+      "partial": false,
+      "totals": {
+        "buckets": {
+          "freshInput": 60546,
+          "cacheWrite": 854188,
+          "cacheRead": 13369755,
+          "output": 57898
+        },
+        "recordedDollars": 14.35,
+        "durationSeconds": 1695
+      },
+      "phases": [],
+      "sessions": [
+        {
+          "sessionId": "3158fe6d-4480-42d3-8e70-1c4ecbfc2057",
+          "kind": "execute",
+          "logFound": true
+        }
+      ]
+    }
+  ],
+  "parseHealth": {
+    "counters": [
+      {
+        "source": "cost.jsonl",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 42,
+        "linesSkipped": 0
+      },
+      {
+        "source": "specs/ledger.json",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 23,
+        "linesSkipped": 0
+      },
+      {
+        "source": "plans/ledger.json",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 6,
+        "linesSkipped": 0
+      }
+    ],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

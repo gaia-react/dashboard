@@ -1,0 +1,1330 @@
+{
+  "scan": {
+    "sessionCount": 54,
+    "fileCount": 54,
+    "scannedAt": "2026-07-07T16:00:00Z",
+    "activitySince": "2026-07-05T12:00:00Z"
+  },
+  "kpis": {
+    "totalBuckets": {
+      "freshInput": 10000,
+      "cacheWrite": 5000,
+      "cacheRead": 80000,
+      "output": 20000
+    },
+    "activeDays": 3,
+    "estimatedAdHocDollars": {
+      "value": 12.5,
+      "lowerBound": false
+    }
+  },
+  "heatmap": [],
+  "modelTotals": [],
+  "modelWeekly": [],
+  "sessions": [
+    {
+      "sessionId": "aaaaaaaa-0000-4000-8000-000000000001",
+      "title": "Ship the ledger repair",
+      "startedAt": "2026-07-07T15:00:00Z",
+      "endedAt": "2026-07-07T15:42:00Z",
+      "durationSeconds": 2520,
+      "models": [
+        "claude-opus-4-1"
+      ],
+      "buckets": {
+        "freshInput": 1200,
+        "cacheWrite": 3000,
+        "cacheRead": 42000,
+        "output": 8000
+      },
+      "turnCount": 18,
+      "gitBranch": "main",
+      "attribution": {
+        "entryType": "spec",
+        "key": "SPEC-001"
+      },
+      "dollars": {
+        "basis": "recorded",
+        "value": 14.35,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "aaaaaaaa-0000-4000-8000-000000000002",
+      "title": null,
+      "startedAt": "2026-07-07T13:00:00Z",
+      "endedAt": "2026-07-07T13:20:00Z",
+      "durationSeconds": 1200,
+      "models": [
+        "claude-haiku-4-5"
+      ],
+      "buckets": {
+        "freshInput": 200,
+        "cacheWrite": 100,
+        "cacheRead": 1500,
+        "output": 600
+      },
+      "turnCount": 6,
+      "gitBranch": "feature/pagination",
+      "attribution": {
+        "entryType": "plan",
+        "key": "PLAN-002"
+      },
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.75,
+        "lowerBound": true
+      }
+    },
+    {
+      "sessionId": "aaaaaaaa-0000-4000-8000-000000000003",
+      "title": "Debug flaky pagination",
+      "startedAt": "2026-07-07T11:00:00Z",
+      "endedAt": "2026-07-07T11:35:00Z",
+      "durationSeconds": 2100,
+      "models": [
+        "claude-sonnet-4-5",
+        "claude-opus-4-1"
+      ],
+      "buckets": {
+        "freshInput": 400,
+        "cacheWrite": 200,
+        "cacheRead": 3000,
+        "output": 1500
+      },
+      "turnCount": 9,
+      "gitBranch": "main",
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 2.1,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "aaaaaaaa-0000-4000-8000-000000000004",
+      "title": "Vintage plan archive replay",
+      "startedAt": "2026-07-07T09:00:00Z",
+      "endedAt": "2026-07-07T09:10:00Z",
+      "durationSeconds": 600,
+      "models": [
+        "claude-opus-4-1"
+      ],
+      "buckets": {
+        "freshInput": 100,
+        "cacheWrite": 50,
+        "cacheRead": 900,
+        "output": 300
+      },
+      "turnCount": 3,
+      "gitBranch": null,
+      "attribution": {
+        "entryType": "plan-slug",
+        "key": "slug:vintage-plan"
+      },
+      "dollars": null
+    },
+    {
+      "sessionId": "aaaaaaaa-0000-4000-8000-000000000005",
+      "title": "Explore rate table edge cases",
+      "startedAt": "2026-07-07T07:00:00Z",
+      "endedAt": "2026-07-07T07:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 100,
+        "output": 80
+      },
+      "turnCount": 2,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": null
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000001",
+      "title": null,
+      "startedAt": "2026-07-06T11:00:00Z",
+      "endedAt": "2026-07-06T11:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000002",
+      "title": null,
+      "startedAt": "2026-07-06T10:00:00Z",
+      "endedAt": "2026-07-06T10:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000003",
+      "title": null,
+      "startedAt": "2026-07-06T09:00:00Z",
+      "endedAt": "2026-07-06T09:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000004",
+      "title": null,
+      "startedAt": "2026-07-06T08:00:00Z",
+      "endedAt": "2026-07-06T08:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000005",
+      "title": null,
+      "startedAt": "2026-07-06T07:00:00Z",
+      "endedAt": "2026-07-06T07:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000006",
+      "title": null,
+      "startedAt": "2026-07-06T06:00:00Z",
+      "endedAt": "2026-07-06T06:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000007",
+      "title": null,
+      "startedAt": "2026-07-06T05:00:00Z",
+      "endedAt": "2026-07-06T05:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000008",
+      "title": null,
+      "startedAt": "2026-07-06T04:00:00Z",
+      "endedAt": "2026-07-06T04:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000009",
+      "title": null,
+      "startedAt": "2026-07-06T03:00:00Z",
+      "endedAt": "2026-07-06T03:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000010",
+      "title": null,
+      "startedAt": "2026-07-06T02:00:00Z",
+      "endedAt": "2026-07-06T02:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000011",
+      "title": null,
+      "startedAt": "2026-07-06T01:00:00Z",
+      "endedAt": "2026-07-06T01:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000012",
+      "title": null,
+      "startedAt": "2026-07-06T00:00:00Z",
+      "endedAt": "2026-07-06T00:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000013",
+      "title": null,
+      "startedAt": "2026-07-05T23:00:00Z",
+      "endedAt": "2026-07-05T23:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000014",
+      "title": null,
+      "startedAt": "2026-07-05T22:00:00Z",
+      "endedAt": "2026-07-05T22:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000015",
+      "title": null,
+      "startedAt": "2026-07-05T21:00:00Z",
+      "endedAt": "2026-07-05T21:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000016",
+      "title": null,
+      "startedAt": "2026-07-05T20:00:00Z",
+      "endedAt": "2026-07-05T20:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000017",
+      "title": null,
+      "startedAt": "2026-07-05T19:00:00Z",
+      "endedAt": "2026-07-05T19:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000018",
+      "title": null,
+      "startedAt": "2026-07-05T18:00:00Z",
+      "endedAt": "2026-07-05T18:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000019",
+      "title": null,
+      "startedAt": "2026-07-05T17:00:00Z",
+      "endedAt": "2026-07-05T17:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000020",
+      "title": null,
+      "startedAt": "2026-07-05T16:00:00Z",
+      "endedAt": "2026-07-05T16:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000021",
+      "title": null,
+      "startedAt": "2026-07-05T15:00:00Z",
+      "endedAt": "2026-07-05T15:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000022",
+      "title": null,
+      "startedAt": "2026-07-05T14:00:00Z",
+      "endedAt": "2026-07-05T14:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000023",
+      "title": null,
+      "startedAt": "2026-07-05T13:00:00Z",
+      "endedAt": "2026-07-05T13:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000024",
+      "title": null,
+      "startedAt": "2026-07-05T12:00:00Z",
+      "endedAt": "2026-07-05T12:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000025",
+      "title": null,
+      "startedAt": "2026-07-05T11:00:00Z",
+      "endedAt": "2026-07-05T11:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000026",
+      "title": null,
+      "startedAt": "2026-07-05T10:00:00Z",
+      "endedAt": "2026-07-05T10:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000027",
+      "title": null,
+      "startedAt": "2026-07-05T09:00:00Z",
+      "endedAt": "2026-07-05T09:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000028",
+      "title": null,
+      "startedAt": "2026-07-05T08:00:00Z",
+      "endedAt": "2026-07-05T08:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000029",
+      "title": null,
+      "startedAt": "2026-07-05T07:00:00Z",
+      "endedAt": "2026-07-05T07:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000030",
+      "title": null,
+      "startedAt": "2026-07-05T06:00:00Z",
+      "endedAt": "2026-07-05T06:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000031",
+      "title": null,
+      "startedAt": "2026-07-05T05:00:00Z",
+      "endedAt": "2026-07-05T05:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000032",
+      "title": null,
+      "startedAt": "2026-07-05T04:00:00Z",
+      "endedAt": "2026-07-05T04:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000033",
+      "title": null,
+      "startedAt": "2026-07-05T03:00:00Z",
+      "endedAt": "2026-07-05T03:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000034",
+      "title": null,
+      "startedAt": "2026-07-05T02:00:00Z",
+      "endedAt": "2026-07-05T02:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000035",
+      "title": null,
+      "startedAt": "2026-07-05T01:00:00Z",
+      "endedAt": "2026-07-05T01:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000036",
+      "title": null,
+      "startedAt": "2026-07-05T00:00:00Z",
+      "endedAt": "2026-07-05T00:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000037",
+      "title": null,
+      "startedAt": "2026-07-04T23:00:00Z",
+      "endedAt": "2026-07-04T23:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000038",
+      "title": null,
+      "startedAt": "2026-07-04T22:00:00Z",
+      "endedAt": "2026-07-04T22:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000039",
+      "title": null,
+      "startedAt": "2026-07-04T21:00:00Z",
+      "endedAt": "2026-07-04T21:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000040",
+      "title": null,
+      "startedAt": "2026-07-04T20:00:00Z",
+      "endedAt": "2026-07-04T20:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000041",
+      "title": null,
+      "startedAt": "2026-07-04T19:00:00Z",
+      "endedAt": "2026-07-04T19:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000042",
+      "title": null,
+      "startedAt": "2026-07-04T18:00:00Z",
+      "endedAt": "2026-07-04T18:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000043",
+      "title": null,
+      "startedAt": "2026-07-04T17:00:00Z",
+      "endedAt": "2026-07-04T17:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000044",
+      "title": null,
+      "startedAt": "2026-07-04T16:00:00Z",
+      "endedAt": "2026-07-04T16:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000045",
+      "title": null,
+      "startedAt": "2026-07-04T15:00:00Z",
+      "endedAt": "2026-07-04T15:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000046",
+      "title": null,
+      "startedAt": "2026-07-04T14:00:00Z",
+      "endedAt": "2026-07-04T14:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000047",
+      "title": null,
+      "startedAt": "2026-07-04T13:00:00Z",
+      "endedAt": "2026-07-04T13:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000048",
+      "title": null,
+      "startedAt": "2026-07-04T12:00:00Z",
+      "endedAt": "2026-07-04T12:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    },
+    {
+      "sessionId": "bbbbbbbb-0000-4000-8000-000000000049",
+      "title": null,
+      "startedAt": "2026-07-04T11:00:00Z",
+      "endedAt": "2026-07-04T11:05:00Z",
+      "durationSeconds": 300,
+      "models": [
+        "claude-sonnet-4-5"
+      ],
+      "buckets": {
+        "freshInput": 50,
+        "cacheWrite": 10,
+        "cacheRead": 200,
+        "output": 100
+      },
+      "turnCount": 1,
+      "gitBranch": null,
+      "attribution": null,
+      "dollars": {
+        "basis": "estimated",
+        "value": 0.05,
+        "lowerBound": false
+      }
+    }
+  ],
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

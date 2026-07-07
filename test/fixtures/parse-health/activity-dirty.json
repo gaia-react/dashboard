@@ -1,0 +1,14 @@
+{
+  "counters": [
+    {
+      "filesScanned": 46,
+      "filesUnparseable": 0,
+      "linesRead": 15230,
+      "linesSkipped": 9,
+      "source": "session-logs"
+    }
+  ],
+  "notes": [],
+  "unknownKinds": ["review"],
+  "unknownStatuses": ["paused"]
+}

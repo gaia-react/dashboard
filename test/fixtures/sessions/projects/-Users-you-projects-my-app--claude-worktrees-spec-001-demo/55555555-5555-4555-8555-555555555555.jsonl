@@ -1,0 +1,2 @@
+{"type":"mode","mode":"normal","sessionId":"55555555-5555-4555-8555-555555555555"}
+{"parentUuid":null,"isSidechain":false,"type":"assistant","uuid":"w1","timestamp":"2026-06-21T12:00:00.000Z","sessionId":"55555555-5555-4555-8555-555555555555","cwd":"/Users/you/projects/my-app/.claude/worktrees/spec-001-demo","gitBranch":"spec-001-demo","version":"2.1.0","requestId":"req_w1","message":{"id":"msg_w","type":"message","role":"assistant","model":"claude-opus-4-8","usage":{"input_tokens":11,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":4}}}

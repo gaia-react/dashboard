@@ -1,0 +1,32 @@
+{
+  "counters": [
+    {
+      "filesScanned": 1,
+      "filesUnparseable": 0,
+      "linesRead": 482,
+      "linesSkipped": 2,
+      "source": "cost.jsonl"
+    },
+    {
+      "filesScanned": 1,
+      "filesUnparseable": 0,
+      "linesRead": 0,
+      "linesSkipped": 0,
+      "source": "specs/ledger.json"
+    },
+    {
+      "filesScanned": 1,
+      "filesUnparseable": 1,
+      "linesRead": 0,
+      "linesSkipped": 0,
+      "source": "plans/ledger.json"
+    }
+  ],
+  "notes": [
+    "cost.jsonl line 210: unsupported schema_version 2",
+    "plans/ledger.json: plans ledger failed validation: unexpected token",
+    "SPEC-014 has an archived cost.md phase section with no matching cost.jsonl backfill row; the SPEC-024 backfill missed it (report to the GAIA repo, do not add a cost.md parser)"
+  ],
+  "unknownKinds": ["review"],
+  "unknownStatuses": ["superseded"]
+}

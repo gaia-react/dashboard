@@ -1,0 +1,54 @@
+[
+  {
+    "week": "2026-06-07",
+    "values": {
+      "alpha": 100,
+      "beta": 75,
+      "gamma": 50,
+      "delta": 25,
+      "echo": 20,
+      "foxtrot": 30,
+      "golf": 0,
+      "hotel": 0
+    }
+  },
+  {
+    "week": "2026-06-14",
+    "values": {
+      "alpha": 100,
+      "beta": 75,
+      "gamma": 50,
+      "delta": 25,
+      "echo": 10,
+      "foxtrot": 0,
+      "golf": 20,
+      "hotel": 0
+    }
+  },
+  {
+    "week": "2026-06-21",
+    "values": {
+      "alpha": 100,
+      "beta": 75,
+      "gamma": 50,
+      "delta": 25,
+      "echo": 10,
+      "foxtrot": 0,
+      "golf": 0,
+      "hotel": 10
+    }
+  },
+  {
+    "week": "2026-06-28",
+    "values": {
+      "alpha": 100,
+      "beta": 75,
+      "gamma": 50,
+      "delta": 25,
+      "echo": 10,
+      "foxtrot": 0,
+      "golf": 0,
+      "hotel": 0
+    }
+  }
+]
