@@ -68,6 +68,18 @@ const App = () => {
     setQueryParams({tab: id});
   };
 
+  // A cross-tab jump to one session lands on the Sessions tab with no filter
+  // or page so the target can never be filtered out of view (feedback).
+  const viewSession = (sessionId: string): void => {
+    setQueryParams({
+      model: null,
+      page: null,
+      session: sessionId,
+      tab: 'sessions',
+      type: null,
+    });
+  };
+
   return (
     <div className="min-h-dvh px-4 pb-16 md:px-8">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 pt-10">
@@ -108,6 +120,7 @@ const App = () => {
               {(costsData) => (
                 <CostTable
                   entries={costsData.entries}
+                  onViewSession={viewSession}
                   sessions={resolvedSessions}
                 />
               )}

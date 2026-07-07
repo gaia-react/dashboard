@@ -11,3 +11,12 @@ export const costEntryAnchorId = (costEntryKey: string): string =>
 
 export const sessionAnchorId = (sessionId: string): string =>
   `session-${sessionId}`;
+
+/**
+ * The deep link a "View in sessions" jump navigates to: the Sessions tab
+ * targeting one session, with no attribution/model filter or page so the
+ * target can never be filtered out of view (feedback). SessionsList reads
+ * `?session=` to page to and scroll the row into view.
+ */
+export const sessionsTabHref = (sessionId: string): string =>
+  `?tab=sessions&session=${encodeURIComponent(sessionId)}`;

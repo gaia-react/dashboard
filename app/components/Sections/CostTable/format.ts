@@ -5,13 +5,15 @@ export {costEntryAnchorId} from '~/components/Sections/anchor-ids';
 
 export {sessionAnchorId} from '~/components/Sections/anchor-ids';
 
+export {sessionsTabHref} from '~/components/Sections/anchor-ids';
+
 /**
- * Em-free label for a missing recorded-cost (or duration) figure (SPEC
- * section 6.3): "no data" renders once per gap cell, with the reason
- * explained a single time above the table (`CostTableNote`), never
- * per-cell.
+ * Placeholder for a missing recorded-cost (or duration) figure (SPEC section
+ * 6.3, feedback): a single dash renders in each gap cell, with the reason
+ * explained once above the table, never per-cell. Distinct from a real zero,
+ * which encodes as an actual `$0.00` / `0m`.
  */
-export const NO_DATA_LABEL = 'no data';
+export const NO_DATA_LABEL = '-';
 
 export const sumBuckets = (buckets: Buckets): number =>
   buckets.freshInput + buckets.cacheWrite + buckets.cacheRead + buckets.output;
