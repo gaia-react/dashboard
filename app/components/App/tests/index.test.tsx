@@ -169,33 +169,25 @@ test('the header shows a skeleton until BOTH resources resolve, then the real id
 
   render(<App />);
 
-  expect(
-    screen.getByText('project · /Users/you/projects/project')
-  ).toBeInTheDocument();
+  expect(screen.getByText('/Users/you/projects/project')).toBeInTheDocument();
 
   await waitFor(() => {
     expect(busyStateFor('Specs and plans')).toBe('false');
   });
-  expect(
-    screen.getByText('project · /Users/you/projects/project')
-  ).toBeInTheDocument();
+  expect(screen.getByText('/Users/you/projects/project')).toBeInTheDocument();
 
   await act(async () => {
     activityDeferred.resolve(jsonResponse(activityFixture));
     await activityDeferred.promise;
   });
 
-  const identity = await screen.findByText(
-    'my-app · /Users/you/projects/my-app'
-  );
+  const identity = await screen.findByText('/Users/you/projects/my-app');
 
   expect(identity).toHaveClass('text-sm', 'text-fg-dim');
   expect(
-    screen.queryByText('project · /Users/you/projects/project')
+    screen.queryByText('/Users/you/projects/project')
   ).not.toBeInTheDocument();
-  expect(
-    screen.getByText(/^Scanned 2 sessions · 23 specs ·/)
-  ).toBeInTheDocument();
+  expect(screen.getByText('Scanned 2 sessions · 23 specs')).toBeInTheDocument();
 });
 
 test('the refresh button refetches both endpoints', async () => {
@@ -210,7 +202,7 @@ test('the refresh button refetches both endpoints', async () => {
     expectAllBusy(workTabLabels, false);
   });
 
-  fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
+  fireEvent.click(screen.getByRole('button', {name: 'Refresh data'}));
 
   await waitFor(() => {
     expect(callsTo(fetchMock, '/api/costs')).toBe(2);
@@ -245,9 +237,7 @@ test('a costs failure surfaces an error with a retry on every mounted section th
   fireEvent.click(screen.getAllByRole('button', {name: 'Retry'})[0]);
 
   await waitFor(() => {
-    expect(
-      screen.getByText('my-app · /Users/you/projects/my-app')
-    ).toBeInTheDocument();
+    expect(screen.getByText('/Users/you/projects/my-app')).toBeInTheDocument();
   });
   expect(screen.queryAllByRole('alert')).toHaveLength(0);
   expect(callsTo(fetchMock, '/api/costs')).toBe(2);

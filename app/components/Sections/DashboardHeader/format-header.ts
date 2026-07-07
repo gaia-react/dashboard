@@ -6,43 +6,8 @@
  * viewer's local zone (SPEC section 5).
  */
 
-const SECONDS_PER_MINUTE = 60;
-const MINUTES_PER_HOUR = 60;
-const HOURS_PER_DAY = 24;
-
 const pluralize = (count: number, noun: string): string =>
   `${count} ${noun}${count === 1 ? '' : 's'}`;
-
-/** Relative recency for the freshness line ("just now", "5 minutes ago"). */
-export const formatScannedAt = (
-  scannedAt: string,
-  now: Date = new Date()
-): string => {
-  const elapsedSeconds = Math.max(
-    0,
-    (now.getTime() - new Date(scannedAt).getTime()) / 1000
-  );
-
-  if (elapsedSeconds < SECONDS_PER_MINUTE) {
-    return 'just now';
-  }
-
-  const elapsedMinutes = Math.floor(elapsedSeconds / SECONDS_PER_MINUTE);
-
-  if (elapsedMinutes < MINUTES_PER_HOUR) {
-    return `${pluralize(elapsedMinutes, 'minute')} ago`;
-  }
-
-  const elapsedHours = Math.floor(elapsedMinutes / MINUTES_PER_HOUR);
-
-  if (elapsedHours < HOURS_PER_DAY) {
-    return `${pluralize(elapsedHours, 'hour')} ago`;
-  }
-
-  const elapsedDays = Math.floor(elapsedHours / HOURS_PER_DAY);
-
-  return `${pluralize(elapsedDays, 'day')} ago`;
-};
 
 /** A UTC instant as a `YYYY-MM-DD` calendar date in the given (or local) zone. */
 export const formatLocalDate = (
@@ -86,13 +51,14 @@ export const formatProjectStart = (
 };
 
 export type FreshnessLineInput = {
-  scannedAt: string;
   sessionCount: number;
   specsTotal: number;
 };
 
-export const formatFreshnessLine = (
-  input: FreshnessLineInput,
-  now?: Date
-): string =>
-  `Scanned ${pluralize(input.sessionCount, 'session')} · ${pluralize(input.specsTotal, 'spec')} · ${formatScannedAt(input.scannedAt, now)}`;
+/**
+ * Scan-summary line: session/spec counts (SPEC 6.1). Recency now lives on
+ * the refresh button (feedback), via `useRelativeTime`, so this line no
+ * longer carries a "just now" tail.
+ */
+export const formatFreshnessLine = (input: FreshnessLineInput): string =>
+  `Scanned ${pluralize(input.sessionCount, 'session')} · ${pluralize(input.specsTotal, 'spec')}`;

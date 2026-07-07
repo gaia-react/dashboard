@@ -8,6 +8,7 @@ import {
 import {shimmer} from '~/components/Skeleton';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 import {useQueryParams} from '~/hooks/useQueryParams';
+import {useRelativeTime} from '~/hooks/useRelativeTime';
 
 type Props = {
   activity: ActivityResponse;
@@ -46,6 +47,7 @@ const DashboardHeader: FC<Props> = ({activity, costs, refresh}) => {
   const {costSince} = costs.coverage;
   const {activitySince, scannedAt, sessionCount} = activity.scan;
   const projectStart = formatProjectStart(costSince, activitySince);
+  const lastUpdated = useRelativeTime(new Date(scannedAt).getTime());
 
   return (
     <header className="flex flex-col gap-2">
@@ -64,23 +66,25 @@ const DashboardHeader: FC<Props> = ({activity, costs, refresh}) => {
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end gap-1">
             <h1 className={projectNameClass}>{costs.project.name}</h1>
-            <p className={projectIdentityClass}>
-              {costs.project.name} · {costs.project.root}
-            </p>
+            <p className={projectIdentityClass}>{costs.project.root}</p>
             <p className={freshnessClass}>
               {formatFreshnessLine({
-                scannedAt,
                 sessionCount,
                 specsTotal: costs.kpis.specs.total,
               })}
             </p>
           </div>
+          {/* Accessible name stays stable ("Refresh data") rather than the
+              ticking "Last update: ..." text: a screen reader announcing a
+              changed name every 60s on an interactive control is confusing
+              (feedback: judgment call, noted for review). */}
           <button
+            aria-label="Refresh data"
             className={refreshButtonClass}
             onClick={refresh}
             type="button"
           >
-            Refresh
+            Last update: {lastUpdated}
           </button>
         </div>
       </div>
@@ -112,10 +116,10 @@ export const DashboardHeaderSkeleton: FC = () => (
             className={twJoin(projectIdentityClass, shimmer)}
             data-testid="header-identity-skeleton"
           >
-            project · /Users/you/projects/project
+            /Users/you/projects/project
           </p>
           <p className={twJoin(freshnessClass, shimmer)}>
-            Scanned 0 sessions · 0 specs · just now
+            Scanned 0 sessions · 0 specs
           </p>
         </div>
         <button
@@ -123,7 +127,7 @@ export const DashboardHeaderSkeleton: FC = () => (
           tabIndex={-1}
           type="button"
         >
-          Refresh
+          Last update: Just now
         </button>
       </div>
     </div>

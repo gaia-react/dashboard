@@ -53,20 +53,17 @@ test('renders the wordmark, project name, project identity, freshness line, and 
   expect(
     screen.getByRole('heading', {level: 1, name: 'my-app'})
   ).toBeInTheDocument();
-  expect(
-    screen.getByText('my-app · /Users/you/projects/my-app')
-  ).toBeInTheDocument();
-  // Recency wording ("just now" vs "N days ago") depends on wall-clock time
-  // relative to the fixed fixture timestamp; format-header.test.ts already
-  // pins the exact bucketing under a controlled clock, so only the
-  // session/spec-count prefix is asserted here.
-  expect(
-    screen.getByText((content) =>
-      content.startsWith('Scanned 3 sessions · 23 specs ·')
-    )
-  ).toBeInTheDocument();
+  expect(screen.getByText('/Users/you/projects/my-app')).toBeInTheDocument();
+  expect(screen.getByText('Scanned 3 sessions · 23 specs')).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
+  // The refresh button keeps a stable accessible name ("Refresh data");
+  // its visible text carries the ticking "Last update: ..." caption, whose
+  // exact wording depends on wall-clock time relative to the fixed fixture
+  // timestamp (useRelativeTime.test.ts pins the exact bucketing).
+  const refreshButton = screen.getByRole('button', {name: 'Refresh data'});
+  expect(refreshButton).toHaveTextContent(/^Last update: /);
+
+  fireEvent.click(refreshButton);
   expect(refresh).toHaveBeenCalledTimes(1);
 });
 
@@ -115,11 +112,7 @@ test('derives the project start from activity alone when there is no cost histor
 
   expect(screen.getByText(/^Project started /)).toBeInTheDocument();
   // Freshness still populates from activity alone (empty-project state).
-  expect(
-    screen.getByText((content) =>
-      content.startsWith('Scanned 2 sessions · 0 specs ·')
-    )
-  ).toBeInTheDocument();
+  expect(screen.getByText('Scanned 2 sessions · 0 specs')).toBeInTheDocument();
 });
 
 test('the skeleton mirrors the identity block max width so the data swap does not reflow', () => {
@@ -138,7 +131,7 @@ test('the skeleton mirrors the identity block max width so the data swap does no
       refresh={vi.fn()}
     />
   );
-  const realIdentity = screen.getByText('my-app · /Users/you/projects/my-app');
+  const realIdentity = screen.getByText('/Users/you/projects/my-app');
 
   expect(skeletonWidthClass).toBeDefined();
   expect(realIdentity).toHaveClass(skeletonWidthClass as string);
