@@ -1,0 +1,16 @@
+{
+  "project": {
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {"status": "missing", "id": null},
+  "coverage": {"costSince": null},
+  "kpis": {
+    "recordedDollars": 0,
+    "specs": {"merged": 0, "total": 0},
+    "plans": {"merged": 0, "total": 0}
+  },
+  "entries": [],
+  "parseHealth": {"counters": [], "notes": [], "unknownKinds": [], "unknownStatuses": []}
+}

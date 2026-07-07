@@ -1,0 +1,85 @@
+{
+  "project": {
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {"status": "ok", "id": "sha256:6d17ab141d05c333"},
+  "coverage": {"costSince": "2026-06-01T00:00:00.000Z"},
+  "kpis": {
+    "recordedDollars": 52.5,
+    "specs": {"merged": 2, "total": 3},
+    "plans": {"merged": 0, "total": 1}
+  },
+  "entries": [
+    {
+      "key": "SPEC-001",
+      "entryType": "spec",
+      "id": "SPEC-001",
+      "title": "Add token rollup",
+      "status": "merged",
+      "sortAt": "2026-06-01T00:00:00.000Z",
+      "source": "native",
+      "partial": false,
+      "totals": {
+        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "recordedDollars": 12.5,
+        "durationSeconds": 3600
+      },
+      "phases": [],
+      "sessions": []
+    },
+    {
+      "key": "SPEC-002",
+      "entryType": "spec",
+      "id": "SPEC-002",
+      "title": "Backfill archive",
+      "status": "merged",
+      "sortAt": "2026-06-02T00:00:00.000Z",
+      "source": "native",
+      "partial": false,
+      "totals": {
+        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "recordedDollars": 40,
+        "durationSeconds": 5400
+      },
+      "phases": [],
+      "sessions": []
+    },
+    {
+      "key": "PLAN-003",
+      "entryType": "plan",
+      "id": "PLAN-003",
+      "title": "Ledger repair",
+      "status": "in-progress",
+      "sortAt": "2026-06-03T00:00:00.000Z",
+      "source": "backfill",
+      "partial": true,
+      "totals": {
+        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "recordedDollars": null,
+        "durationSeconds": 1800
+      },
+      "phases": [],
+      "sessions": []
+    },
+    {
+      "key": "SPEC-004",
+      "entryType": "spec",
+      "id": "SPEC-004",
+      "title": "Zero cost work",
+      "status": "merged",
+      "sortAt": "2026-06-04T00:00:00.000Z",
+      "source": "native",
+      "partial": false,
+      "totals": {
+        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "recordedDollars": 0,
+        "durationSeconds": 600
+      },
+      "phases": [],
+      "sessions": []
+    }
+  ],
+  "parseHealth": {"counters": [], "notes": [], "unknownKinds": [], "unknownStatuses": []}
+}
