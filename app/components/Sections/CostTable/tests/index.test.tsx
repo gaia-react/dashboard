@@ -115,12 +115,10 @@ test('drops the source column but keeps the partial marker on the status cell', 
   expect(within(partialRow).getByText('Partial')).toBeInTheDocument();
 });
 
-test('renames the money and duration headers to Cost $ and Time', () => {
+test('renames the money and duration headers to Cost and Time', () => {
   render(<CostTable entries={populatedEntries} />);
 
-  expect(
-    screen.getByRole('columnheader', {name: 'Cost $'})
-  ).toBeInTheDocument();
+  expect(screen.getByRole('columnheader', {name: 'Cost'})).toBeInTheDocument();
   expect(screen.getByRole('columnheader', {name: 'Time'})).toBeInTheDocument();
   expect(
     screen.queryByRole('columnheader', {name: 'Recorded $'})
@@ -211,6 +209,17 @@ test('expanding a native row reveals per-phase detail with humanized labels', ()
   expect(within(detail).getByText('Claude Sonnet 4.6')).toBeInTheDocument();
   expect(within(detail).getAllByText('Main').length).toBeGreaterThan(0);
   expect(within(detail).getByText('General purpose')).toBeInTheDocument();
+});
+
+test('shows the entry total tokens on the phases heading line', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  fireEvent.click(screen.getByRole('button', {name: /expand spec-201/i}));
+
+  const detail = screen.getByTestId('cost-row-detail-SPEC-201');
+
+  // Buckets 12000 + 4000 + 50000 + 8000 = 74000 -> compact "74K".
+  expect(within(detail).getByText('Total tokens: 74K')).toBeInTheDocument();
 });
 
 test('expanding a backfill-only row shows phase detail with no breakdown', () => {
@@ -330,6 +339,61 @@ test('clicking a header sorts ascending, clicking it again reverses to descendin
   expect(dataRowKeys()).toEqual(ascendingOrder.toReversed());
 });
 
+test('sorting a column closes every expanded row, including a ?entry= deep-link target', async () => {
+  window.history.replaceState(null, '', '/?entry=SPEC-201');
+
+  render(<CostTable entries={populatedEntries} />);
+
+  // The deep link expanded SPEC-201; expand SPEC-150 too via a plain click.
+  expect(screen.getByTestId('cost-row-detail-SPEC-201')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', {name: /expand spec-150/i}));
+  expect(screen.getByTestId('cost-row-detail-SPEC-150')).toBeInTheDocument();
+
+  fireEvent.click(
+    within(screen.getByRole('columnheader', {name: 'Title'})).getByRole(
+      'button'
+    )
+  );
+
+  // The deep-link param itself is cleared, not just the local expand state.
+  expect(window.location.search).not.toContain('entry=');
+
+  // The collapse animates, then both rows unmount.
+  await waitFor(() => {
+    expect(
+      screen.queryByTestId('cost-row-detail-SPEC-201')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('cost-row-detail-SPEC-150')
+    ).not.toBeInTheDocument();
+  });
+});
+
+test('switching between specs and plans resets the sort back to ID descending', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  fireEvent.click(
+    within(screen.getByRole('columnheader', {name: 'Title'})).getByRole(
+      'button'
+    )
+  );
+  expect(screen.getByRole('columnheader', {name: 'Title'})).toHaveAttribute(
+    'aria-sort',
+    'ascending'
+  );
+
+  showPlans();
+
+  expect(screen.getByRole('columnheader', {name: 'ID'})).toHaveAttribute(
+    'aria-sort',
+    'descending'
+  );
+  expect(screen.getByRole('columnheader', {name: 'Title'})).toHaveAttribute(
+    'aria-sort',
+    'none'
+  );
+});
+
 test('the sort button fills the whole header cell, not just the label text', () => {
   render(<CostTable entries={populatedEntries} />);
 
@@ -344,28 +408,38 @@ test('the sort button fills the whole header cell, not just the label text', () 
   expect(idHeader).toHaveAttribute('aria-sort', 'ascending');
 });
 
-test('shows cumulative cost and time for the currently shown table, next to the toggle', () => {
+test('shows stacked TOTAL COST / TOTAL TIME cells, labeled and next to the toggle', () => {
   render(<CostTable entries={populatedEntries} />);
+
+  const totals = screen.getByTestId('cost-table-totals');
+
+  expect(within(totals).getByText('Total cost')).toBeInTheDocument();
+  expect(within(totals).getByText('Total time')).toBeInTheDocument();
 
   // Specs: only SPEC-201 has a recorded figure ($3.42); durations sum to
   // 900s + 2100s = 3000s = 50m (SPEC-777 has neither).
-  expect(
-    within(screen.getByTestId('cost-table-totals')).getByText('$3.42')
-  ).toBeInTheDocument();
-  expect(
-    within(screen.getByTestId('cost-table-totals')).getByText('50m')
-  ).toBeInTheDocument();
+  expect(within(totals).getByText('$3.42')).toBeInTheDocument();
+  expect(within(totals).getByText('50m')).toBeInTheDocument();
 
   showPlans();
 
   // Plans: legacy-onboarding ($2.10, 1500s) + PLAN-090 ($1.10, 600s) =
   // $3.20, 2100s = 35m (archive-notes has neither).
-  expect(
-    within(screen.getByTestId('cost-table-totals')).getByText('$3.20')
-  ).toBeInTheDocument();
-  expect(
-    within(screen.getByTestId('cost-table-totals')).getByText('35m')
-  ).toBeInTheDocument();
+  expect(within(totals).getByText('$3.20')).toBeInTheDocument();
+  expect(within(totals).getByText('35m')).toBeInTheDocument();
+});
+
+test('the total cells reuse the COST/TIME column widths and left-align, matching the body cells below', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  expect(screen.getByTestId('cost-table-total-cost')).toHaveClass(
+    'w-36',
+    'items-start'
+  );
+  expect(screen.getByTestId('cost-table-total-time')).toHaveClass(
+    'w-32',
+    'items-start'
+  );
 });
 
 test('the view toggle is URL-driven via ?work=', () => {

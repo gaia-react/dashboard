@@ -6,6 +6,7 @@ import {
   formatDuration,
   formatTokens,
   sessionsTabHref,
+  sumBuckets,
 } from '~/components/Sections/CostTable/format';
 import Skeleton from '~/components/Skeleton';
 import {formatLabel} from '~/data/format/labels';
@@ -211,7 +212,12 @@ const ExpandedDetail: FC<Props> = ({entry, onViewSession, sessionsById}) => (
   <div className="flex flex-col gap-4">
     {entry.phases.length > 0 && (
       <div>
-        <p className={headingClass}>Phases</p>
+        <div className="flex items-baseline justify-between">
+          <p className={headingClass}>Phases</p>
+          <p className={headingClass}>
+            Total tokens: {formatTokens(sumBuckets(entry.totals.buckets))}
+          </p>
+        </div>
         <div className={phasesGridClass}>
           {entry.phases.map((phase) => (
             <PhaseRow key={`${phase.kind}-${phase.source}`} phase={phase} />

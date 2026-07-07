@@ -1,5 +1,5 @@
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
-import type {CostEntry} from '~/data/schemas/api';
+import type {Buckets, CostEntry} from '~/data/schemas/api';
 
 export {costEntryAnchorId} from '~/components/Sections/anchor-ids';
 
@@ -16,6 +16,11 @@ export {sessionsTabHref} from '~/components/Sections/anchor-ids';
  * which encodes as an actual `$0.00` / `0m`.
  */
 export const NO_DATA_LABEL = '-';
+
+/** Total tokens across an entry's four buckets, for the expanded panel's
+ * "Total tokens" figure (the table column was dropped, the data was not). */
+export const sumBuckets = (buckets: Buckets): number =>
+  buckets.freshInput + buckets.cacheWrite + buckets.cacheRead + buckets.output;
 
 /**
  * Cumulative recorded dollars / duration across a table (feedback, shown next

@@ -26,6 +26,23 @@ describe('useCollapse', () => {
     expect(result.current.mounted).toBe(true);
   });
 
+  test('mounts collapsed before expanding, so the open transition has a real starting frame', async () => {
+    const {rerender, result} = renderHook(({open}) => useCollapse(open), {
+      initialProps: {open: false},
+    });
+
+    rerender({open: true});
+
+    // Mounted immediately, but not yet expanded: the enter transition needs
+    // this collapsed frame to actually paint before flipping to 1fr.
+    expect(result.current.mounted).toBe(true);
+    expect(result.current.expanded).toBe(false);
+
+    await waitFor(() => {
+      expect(result.current.expanded).toBe(true);
+    });
+  });
+
   test('unmounts after the transition duration on close', async () => {
     const {rerender, result} = renderHook(({open}) => useCollapse(open, 20), {
       initialProps: {open: true},

@@ -88,8 +88,8 @@ export type CostTableProps = {
 const EXPAND_COLUMN_WIDTH = 'w-12';
 const ID_COLUMN_WIDTH = 'w-24';
 const STATUS_COLUMN_WIDTH = 'w-40';
-/** Wide enough for the "Cost $442.91" / "Time 23h 51m" totals (a summed
- * figure runs longer than any one row's), not just a single row's value. */
+/** Wide enough for a summed "$442.91" / "23h 51m" total (runs longer than any
+ * one row's value), not just a single row's figure. */
 const COST_COLUMN_WIDTH = 'w-36';
 const TIME_COLUMN_WIDTH = 'w-32';
 
@@ -203,7 +203,7 @@ const TableHead: FC<{
         onSort={onSort}
         sortState={sortState}
       >
-        Cost $
+        Cost
       </SortableHeaderCell>
       <SortableHeaderCell
         className={twJoin('hidden md:table-cell', TIME_COLUMN_WIDTH)}
@@ -375,34 +375,39 @@ const ViewToggle: FC<{
 const totalsLabelClass =
   'text-fg-mute font-mono text-[0.65rem] tracking-[0.15em] uppercase';
 
-/** Cumulative Cost/Time for the currently shown table (feedback), on the same
- * row as the specs/plans toggle. Same formatters as the table cells: a
- * missing figure on every row still reads as a dash, not a misleading $0. */
+/** Cumulative Cost/Time for the currently shown table (feedback), stacked
+ * label-over-value and left-aligned so each cell's left edge lines up with
+ * the COST/TIME column header below it (same column width constants, same
+ * left `px-3` inset the header labels carry). Same formatters as the table
+ * cells: a missing figure on every row still reads as a dash, not a
+ * misleading $0. */
 const TotalsSummary: FC<{cost: null | number; time: null | number}> = ({
   cost,
   time,
 }) => (
   <div
-    className="text-fg flex flex-1 items-center justify-end text-sm"
+    className="flex flex-1 items-center justify-end text-sm"
     data-testid="cost-table-totals"
   >
     <span
       className={twJoin(
-        'flex items-baseline justify-end gap-1.5 px-3 whitespace-nowrap',
+        'flex flex-col items-start gap-0.5 px-3 whitespace-nowrap',
         COST_COLUMN_WIDTH
       )}
+      data-testid="cost-table-total-cost"
     >
-      <span className={totalsLabelClass}>Cost</span>
-      {formatDollarsCell(cost)}
+      <span className={totalsLabelClass}>Total cost</span>
+      <span className="text-fg">{formatDollarsCell(cost)}</span>
     </span>
     <span
       className={twJoin(
-        'hidden items-baseline justify-end gap-1.5 px-3 whitespace-nowrap md:flex',
+        'hidden flex-col items-start gap-0.5 px-3 whitespace-nowrap md:flex',
         TIME_COLUMN_WIDTH
       )}
+      data-testid="cost-table-total-time"
     >
-      <span className={totalsLabelClass}>Time</span>
-      {formatDuration(time)}
+      <span className={totalsLabelClass}>Total time</span>
+      <span className="text-fg">{formatDuration(time)}</span>
     </span>
   </div>
 );
@@ -482,14 +487,19 @@ const CostTable: FC<CostTableProps> = ({entries, onViewSession, sessions}) => {
   }
 
   const handleSelectView = (nextView: CostView): void => {
+    setSortState(DEFAULT_SORT);
     setQueryParams({
       entry: null,
       work: nextView === 'specs' ? null : nextView,
     });
   };
 
+  // Sorting reshuffles every row, so any expanded row (including a deep-link
+  // target) closes rather than jumping to wherever its now-sorted position is.
   const handleSortColumn = (column: SortColumn): void => {
     setSortState((current) => nextSortState(current, column));
+    setExpandedKeys(new Set());
+    setQueryParams({entry: null});
   };
 
   const toggleKey = (key: string): void => {
