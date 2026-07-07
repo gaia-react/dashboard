@@ -66,4 +66,13 @@
   a {
     @apply text-accent hover:text-accent-2 no-underline hover:underline;
   }
+
+  /* Tailwind v4 Preflight sets button { cursor: default }; every enabled
+     button/role="button" in this app is clickable, so restore the pointer
+     cursor here once instead of adding cursor-pointer per component
+     (feedback). Disabled controls keep the default cursor. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 }

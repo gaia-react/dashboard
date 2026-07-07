@@ -34,7 +34,7 @@ const projectIdentityClass =
 const freshnessClass =
   'text-fg-mute max-w-sm text-right font-mono text-xs tracking-wider';
 const refreshButtonClass =
-  'border-border text-fg-dim hover:border-accent-2 hover:text-fg focus-visible:outline-accent rounded-sm border px-3 py-1.5 font-mono text-xs tracking-[0.15em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border text-fg-dim hover:border-accent-2 hover:text-fg focus-visible:outline-accent flex flex-col items-center gap-0.5 rounded-sm border px-4 py-2 font-mono text-xs tracking-[0.15em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2';
 
 /**
  * SPEC section 6.1: wordmark, project identity, data-freshness line, refresh,
@@ -75,7 +75,7 @@ const DashboardHeader: FC<Props> = ({activity, costs, refresh}) => {
             </p>
           </div>
           {/* Accessible name stays stable ("Refresh data") rather than the
-              ticking "Last update: ..." text: a screen reader announcing a
+              ticking "Last update" caption: a screen reader announcing a
               changed name every 60s on an interactive control is confusing
               (feedback: judgment call, noted for review). */}
           <button
@@ -84,7 +84,8 @@ const DashboardHeader: FC<Props> = ({activity, costs, refresh}) => {
             onClick={refresh}
             type="button"
           >
-            Last update: {lastUpdated}
+            <span>Last update</span>
+            <span>{lastUpdated}</span>
           </button>
         </div>
       </div>
@@ -127,7 +128,8 @@ export const DashboardHeaderSkeleton: FC = () => (
           tabIndex={-1}
           type="button"
         >
-          Last update: Just now
+          <span>Last update</span>
+          <span>Just now</span>
         </button>
       </div>
     </div>

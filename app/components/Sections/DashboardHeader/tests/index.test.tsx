@@ -57,11 +57,13 @@ test('renders the wordmark, project name, project identity, freshness line, and 
   expect(screen.getByText('Scanned 3 sessions · 23 specs')).toBeInTheDocument();
 
   // The refresh button keeps a stable accessible name ("Refresh data");
-  // its visible text carries the ticking "Last update: ..." caption, whose
-  // exact wording depends on wall-clock time relative to the fixed fixture
-  // timestamp (useRelativeTime.test.ts pins the exact bucketing).
+  // its visible text is a stacked "Last update" label over the ticking
+  // relative time, whose exact wording depends on wall-clock time relative
+  // to the fixed fixture timestamp (useRelativeTime.test.ts pins the exact
+  // bucketing), so only the static label is asserted verbatim here.
   const refreshButton = screen.getByRole('button', {name: 'Refresh data'});
-  expect(refreshButton).toHaveTextContent(/^Last update: /);
+  expect(refreshButton).toHaveTextContent('Last update');
+  expect(refreshButton).not.toHaveTextContent(/^Last update$/);
 
   fireEvent.click(refreshButton);
   expect(refresh).toHaveBeenCalledTimes(1);
