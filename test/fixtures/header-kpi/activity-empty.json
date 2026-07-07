@@ -1,0 +1,65 @@
+{
+  "heatmap": [],
+  "scan": {
+    "scannedAt": "2026-07-05T09:00:00Z",
+    "fileCount": 2,
+    "sessionCount": 2,
+    "activitySince": "2026-06-20T00:00:00Z"
+  },
+  "kpis": {
+    "activeDays": 4,
+    "estimatedAdHocDollars": null,
+    "totalBuckets": {
+      "freshInput": 2000,
+      "cacheWrite": 500,
+      "cacheRead": 1500,
+      "output": 1000
+    }
+  },
+  "modelTotals": [],
+  "modelWeekly": [],
+  "sessions": [
+    {
+      "sessionId": "44444444-4444-4444-4444-444444444444",
+      "startedAt": "2026-06-20T00:00:00Z",
+      "endedAt": "2026-06-20T00:30:00Z",
+      "durationSeconds": 1800,
+      "turnCount": 3,
+      "models": ["claude-haiku-4"],
+      "buckets": {
+        "freshInput": 1000,
+        "cacheWrite": 300,
+        "cacheRead": 800,
+        "output": 500
+      },
+      "gitBranch": null,
+      "title": "First look around",
+      "attribution": null,
+      "dollars": null
+    },
+    {
+      "sessionId": "55555555-5555-5555-5555-555555555555",
+      "startedAt": "2026-06-25T00:00:00Z",
+      "endedAt": "2026-06-25T00:15:00Z",
+      "durationSeconds": 900,
+      "turnCount": 2,
+      "models": ["claude-haiku-4"],
+      "buckets": {
+        "freshInput": 1000,
+        "cacheWrite": 200,
+        "cacheRead": 700,
+        "output": 500
+      },
+      "gitBranch": null,
+      "title": null,
+      "attribution": null,
+      "dollars": null
+    }
+  ],
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "heatmap": [],
+  "kpis": {
+    "activeDays": 0,
+    "estimatedAdHocDollars": null,
+    "totalBuckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0}
+  },
+  "modelTotals": [],
+  "modelWeekly": [],
+  "parseHealth": {"counters": [], "notes": [], "unknownKinds": [], "unknownStatuses": []},
+  "scan": {"activitySince": null, "fileCount": 0, "scannedAt": "2026-07-07T12:00:00Z", "sessionCount": 0},
+  "sessions": []
+}

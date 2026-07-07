@@ -135,10 +135,11 @@ scenario map: `mini-project/README.md`.
   tests.
 - `api/activity.json`: canned `/api/activity` response (scan metadata, token
   KPIs, heatmap days, model mix, sessions) for the activity resource tests.
-- Caveat: the `parseHealth` slice in these fixtures is a placeholder shape
-  (`{skippedLines, unknownKinds, unknownStatuses}`); the hooks treat responses
-  as opaque JSON, but P2/P5 must true these fixtures up against the real Zod
-  response schemas in `schemas/api.ts` once they land.
+- Both fixtures are full, schema-valid `CostsResponse` / `ActivityResponse`
+  envelopes (Phase 5 trued them up against `costsResponseSchema` /
+  `activityResponseSchema` in `schemas/api.ts`, including the real
+  `parseHealth` shape); the App composition test round-trips both through
+  their schemas at load time so a future drift fails loudly.
 
 ### `charts/` (W8)
 

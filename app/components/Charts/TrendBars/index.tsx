@@ -185,11 +185,14 @@ const TrendBars: FC<Props> = ({
                 )}
                 <rect
                   aria-label={`${datum.label}: ${formatByKind(datum)}`}
-                  className="fill-transparent"
+                  className="focus-visible:outline-accent fill-transparent focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1"
                   height={plotHeight}
+                  onBlur={clearBar}
+                  onFocus={() => showBar(index)}
                   onMouseEnter={() => showBar(index)}
                   onMouseLeave={clearBar}
                   role="graphics-symbol"
+                  tabIndex={0}
                   width={band.bandwidth}
                   x={band.position(datum.id)}
                   y={TOP_MARGIN}

@@ -62,7 +62,16 @@
     }
   ],
   "parseHealth": {
-    "skippedLines": 0,
+    "counters": [
+      {
+        "source": "session-logs",
+        "filesScanned": 3,
+        "filesUnparseable": 0,
+        "linesRead": 512,
+        "linesSkipped": 0
+      }
+    ],
+    "notes": [],
     "unknownKinds": [],
     "unknownStatuses": []
   }

@@ -170,17 +170,20 @@ const CalendarHeatmap: FC<Props> = ({
                   key={day}
                   aria-label={`${formatDayLabel(day, locale)}: ${formatCompactNumber(value, locale)} ${valueLabel}`}
                   className={twJoin(
-                    'transition-opacity duration-150 hover:opacity-75 motion-reduce:transition-none',
+                    'focus-visible:outline-accent transition-opacity duration-150 hover:opacity-75 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 motion-reduce:transition-none',
                     bucket === 0 ? 'fill-bg-elev' : 'fill-accent'
                   )}
                   fillOpacity={
                     bucket === 0 ? undefined : RAMP_OPACITIES[bucket - 1]
                   }
                   height={CELL_SIZE}
+                  onBlur={clearCell}
+                  onFocus={() => showCell(day, x, y)}
                   onMouseEnter={() => showCell(day, x, y)}
                   onMouseLeave={clearCell}
                   role="graphics-symbol"
                   rx={2}
+                  tabIndex={0}
                   width={CELL_SIZE}
                   x={x}
                   y={y}

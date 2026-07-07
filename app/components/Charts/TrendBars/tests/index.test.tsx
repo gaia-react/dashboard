@@ -73,3 +73,19 @@ test('hovering a bar shows its unit-formatted value', () => {
   );
   expect(screen.getByRole('tooltip')).toHaveTextContent('8M tokens');
 });
+
+test('a keyboard-only user can reach and trigger the same tooltip via focus', () => {
+  renderChart();
+
+  const bar = screen.getByRole('graphics-symbol', {
+    name: 'Ledger repair: $21.75',
+  });
+
+  expect(bar).toHaveAttribute('tabindex', '0');
+
+  fireEvent.focus(bar);
+  expect(screen.getByRole('tooltip')).toHaveTextContent('$21.75');
+
+  fireEvent.blur(bar);
+  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+});

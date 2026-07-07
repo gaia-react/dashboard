@@ -94,6 +94,22 @@ test('shows a tooltip on hover and honors reduced motion', () => {
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 });
 
+test('shows a tooltip on keyboard focus and hides it on blur, mirroring hover', () => {
+  renderHeatmap();
+
+  const maxCell = screen.getByRole('graphics-symbol', {
+    name: 'Jul 3, 2026: 500K output tokens',
+  });
+
+  expect(maxCell).toHaveAttribute('tabindex', '0');
+
+  fireEvent.focus(maxCell);
+  expect(screen.getByRole('tooltip')).toHaveTextContent('500K');
+
+  fireEvent.blur(maxCell);
+  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+});
+
 test('a caller-provided tooltip overrides the default single-metric readout', () => {
   render(
     <CalendarHeatmap

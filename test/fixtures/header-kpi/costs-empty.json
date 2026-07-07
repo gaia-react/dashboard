@@ -1,0 +1,31 @@
+{
+  "project": {
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {
+    "status": "ok",
+    "id": "sha256:6d17ab141d05c333"
+  },
+  "coverage": {
+    "costSince": null
+  },
+  "kpis": {
+    "recordedDollars": 0,
+    "specs": {
+      "merged": 0,
+      "total": 0
+    },
+    "plans": {
+      "total": 0
+    }
+  },
+  "entries": [],
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

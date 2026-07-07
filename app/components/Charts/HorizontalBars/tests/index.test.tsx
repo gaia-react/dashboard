@@ -73,3 +73,31 @@ test('a row with bucket detail shows a tooltip on hover and hides on leave', () 
   fireEvent.mouseLeave(row);
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 });
+
+test('a keyboard-only user can reach and trigger the same tooltip via focus', () => {
+  const [first, ...rest] = modelTotals;
+  const withTooltip: HorizontalBarDatum[] = [
+    {
+      ...first,
+      tooltip: {
+        rows: [{label: 'output', value: '8.2M'}],
+        title: 'claude-opus-4',
+      },
+    },
+    ...rest,
+  ];
+
+  render(<HorizontalBars data={withTooltip} formatValue={formatValue} />);
+
+  const row = screen.getByRole('graphics-symbol', {
+    name: 'claude-opus-4: 8.2M',
+  });
+
+  expect(row).toHaveAttribute('tabindex', '0');
+
+  fireEvent.focus(row);
+  expect(screen.getByRole('tooltip')).toHaveTextContent('output');
+
+  fireEvent.blur(row);
+  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+});

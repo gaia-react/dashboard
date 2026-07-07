@@ -45,6 +45,7 @@ const callsTo = (fetchMock: ReturnType<typeof vi.fn>, prefix: string): number =>
   fetchMock.mock.calls.filter(([input]) => String(input).startsWith(prefix))
     .length;
 
+// All seven SPEC section 6.2-6.8 AsyncSection regions the shell composes.
 const sectionLabels = [
   'Key metrics',
   'Specs and plans',
@@ -54,6 +55,22 @@ const sectionLabels = [
   'Cost trend',
   'Parse health',
 ];
+
+// DashboardHeader/KpiRow (6.1/6.2) and the ParseHealth footer (6.8) read
+// fields from BOTH resources, so they cannot paint until costs AND activity
+// have resolved. CostTable and CostTrend read only costs (PLAN D2).
+const bothResourceLabels = ['Key metrics', 'Parse health'];
+const costsOnlyLabels = ['Specs and plans', 'Cost trend'];
+const activityOnlyLabels = ['Activity', 'Model mix', 'Sessions'];
+
+const busyStateFor = (label: string): null | string =>
+  screen.getByRole('region', {name: label}).getAttribute('aria-busy');
+
+const expectAllBusy = (labels: string[], busy: boolean): void => {
+  for (const label of labels) {
+    expect(busyStateFor(label)).toBe(String(busy));
+  }
+};
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -67,10 +84,10 @@ test('renders the GAIA wordmark', () => {
 
   render(<App />);
 
-  expect(screen.getByAltText('GAIA')).toBeInTheDocument();
+  expect(screen.getByText('Dashboard')).toBeInTheDocument();
 });
 
-test('renders a busy skeleton slot for every section while loading', () => {
+test('renders a busy region for every section while both endpoints are pending', () => {
   stubFetch({
     '/api/activity': async () => createDeferred().promise,
     '/api/costs': async () => createDeferred().promise,
@@ -78,15 +95,10 @@ test('renders a busy skeleton slot for every section while loading', () => {
 
   render(<App />);
 
-  for (const label of sectionLabels) {
-    expect(screen.getByRole('region', {name: label})).toHaveAttribute(
-      'aria-busy',
-      'true'
-    );
-  }
+  expectAllBusy(sectionLabels, true);
 });
 
-test('cost sections paint while the activity scan is still pending', async () => {
+test('cost-only sections paint while the activity scan is still pending', async () => {
   const activityDeferred = createDeferred();
   stubFetch({
     '/api/activity': async () => activityDeferred.promise,
@@ -96,57 +108,58 @@ test('cost sections paint while the activity scan is still pending', async () =>
   render(<App />);
 
   await waitFor(() => {
-    expect(screen.getByRole('region', {name: 'Key metrics'})).toHaveAttribute(
-      'aria-busy',
-      'false'
-    );
+    expectAllBusy(costsOnlyLabels, false);
   });
-  expect(
-    screen.getByText('my-app · /Users/you/projects/my-app')
-  ).toBeInTheDocument();
-  expect(screen.getByRole('region', {name: 'Sessions'})).toHaveAttribute(
-    'aria-busy',
-    'true'
-  );
+  // Two-resource sections stay busy: they need activity too, not just costs.
+  expectAllBusy(bothResourceLabels, true);
+  expectAllBusy(activityOnlyLabels, true);
 
   await act(async () => {
     activityDeferred.resolve(jsonResponse(activityFixture));
     await activityDeferred.promise;
   });
   await waitFor(() => {
-    expect(screen.getByRole('region', {name: 'Sessions'})).toHaveAttribute(
-      'aria-busy',
-      'false'
-    );
+    expectAllBusy(sectionLabels, false);
   });
 });
 
-test('the header identity swaps skeleton for content in the same typography', async () => {
-  const costsDeferred = createDeferred();
+test('the header shows a skeleton until BOTH resources resolve, then the real identity', async () => {
+  const activityDeferred = createDeferred();
   stubFetch({
-    '/api/activity': async () => createDeferred().promise,
-    '/api/costs': async () => costsDeferred.promise,
+    '/api/activity': async () => activityDeferred.promise,
+    '/api/costs': async () => jsonResponse(costsFixture),
   });
 
   render(<App />);
 
-  const identitySkeleton = screen.getByText(
-    'project · /Users/you/projects/project'
-  );
-  expect(identitySkeleton).toHaveClass('text-sm', 'text-transparent');
+  expect(
+    screen.getByText('project · /Users/you/projects/project')
+  ).toBeInTheDocument();
+
+  // Costs alone resolving is not enough: the header still needs activity.
+  await waitFor(() => {
+    expect(busyStateFor('Specs and plans')).toBe('false');
+  });
+  expect(
+    screen.getByText('project · /Users/you/projects/project')
+  ).toBeInTheDocument();
 
   await act(async () => {
-    costsDeferred.resolve(jsonResponse(costsFixture));
-    await costsDeferred.promise;
+    activityDeferred.resolve(jsonResponse(activityFixture));
+    await activityDeferred.promise;
   });
 
   const identity = await screen.findByText(
     'my-app · /Users/you/projects/my-app'
   );
+
   expect(identity).toHaveClass('text-sm', 'text-fg-dim');
   expect(
     screen.queryByText('project · /Users/you/projects/project')
   ).not.toBeInTheDocument();
+  expect(
+    screen.getByText(/^Scanned 2 sessions · 23 specs ·/)
+  ).toBeInTheDocument();
 });
 
 test('the refresh button refetches both endpoints', async () => {
@@ -158,25 +171,19 @@ test('the refresh button refetches both endpoints', async () => {
   render(<App />);
 
   await waitFor(() => {
-    expect(screen.getByRole('region', {name: 'Sessions'})).toHaveAttribute(
-      'aria-busy',
-      'false'
-    );
+    expectAllBusy(sectionLabels, false);
   });
 
   fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
 
   await waitFor(() => {
-    expect(screen.getByRole('region', {name: 'Sessions'})).toHaveAttribute(
-      'aria-busy',
-      'false'
-    );
+    expectAllBusy(sectionLabels, false);
   });
   expect(callsTo(fetchMock, '/api/costs')).toBe(2);
   expect(callsTo(fetchMock, '/api/activity')).toBe(2);
 });
 
-test('cost slots surface an error with a retry that refetches', async () => {
+test('a costs failure surfaces an error with a retry on every section that needs costs', async () => {
   let costsCalls = 0;
   const fetchMock = stubFetch({
     '/api/activity': async () => jsonResponse(activityFixture),
@@ -192,11 +199,15 @@ test('cost slots surface an error with a retry that refetches', async () => {
   render(<App />);
 
   await waitFor(() => {
-    expect(screen.getAllByRole('alert').length).toBeGreaterThan(0);
+    // "Specs and plans", "Cost trend" (costs-only) plus "Key metrics",
+    // "Parse health" (both-resource) all surface the costs failure.
+    expect(screen.getAllByRole('alert')).toHaveLength(4);
   });
   expect(screen.getAllByRole('alert')[0]).toHaveTextContent(
     'connection refused'
   );
+  // Activity-only sections are unaffected by the costs failure.
+  expectAllBusy(activityOnlyLabels, false);
 
   fireEvent.click(screen.getAllByRole('button', {name: 'Retry'})[0]);
 
@@ -205,5 +216,6 @@ test('cost slots surface an error with a retry that refetches', async () => {
       screen.getByText('my-app · /Users/you/projects/my-app')
     ).toBeInTheDocument();
   });
+  expect(screen.queryAllByRole('alert')).toHaveLength(0);
   expect(callsTo(fetchMock, '/api/costs')).toBe(2);
 });

@@ -211,11 +211,14 @@ const StackedWeeklyBars: FC<Props> = ({
                 )}
                 <rect
                   aria-label={`Week of ${formatWeekLabel(datum.week, locale)}: ${formatNumber(totals[index])} total`}
-                  className="fill-transparent"
+                  className="focus-visible:outline-accent fill-transparent focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1"
                   height={plotBottom - TOP_MARGIN}
+                  onBlur={clearWeek}
+                  onFocus={() => showWeek(index)}
                   onMouseEnter={() => showWeek(index)}
                   onMouseLeave={clearWeek}
                   role="graphics-symbol"
+                  tabIndex={0}
                   width={band.bandwidth}
                   x={band.position(datum.week)}
                   y={TOP_MARGIN}

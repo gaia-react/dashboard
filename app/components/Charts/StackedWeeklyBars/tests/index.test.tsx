@@ -73,3 +73,21 @@ test('hovering a week shows one tooltip listing every series at that x', () => {
   expect(within(tooltip).getByText('Other')).toBeInTheDocument();
   expect(within(tooltip).getByText('100')).toBeInTheDocument();
 });
+
+test('a keyboard-only user can reach and trigger the same tooltip via focus', () => {
+  renderChart();
+
+  const week = screen.getByRole('graphics-symbol', {
+    name: 'Week of Jun 7: 300 total',
+  });
+
+  expect(week).toHaveAttribute('tabindex', '0');
+
+  fireEvent.focus(week);
+  const tooltip = screen.getByRole('tooltip');
+
+  expect(tooltip).toHaveTextContent('Week of Jun 7');
+
+  fireEvent.blur(week);
+  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+});

@@ -117,11 +117,14 @@ const HorizontalBars: FC<Props> = ({
               </text>
               <rect
                 aria-label={`${datum.label}: ${formatValue(datum.value)}`}
-                className="fill-transparent"
+                className="focus-visible:outline-accent fill-transparent focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1"
                 height={ROW_HEIGHT}
+                onBlur={clearBar}
+                onFocus={() => showBar(index)}
                 onMouseEnter={() => showBar(index)}
                 onMouseLeave={clearBar}
                 role="graphics-symbol"
+                tabIndex={0}
                 width={width}
                 x={0}
                 y={rowTop}

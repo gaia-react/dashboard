@@ -1,0 +1,36 @@
+{
+  "heatmap": [],
+  "kpis": {
+    "activeDays": 1,
+    "estimatedAdHocDollars": null,
+    "totalBuckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 3600}
+  },
+  "modelTotals": [
+    {"model": "alpha", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 800}},
+    {"model": "bravo", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 700}},
+    {"model": "charlie", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 600}},
+    {"model": "other", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 500}},
+    {"model": "delta", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 400}},
+    {"model": "echo", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 300}},
+    {"model": "foxtrot", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 200}},
+    {"model": "golf", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 100}}
+  ],
+  "modelWeekly": [
+    {
+      "weekStart": "2026-06-07",
+      "outputByModel": {
+        "alpha": 800,
+        "bravo": 700,
+        "charlie": 600,
+        "other": 500,
+        "delta": 400,
+        "echo": 300,
+        "foxtrot": 200,
+        "golf": 100
+      }
+    }
+  ],
+  "parseHealth": {"counters": [], "notes": [], "unknownKinds": [], "unknownStatuses": []},
+  "scan": {"activitySince": "2026-06-07T00:00:00Z", "fileCount": 1, "scannedAt": "2026-07-07T12:00:00Z", "sessionCount": 1},
+  "sessions": []
+}

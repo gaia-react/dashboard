@@ -1,0 +1,132 @@
+{
+  "project": {
+    "claudeConfigDir": "/Users/you/.claude",
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app"
+  },
+  "rateTable": {"id": "sha256:fixture", "status": "ok"},
+  "coverage": {"costSince": "2026-07-01T00:00:00Z"},
+  "kpis": {
+    "plans": {"total": 2},
+    "recordedDollars": 34.25,
+    "specs": {"merged": 2, "total": 3}
+  },
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  },
+  "entries": [
+    {
+      "entryType": "spec",
+      "id": "SPEC-010",
+      "key": "SPEC-010",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-01T09:00:00Z",
+      "source": "native",
+      "status": "merged",
+      "title": "Add token rollup",
+      "totals": {
+        "buckets": {
+          "cacheRead": 1000,
+          "cacheWrite": 200,
+          "freshInput": 300,
+          "output": 400
+        },
+        "durationSeconds": 600,
+        "recordedDollars": 12.5
+      }
+    },
+    {
+      "entryType": "plan",
+      "id": "PLAN-002",
+      "key": "PLAN-002",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-02T10:00:00Z",
+      "source": "backfill",
+      "status": "completed",
+      "title": "Backfill archive",
+      "totals": {
+        "buckets": {
+          "cacheRead": 4000000,
+          "cacheWrite": 500000,
+          "freshInput": 300000,
+          "output": 600000
+        },
+        "durationSeconds": null,
+        "recordedDollars": null
+      }
+    },
+    {
+      "entryType": "spec",
+      "id": "SPEC-011",
+      "key": "SPEC-011",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-03T11:00:00Z",
+      "source": "native",
+      "status": "specified",
+      "title": "Ledger repair",
+      "totals": {
+        "buckets": {
+          "cacheRead": 2000,
+          "cacheWrite": 400,
+          "freshInput": 600,
+          "output": 800
+        },
+        "durationSeconds": 900,
+        "recordedDollars": 21.75
+      }
+    },
+    {
+      "entryType": "plan-slug",
+      "id": null,
+      "key": "slug:archived-onboarding",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-04T08:00:00Z",
+      "source": "backfill",
+      "status": null,
+      "title": "archived-onboarding",
+      "totals": {
+        "buckets": {
+          "cacheRead": 1200000,
+          "cacheWrite": 100000,
+          "freshInput": 50000,
+          "output": 200000
+        },
+        "durationSeconds": null,
+        "recordedDollars": null
+      }
+    },
+    {
+      "entryType": "spec",
+      "id": "SPEC-012",
+      "key": "SPEC-012",
+      "partial": true,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-05T09:00:00Z",
+      "source": "none",
+      "status": "draft",
+      "title": "Not yet costed",
+      "totals": {
+        "buckets": {
+          "cacheRead": 0,
+          "cacheWrite": 0,
+          "freshInput": 0,
+          "output": 0
+        },
+        "durationSeconds": null,
+        "recordedDollars": null
+      }
+    }
+  ]
+}
