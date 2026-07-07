@@ -7,6 +7,7 @@ import {
 } from '~/components/Sections/DashboardHeader/format-header';
 import {shimmer} from '~/components/Skeleton';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
+import {useQueryParams} from '~/hooks/useQueryParams';
 
 type Props = {
   activity: ActivityResponse;
@@ -16,6 +17,11 @@ type Props = {
 
 const eyebrowClass =
   'text-fg-mute font-mono text-xs tracking-[0.2em] uppercase';
+const titleButtonClass =
+  'flex items-center gap-4 rounded-sm focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2';
+/** Prominent, legible per-project label (feedback): the display font used
+ * elsewhere for section headings, sized down for the header's compact row. */
+const projectNameClass = 'font-display text-fg text-right text-xl font-light';
 /**
  * The project path is shown in full, never truncated: a truncated path or
  * scan line hides the very thing it is meant to identify. Longer values wrap
@@ -36,6 +42,7 @@ const refreshButtonClass =
  * resolved via AsyncSection and the shared useDashboardData().refresh.
  */
 const DashboardHeader: FC<Props> = ({activity, costs, refresh}) => {
+  const resetQueryParams = useQueryParams()[2];
   const {costSince} = costs.coverage;
   const {activitySince, scannedAt, sessionCount} = activity.scan;
   const projectStart = formatProjectStart(costSince, activitySince);
@@ -43,12 +50,20 @@ const DashboardHeader: FC<Props> = ({activity, costs, refresh}) => {
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
+        {/* Clicking the title returns to the Work tab and drops every other
+            filter (feedback): a real button, not a hash link, so it never
+            leaves a stray history entry or fights the query-param router. */}
+        <button
+          className={titleButtonClass}
+          onClick={() => resetQueryParams({tab: 'work'})}
+          type="button"
+        >
           <img alt="GAIA" className="h-8 w-auto" src={gaiaLogo} />
           <span className={eyebrowClass}>Dashboard</span>
-        </div>
+        </button>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end gap-1">
+            <h1 className={projectNameClass}>{costs.project.name}</h1>
             <p className={projectIdentityClass}>
               {costs.project.name} · {costs.project.root}
             </p>
@@ -92,6 +107,7 @@ export const DashboardHeaderSkeleton: FC = () => (
       </div>
       <div className="flex items-center gap-4">
         <div className="flex flex-col items-end gap-1">
+          <h1 className={twJoin(projectNameClass, shimmer)}>project</h1>
           <p
             className={twJoin(projectIdentityClass, shimmer)}
             data-testid="header-identity-skeleton"

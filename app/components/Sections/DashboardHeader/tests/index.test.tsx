@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
-import {expect, test, vi} from 'vitest';
+import {afterEach, expect, test, vi} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import DashboardHeader, {
@@ -34,7 +34,11 @@ const activityEmpty: ActivityResponse = activityResponseSchema.parse(
   readFixture('activity-empty.json')
 );
 
-test('renders the wordmark, project identity, freshness line, and a working refresh button', () => {
+afterEach(() => {
+  window.history.replaceState(null, '', '/');
+});
+
+test('renders the wordmark, project name, project identity, freshness line, and a working refresh button', () => {
   const refresh = vi.fn();
 
   render(
@@ -46,6 +50,9 @@ test('renders the wordmark, project identity, freshness line, and a working refr
   );
 
   expect(screen.getByAltText('GAIA')).toBeInTheDocument();
+  expect(
+    screen.getByRole('heading', {level: 1, name: 'my-app'})
+  ).toBeInTheDocument();
   expect(
     screen.getByText('my-app · /Users/you/projects/my-app')
   ).toBeInTheDocument();
@@ -61,6 +68,25 @@ test('renders the wordmark, project identity, freshness line, and a working refr
 
   fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
   expect(refresh).toHaveBeenCalledTimes(1);
+});
+
+test('the title button resets to the Work tab and drops every other query param (feedback)', () => {
+  window.history.pushState(null, '', '/?tab=activity&entry=spec-1&work=plans');
+
+  render(
+    <DashboardHeader
+      activity={activityPopulated}
+      costs={costsPopulated}
+      refresh={vi.fn()}
+    />
+  );
+
+  fireEvent.click(screen.getByRole('button', {name: /gaia dashboard/i}));
+
+  const params = new URLSearchParams(window.location.search);
+  expect(params.get('tab')).toBe('work');
+  expect(params.has('entry')).toBe(false);
+  expect(params.has('work')).toBe(false);
 });
 
 test('shows the project start date as the earlier of cost and activity history', () => {
