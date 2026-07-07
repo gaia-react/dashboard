@@ -1,0 +1,66 @@
+{
+  "project": {
+    "claudeConfigDir": "/Users/you/.claude",
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app"
+  },
+  "rateTable": {"id": null, "status": "missing"},
+  "coverage": {"costSince": "2026-07-01T00:00:00Z"},
+  "kpis": {
+    "plans": {"merged": 0, "total": 1},
+    "recordedDollars": 0,
+    "specs": {"merged": 0, "total": 1}
+  },
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  },
+  "entries": [
+    {
+      "entryType": "spec",
+      "id": "SPEC-020",
+      "key": "SPEC-020",
+      "partial": true,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-01T09:00:00Z",
+      "source": "none",
+      "status": "draft",
+      "title": "Not yet costed",
+      "totals": {
+        "buckets": {
+          "cacheRead": 5000,
+          "cacheWrite": 100,
+          "freshInput": 200,
+          "output": 300
+        },
+        "durationSeconds": null,
+        "recordedDollars": null
+      }
+    },
+    {
+      "entryType": "plan",
+      "id": "PLAN-021",
+      "key": "PLAN-021",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-07-02T09:00:00Z",
+      "source": "none",
+      "status": "draft",
+      "title": "Also not yet costed",
+      "totals": {
+        "buckets": {
+          "cacheRead": 0,
+          "cacheWrite": 0,
+          "freshInput": 0,
+          "output": 0
+        },
+        "durationSeconds": null,
+        "recordedDollars": null
+      }
+    }
+  ]
+}

@@ -2,12 +2,13 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import {expect, test} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
+import {formatWeekLabel} from '~/components/Charts/date-helpers';
 import CostTrend from '~/components/Sections/CostTrend';
 import type {CostsResponse} from '~/data/schemas/api';
 
 // Vitest runs from the repo root; happy-dom rewrites import.meta.url to an
 // http URL, so dom-environment tests resolve fixtures from cwd instead
-// (matches the pattern in Charts/TrendBars/tests).
+// (matches the pattern in Charts/PeriodSpendBars/tests).
 const readFixture = (name: string): CostsResponse =>
   JSON.parse(
     readFileSync(
@@ -18,79 +19,83 @@ const readFixture = (name: string): CostsResponse =>
 
 const populated = readFixture('costs-response.json');
 const empty = readFixture('costs-response-empty.json');
+const unpriced = readFixture('costs-response-unpriced.json');
+const multiPeriod = readFixture('costs-response-multi-period.json');
 
-const topOfBar = (barElement: HTMLElement): number => {
-  const match = /V(?<top>[\d.]+)/u.exec(barElement.getAttribute('d') ?? '');
+const weekLabel = (dayKey: string): string => formatWeekLabel(dayKey, 'en-US');
 
-  return Number(match?.groups?.top);
-};
-
-test('renders an empty state when no entry carries cost data', () => {
+test('renders an empty state when there are no entries at all', () => {
   render(<CostTrend costs={empty} />);
 
-  expect(screen.getByText('No cost trend yet')).toBeInTheDocument();
+  expect(screen.getByText('No recorded spend yet')).toBeInTheDocument();
   expect(screen.queryByRole('graphics-symbol')).not.toBeInTheDocument();
 });
 
-test('renders one chronological bar per entry with cost data, skipping zero-cost entries', () => {
+test('renders an empty state when entries exist but none are priced (total is 0)', () => {
+  render(<CostTrend costs={unpriced} />);
+
+  expect(screen.getByText('No recorded spend yet')).toBeInTheDocument();
+  expect(screen.queryByRole('graphics-symbol')).not.toBeInTheDocument();
+});
+
+test('all 5 entries fall in the same week: one bar, summing only the priced ones', () => {
   render(<CostTrend costs={populated} locale="en-US" />);
+
+  // SPEC-010 ($12.50) + SPEC-011 ($21.75), the rest unpriced; the fixture's
+  // 2026-06-29 to 07-05 Wed-Sun run is one Monday-start week (Jun 29).
+  const bars = screen.getAllByRole('graphics-symbol');
+
+  expect(bars).toHaveLength(1);
+  expect(
+    screen.getByRole('graphics-symbol', {
+      name: `${weekLabel('2026-06-29')}: $34.25`,
+    })
+  ).toBeInTheDocument();
+});
+
+test('entries spanning three weeks, including a gap week, render one bar per week with an explicit $0 gap bar', () => {
+  render(<CostTrend costs={multiPeriod} locale="en-US" />);
 
   const bars = screen.getAllByRole('graphics-symbol');
 
-  // 5 entries in the fixture, one (SPEC-012) has no recorded $ and zero
-  // tokens, so it carries no cost data and is skipped (SPEC 6.7: "one bar
-  // per spec/plan with ANY cost data").
-  expect(bars).toHaveLength(4);
-  expect(bars.map((bar) => bar.getAttribute('aria-label'))).toEqual([
-    expect.stringContaining('Add token rollup'),
-    expect.stringContaining('Backfill archive'),
-    expect.stringContaining('Ledger repair'),
-    expect.stringContaining('archived-onboarding'),
-  ]);
+  expect(bars).toHaveLength(3);
+  expect(
+    screen.getByRole('graphics-symbol', {
+      name: `${weekLabel('2026-06-08')}: $15.00`,
+    })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole('graphics-symbol', {
+      name: `${weekLabel('2026-06-15')}: $0.00`,
+    })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole('graphics-symbol', {
+      name: `${weekLabel('2026-06-22')}: $20.00`,
+    })
+  ).toBeInTheDocument();
 });
 
-test('priced entries render on the dollar encoding, unpriced entries on the token encoding, never a shared $-axis', () => {
-  render(<CostTrend costs={populated} locale="en-US" />);
+test('the chart carries an accessible summary naming the period range and total', () => {
+  render(<CostTrend costs={multiPeriod} locale="en-US" />);
 
-  const dollarsBar = screen.getByTestId('trend-bar-SPEC-010');
-  const tokensBar = screen.getByTestId('trend-bar-PLAN-002');
-
-  // Visually distinct encodings: solid accent for recorded $, translucent
-  // secondary hue for token-only entries.
-  expect(dollarsBar).toHaveClass('fill-accent');
-  expect(dollarsBar).not.toHaveAttribute('fill-opacity');
-  expect(tokensBar).toHaveClass('fill-secondary');
-  expect(tokensBar).toHaveAttribute('fill-opacity', '0.55');
-
-  // The central correctness rule: dollars and tokens are never read off one
-  // $-axis. SPEC-011 ($21.75) is the largest dollars-kind entry and
-  // PLAN-002 (5.4M tokens) is the largest tokens-kind entry; each is
-  // normalized against its OWN kind's max, so both reach the identical
-  // plot-height ceiling despite the wildly different magnitudes. If they
-  // shared a linear $-axis, SPEC-011's bar would be dwarfed to near-zero
-  // height by the token-scale magnitude instead.
-  const maxDollarsTop = topOfBar(screen.getByTestId('trend-bar-SPEC-011'));
-  const maxTokensTop = topOfBar(tokensBar);
-
-  expect(maxDollarsTop).toBe(maxTokensTop);
+  expect(
+    screen.getByRole('img', {
+      name: `Recorded spend by week from ${weekLabel('2026-06-08')} to ${weekLabel('2026-06-22')}, totaling $35.00`,
+    })
+  ).toBeInTheDocument();
 });
 
-test('marks are aria-labeled with their unit-formatted value; the tooltip is hover-only', () => {
-  render(<CostTrend costs={populated} locale="en-US" />);
+test('hovering a bar shows its period and recorded total in the tooltip', () => {
+  render(<CostTrend costs={multiPeriod} locale="en-US" />);
 
-  const dollarsMark = screen.getByRole('graphics-symbol', {
-    name: 'Add token rollup: $12.50',
-  });
-  const tokensMark = screen.getByRole('graphics-symbol', {
-    name: 'Backfill archive: 5.4M tokens',
-  });
+  fireEvent.mouseEnter(
+    screen.getByRole('graphics-symbol', {
+      name: `${weekLabel('2026-06-22')}: $20.00`,
+    })
+  );
+  const tooltip = screen.getByRole('tooltip');
 
-  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-
-  fireEvent.mouseEnter(dollarsMark);
-  expect(screen.getByRole('tooltip')).toHaveTextContent('$12.50');
-
-  fireEvent.mouseLeave(dollarsMark);
-  fireEvent.mouseEnter(tokensMark);
-  expect(screen.getByRole('tooltip')).toHaveTextContent('5.4M tokens');
+  expect(tooltip).toHaveTextContent(weekLabel('2026-06-22'));
+  expect(tooltip).toHaveTextContent('$20.00');
 });

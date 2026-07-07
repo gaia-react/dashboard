@@ -1,0 +1,88 @@
+{
+  "project": {
+    "claudeConfigDir": "/Users/you/.claude",
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app"
+  },
+  "rateTable": {"id": "sha256:fixture", "status": "ok"},
+  "coverage": {"costSince": "2026-06-09T00:00:00Z"},
+  "kpis": {
+    "plans": {"merged": 0, "total": 0},
+    "recordedDollars": 35,
+    "specs": {"merged": 2, "total": 3}
+  },
+  "parseHealth": {
+    "counters": [],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  },
+  "entries": [
+    {
+      "entryType": "spec",
+      "id": "SPEC-100",
+      "key": "SPEC-100",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-06-09T09:00:00Z",
+      "source": "native",
+      "status": "merged",
+      "title": "Week one, entry one",
+      "totals": {
+        "buckets": {
+          "cacheRead": 100,
+          "cacheWrite": 20,
+          "freshInput": 30,
+          "output": 40
+        },
+        "durationSeconds": 300,
+        "recordedDollars": 10
+      }
+    },
+    {
+      "entryType": "spec",
+      "id": "SPEC-101",
+      "key": "SPEC-101",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-06-10T09:00:00Z",
+      "source": "native",
+      "status": "merged",
+      "title": "Week one, entry two",
+      "totals": {
+        "buckets": {
+          "cacheRead": 100,
+          "cacheWrite": 20,
+          "freshInput": 30,
+          "output": 40
+        },
+        "durationSeconds": 300,
+        "recordedDollars": 5
+      }
+    },
+    {
+      "entryType": "spec",
+      "id": "SPEC-102",
+      "key": "SPEC-102",
+      "partial": false,
+      "phases": [],
+      "sessions": [],
+      "sortAt": "2026-06-23T09:00:00Z",
+      "source": "native",
+      "status": "specified",
+      "title": "Week three, after a gap week",
+      "totals": {
+        "buckets": {
+          "cacheRead": 100,
+          "cacheWrite": 20,
+          "freshInput": 30,
+          "output": 40
+        },
+        "durationSeconds": 300,
+        "recordedDollars": 20
+      }
+    }
+  ]
+}
