@@ -13,11 +13,10 @@ import {
 import DashboardHeader, {
   DashboardHeaderSkeleton,
 } from '~/components/Sections/DashboardHeader';
+import Insights, {InsightsSkeleton} from '~/components/Sections/Insights';
 import KpiRow, {KpiRowSkeleton} from '~/components/Sections/KpiRow';
 import ModelMix, {ModelMixSkeleton} from '~/components/Sections/ModelMix';
-import ParseHealth, {
-  ParseHealthSkeleton,
-} from '~/components/Sections/ParseHealth';
+import ParseHealth from '~/components/Sections/ParseHealth';
 import SessionsList, {
   SessionsListSkeleton,
 } from '~/components/Sections/SessionsList';
@@ -171,6 +170,17 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
+              label="Insights"
+              onRetry={refresh}
+              skeleton={<InsightsSkeleton />}
+              state={headerState}
+            >
+              {(data) => (
+                <Insights activity={data.activity} costs={data.costs} />
+              )}
+            </AsyncSection>
+
+            <AsyncSection
               label="Cost trend"
               onRetry={refresh}
               skeleton={<CostTrendSkeleton />}
@@ -179,19 +189,15 @@ const App = () => {
               {(costsData) => <CostTrend costs={costsData} />}
             </AsyncSection>
 
-            <AsyncSection
-              label="Parse health"
-              onRetry={refresh}
-              skeleton={<ParseHealthSkeleton />}
-              state={headerState}
-            >
-              {(data) => (
-                <ParseHealth
-                  activityParseHealth={data.activity.parseHealth}
-                  costsParseHealth={data.costs.parseHealth}
-                />
-              )}
-            </AsyncSection>
+            {/* Parse health is a footer that only appears when a data problem
+                exists (feedback): silent when clean, so it renders directly
+                rather than through AsyncSection's skeleton/region. */}
+            {headerState.status === 'success' && (
+              <ParseHealth
+                activityParseHealth={headerState.data.activity.parseHealth}
+                costsParseHealth={headerState.data.costs.parseHealth}
+              />
+            )}
           </TabPanel>
         )}
       </main>

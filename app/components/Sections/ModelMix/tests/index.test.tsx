@@ -40,10 +40,10 @@ test('renders the section chrome, totals bars, and weekly stacks from fixture da
 
   // Totals bars: one row per real model, <synthetic> excluded.
   expect(
-    screen.getByRole('graphics-symbol', {name: 'claude-opus-4-8: 50K'})
+    screen.getByRole('graphics-symbol', {name: 'Claude Opus 4.8: 50K'})
   ).toBeInTheDocument();
   expect(
-    screen.getByTestId('horizontal-bar-claude-haiku-4-5')
+    screen.getByTestId('horizontal-bar-Claude Haiku 4.5')
   ).toBeInTheDocument();
   expect(screen.queryByText('<synthetic>')).not.toBeInTheDocument();
 
@@ -66,11 +66,11 @@ test('hovering a model total bar shows the full bucket split, not just output', 
   );
 
   fireEvent.mouseEnter(
-    screen.getByRole('graphics-symbol', {name: 'claude-opus-4-8: 50K'})
+    screen.getByRole('graphics-symbol', {name: 'Claude Opus 4.8: 50K'})
   );
   const tooltip = screen.getByRole('tooltip');
 
-  expect(tooltip).toHaveTextContent('claude-opus-4-8');
+  expect(tooltip).toHaveTextContent('Claude Opus 4.8');
   expect(tooltip).toHaveTextContent('cache read');
   expect(tooltip).toHaveTextContent('cache write');
   expect(tooltip).toHaveTextContent('fresh input');
@@ -86,7 +86,7 @@ test('subagent-traffic models (e.g. a lighter model used for subagent work) are 
   );
 
   expect(
-    screen.getByRole('graphics-symbol', {name: 'claude-haiku-4-5: 6K'})
+    screen.getByRole('graphics-symbol', {name: 'Claude Haiku 4.5: 6K'})
   ).toBeInTheDocument();
 });
 

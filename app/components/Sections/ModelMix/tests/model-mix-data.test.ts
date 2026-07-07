@@ -30,16 +30,16 @@ test('escapeSeriesKey only rewrites the literal kit-reserved "other" key', () =>
   expect(escapeSeriesKey('claude-opus-4-8')).toBe('claude-opus-4-8');
 });
 
-test('buildModelTotalsData excludes <synthetic> and carries bucket detail for tooltips', () => {
+test('buildModelTotalsData excludes <synthetic> and carries humanized labels + bucket detail', () => {
   const data = buildModelTotalsData(populated.modelTotals, 'en-US');
 
   expect(data).toHaveLength(3);
   expect(data.some((datum) => datum.label === '<synthetic>')).toBe(false);
 
-  const opus = data.find((datum) => datum.label === 'claude-opus-4-8');
+  const opus = data.find((datum) => datum.label === 'Claude Opus 4.8');
 
   expect(opus?.value).toBe(50_000);
-  expect(opus?.tooltip?.title).toBe('claude-opus-4-8');
+  expect(opus?.tooltip?.title).toBe('Claude Opus 4.8');
   expect(opus?.tooltip?.rows).toEqual([
     {label: 'output', value: '50K'},
     {label: 'cache read', value: '900K'},

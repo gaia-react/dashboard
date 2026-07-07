@@ -1,10 +1,8 @@
-import {fireEvent, render, screen, within} from '@testing-library/react';
+import {render, screen, within} from '@testing-library/react';
 import {expect, test} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import ParseHealth, {
-  ParseHealthSkeleton,
-} from '~/components/Sections/ParseHealth';
+import ParseHealth from '~/components/Sections/ParseHealth';
 import type {ParseHealthSlice} from '~/data/schemas/api';
 import {parseHealthSliceSchema} from '~/data/schemas/api';
 
@@ -27,61 +25,19 @@ const activityDirty = loadFixture('activity-dirty.json');
 const costsClean = loadFixture('costs-clean.json');
 const activityClean = loadFixture('activity-clean.json');
 
-const getFooter = (): HTMLElement => screen.getByTestId('parse-health-footer');
-const getSummary = (): HTMLElement =>
-  screen.getByTestId('parse-health-summary');
-const getDetailBody = (): HTMLElement =>
-  screen.getByTestId('parse-health-detail');
-
-const expandFooter = (): void => {
-  fireEvent.click(getSummary());
-};
-
-test('is collapsed by default with a quiet summary when both slices are clean', () => {
-  render(
+test('renders nothing at all when both slices are clean', () => {
+  const {container} = render(
     <ParseHealth
       activityParseHealth={activityClean}
       costsParseHealth={costsClean}
     />
   );
 
-  expect(getFooter()).not.toHaveAttribute('open');
-  expect(
-    within(getSummary()).getByText('Everything parsed cleanly')
-  ).toBeInTheDocument();
+  expect(container).toBeEmptyDOMElement();
+  expect(screen.queryByText(/parse health/i)).not.toBeInTheDocument();
 });
 
-test('expands on click to show its detail region', () => {
-  render(
-    <ParseHealth
-      activityParseHealth={activityClean}
-      costsParseHealth={costsClean}
-    />
-  );
-
-  expandFooter();
-
-  expect(getFooter()).toHaveAttribute('open');
-  expect(
-    within(getDetailBody()).getByText(/No skipped lines, unparseable files/)
-  ).toBeInTheDocument();
-});
-
-test('the collapsed summary reads a quiet clean message, not an issue count, when clean', () => {
-  render(
-    <ParseHealth
-      activityParseHealth={activityClean}
-      costsParseHealth={costsClean}
-    />
-  );
-
-  const summary = within(getSummary());
-
-  expect(summary.getByText('Everything parsed cleanly')).toBeInTheDocument();
-  expect(summary.queryByText(/lines skipped/)).not.toBeInTheDocument();
-});
-
-test('stays collapsed by default even when the merged data is dirty/informative', () => {
+test('renders a problems card, always expanded, when something did not parse', () => {
   render(
     <ParseHealth
       activityParseHealth={activityDirty}
@@ -89,23 +45,10 @@ test('stays collapsed by default even when the merged data is dirty/informative'
     />
   );
 
-  expect(getFooter()).not.toHaveAttribute('open');
-});
+  const card = screen.getByTestId('parse-health');
 
-test('the collapsed summary reads as an issue count, not a clean message, when dirty', () => {
-  render(
-    <ParseHealth
-      activityParseHealth={activityDirty}
-      costsParseHealth={costsDirty}
-    />
-  );
-
-  const summary = within(getSummary());
-
-  expect(
-    summary.queryByText('Everything parsed cleanly')
-  ).not.toBeInTheDocument();
-  expect(summary.getByText(/lines skipped/)).toBeInTheDocument();
+  expect(within(card).getByText('Parse health')).toBeInTheDocument();
+  expect(within(card).getByText(/didn't parse cleanly/i)).toBeInTheDocument();
 });
 
 test('surfaces per-source skip/unparseable counts from both merged slices', () => {
@@ -116,16 +59,14 @@ test('surfaces per-source skip/unparseable counts from both merged slices', () =
     />
   );
 
-  expandFooter();
+  const card = within(screen.getByTestId('parse-health'));
 
-  const detail = within(getDetailBody());
-
-  expect(detail.getByText('cost.jsonl')).toBeInTheDocument();
-  expect(detail.getByText(/2 \/ 482 lines skipped/)).toBeInTheDocument();
-  expect(detail.getByText('plans/ledger.json')).toBeInTheDocument();
-  expect(detail.getByText(/1 \/ 1 files unparseable/)).toBeInTheDocument();
-  expect(detail.getByText('session-logs')).toBeInTheDocument();
-  expect(detail.getByText(/9 \/ 15230 lines skipped/)).toBeInTheDocument();
+  expect(card.getByText('cost.jsonl')).toBeInTheDocument();
+  expect(card.getByText(/2 \/ 482 lines skipped/)).toBeInTheDocument();
+  expect(card.getByText('plans/ledger.json')).toBeInTheDocument();
+  expect(card.getByText(/1 \/ 1 files unparseable/)).toBeInTheDocument();
+  expect(card.getByText('session-logs')).toBeInTheDocument();
+  expect(card.getByText(/9 \/ 15230 lines skipped/)).toBeInTheDocument();
 });
 
 test('surfaces unknown kind/status values deduplicated across sources', () => {
@@ -136,14 +77,12 @@ test('surfaces unknown kind/status values deduplicated across sources', () => {
     />
   );
 
-  expandFooter();
-
-  const detail = within(getDetailBody());
+  const card = within(screen.getByTestId('parse-health'));
 
   // "review" is an unknown kind on both sides; the union renders it once.
-  expect(detail.getAllByText('review')).toHaveLength(1);
-  expect(detail.getByText('superseded')).toBeInTheDocument();
-  expect(detail.getByText('paused')).toBeInTheDocument();
+  expect(card.getAllByText('review')).toHaveLength(1);
+  expect(card.getByText('superseded')).toBeInTheDocument();
+  expect(card.getByText('paused')).toBeInTheDocument();
 });
 
 test('surfaces notes verbatim, including a cost.md phase the backfill missed', () => {
@@ -154,31 +93,10 @@ test('surfaces notes verbatim, including a cost.md phase the backfill missed', (
     />
   );
 
-  expandFooter();
-
-  const detail = within(getDetailBody());
+  const card = within(screen.getByTestId('parse-health'));
 
   expect(
-    detail.getByText(/SPEC-014 has an archived cost\.md phase section/)
+    card.getByText(/SPEC-014 has an archived cost\.md phase section/)
   ).toBeInTheDocument();
-  expect(detail.getByText(/unsupported schema_version 2/)).toBeInTheDocument();
-});
-
-test('the summary trigger carries a visible focus ring for keyboard users', () => {
-  render(
-    <ParseHealth
-      activityParseHealth={activityClean}
-      costsParseHealth={costsClean}
-    />
-  );
-
-  expect(getSummary()).toHaveClass('focus-visible:outline-2');
-});
-
-test('ParseHealthSkeleton renders a collapsed-footer placeholder hidden from assistive tech', () => {
-  render(<ParseHealthSkeleton />);
-
-  const skeleton = screen.getByTestId('parse-health-skeleton');
-  expect(skeleton).toHaveAttribute('aria-hidden', 'true');
-  expect(within(skeleton).getByText('Parse health')).toBeInTheDocument();
+  expect(card.getByText(/unsupported schema_version 2/)).toBeInTheDocument();
 });

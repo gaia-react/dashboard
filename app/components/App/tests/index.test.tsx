@@ -58,12 +58,9 @@ const expectAllBusy = (labels: string[], busy: boolean): void => {
 // specs & plans cost table. Sections on the other tabs are not mounted until
 // their tab is active.
 const workTabLabels = ['Key metrics', 'Specs and plans'];
-const activityTabLabels = [
-  'Activity',
-  'Model mix',
-  'Cost trend',
-  'Parse health',
-];
+// Parse health is intentionally omitted: it only renders when a data problem
+// exists (feedback), so it is not an always-present region.
+const activityTabLabels = ['Activity', 'Model mix', 'Insights', 'Cost trend'];
 
 afterEach(() => {
   vi.unstubAllGlobals();
