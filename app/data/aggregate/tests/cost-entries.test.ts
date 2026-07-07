@@ -93,7 +93,7 @@ describe('buildCostEntries', () => {
     expect(entry.id).toBeNull();
     expect(entry.status).toBeNull();
     expect(entry.title).toBe('vintage-plan');
-    expect(entry.sortAt).toBe('2026-06-04T11:00:00Z');
+    expect(entry.sortAt).toBe('2026-06-04T11:00:00.000Z');
     expect(entry.totals.recordedDollars).toBe(3);
     expect(entry.totals.durationSeconds).toBe(600);
   });
@@ -224,7 +224,7 @@ describe('buildCostEntries', () => {
   test('reports the earliest coverage timestamp across all groups', () => {
     // The SPEC-200 spec row has a null started_at; its ts (06-01T09:00) is
     // the earliest coverage point in the fixture.
-    expect(result.costSince).toBe('2026-06-01T09:00:00Z');
+    expect(result.costSince).toBe('2026-06-01T09:00:00.000Z');
   });
 
   test('a ledger entry with no cost from any source renders as an honest gap', () => {

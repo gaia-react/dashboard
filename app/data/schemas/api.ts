@@ -44,6 +44,15 @@ export const modelBucketsSchema = z.object({
  * `linesSkipped` aggregates `streamJsonl` per-line errors plus rows rejected
  * by a schema (unsupported `schema_version`); `filesUnparseable` counts files
  * that yielded nothing at all.
+ *
+ * Known limitation (P3 handoff, session-logs source only): the session
+ * scanner (`parse/session-scan.ts`) folds each session's main + subagent
+ * transcript files into one session-level aggregate before returning, so a
+ * wholly-malformed transcript FILE cannot be distinguished, cheaply and
+ * without re-plumbing the scanner's return contract, from a partially-skipped
+ * one. `buildSessionParseHealth` therefore hardcodes `filesUnparseable: 0` for
+ * `session-logs`; a fully-malformed transcript still surfaces via its lines
+ * counted in `linesSkipped`, just not as a distinct file count.
  */
 export const parseHealthCounterSchema = z.object({
   filesScanned: z.number(),

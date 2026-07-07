@@ -150,6 +150,14 @@ export type SessionScanHealth = {
  * without readable usage; `<synthetic>` exclusions are by-design filtering,
  * not skips. Session logs have no `kind`/`status` vocabulary, so the unknown
  * arrays stay empty on this side.
+ *
+ * `filesUnparseable` is hardcoded to 0 here (P3 handoff, known limitation):
+ * `scanSession` folds a session's main + subagent files into one session-level
+ * aggregate before returning, so a wholly-malformed transcript file cannot be
+ * told apart, cheaply, from a partially-skipped one at this boundary. Its
+ * lines still count in `linesSkipped` above; only the distinct-file count is
+ * missing. Fixing this needs the scanner to surface a per-file signal
+ * (`parse/session-scan.ts`), which is a scanner change, not a wiring one.
  */
 export const buildSessionParseHealth = (
   input: SessionParseHealthInput

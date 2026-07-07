@@ -1,3 +1,4 @@
+import {canonicalizeTimestamp} from '~/data/aggregate/timestamp';
 import type {SessionScan, TokenBuckets} from '~/data/parse/session-scan';
 import type {RateTableLoad} from '~/data/pricing/rates';
 import {estimateDollars} from '~/data/pricing/rates';
@@ -30,7 +31,8 @@ export type ActivityAggregation = {
   sessions: SessionSummary[];
   /**
    * Sessions omitted from `sessions` because no included message carried a
-   * parseable timestamp (the API summary requires a span). Surfaced so the
+   * parseable timestamp, or the session span's raw timestamp was wholly
+   * unparseable (the API summary requires a canonical span). Surfaced so the
    * handler can note them in parse health; their tokens still count in
    * `kpis.totalBuckets` and `modelTotals`.
    */
@@ -340,13 +342,11 @@ const buildSessions = (
   const untimedSessionIds: string[] = [];
 
   for (const scan of options.scans) {
-    if (scan.startedAt !== undefined && scan.endedAt !== undefined) {
-      sessions.push(
-        toSessionSummary(scan, options, {
-          endedAt: scan.endedAt,
-          startedAt: scan.startedAt,
-        })
-      );
+    const startedAt = canonicalizeTimestamp(scan.startedAt);
+    const endedAt = canonicalizeTimestamp(scan.endedAt);
+
+    if (startedAt !== null && endedAt !== null) {
+      sessions.push(toSessionSummary(scan, options, {endedAt, startedAt}));
     } else {
       untimedSessionIds.push(scan.sessionId);
     }
@@ -417,12 +417,14 @@ export const aggregateActivity = (
   let activitySince: null | string = null;
 
   for (const scan of options.scans) {
+    const startedAt = canonicalizeTimestamp(scan.startedAt);
+
     if (
-      scan.startedAt !== undefined &&
+      startedAt !== null &&
       (activitySince === null ||
-        Date.parse(scan.startedAt) < Date.parse(activitySince))
+        Date.parse(startedAt) < Date.parse(activitySince))
     ) {
-      activitySince = scan.startedAt;
+      activitySince = startedAt;
     }
   }
 

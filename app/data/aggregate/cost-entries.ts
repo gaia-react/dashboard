@@ -1,3 +1,4 @@
+import {canonicalizeTimestamp} from '~/data/aggregate/timestamp';
 import type {CostGroup} from '~/data/parse/cost-ledger';
 import type {NormalizedLedgerEntry} from '~/data/parse/ledgers';
 import type {
@@ -227,22 +228,30 @@ const deriveSource = (groups: CostGroup[]): CostEntry['source'] => {
   return sources.size > 1 ? 'mixed' : [...sources][0];
 };
 
-/** A group's coverage timestamp: `started_at` where present, else `ts`. */
+/** A group's coverage timestamp: `started_at` where present, else `ts`. Raw
+ * upstream value, canonicalized by the caller. */
 const groupCoverageAt = (group: CostGroup): string =>
   group.terminalRow.started_at ?? group.terminalRow.ts;
 
+/**
+ * Earliest canonical coverage timestamp across the groups. A group whose
+ * coverage timestamp is wholly unparseable is excluded rather than
+ * corrupting the comparison; null when none of the groups have one.
+ */
 const earliestCoverageAt = (groups: CostGroup[]): null | string => {
-  let earliest: null | string = null;
+  const canonicalTimestamps = groups
+    .map((group) => canonicalizeTimestamp(groupCoverageAt(group)))
+    .filter((timestamp): timestamp is string => timestamp !== null);
 
-  for (const group of groups) {
-    const at = groupCoverageAt(group);
-
-    if (earliest === null || Date.parse(at) < Date.parse(earliest)) {
-      earliest = at;
-    }
+  if (canonicalTimestamps.length === 0) {
+    return null;
   }
 
-  return earliest;
+  return canonicalTimestamps.reduce(
+    (earliest, candidate) =>
+      Date.parse(candidate) < Date.parse(earliest) ? candidate : earliest,
+    canonicalTimestamps[0]
+  );
 };
 
 type EntrySeed = {
@@ -290,9 +299,9 @@ const ledgerEntrySeed = (
   id: entry.id,
   key: entry.id,
   sortAt:
-    entry.allocatedAt ??
+    canonicalizeTimestamp(entry.allocatedAt) ??
     earliestCoverageAt(groups) ??
-    entry.completedAt ??
+    canonicalizeTimestamp(entry.completedAt) ??
     EPOCH,
   status: entry.status,
   title: entry.title,
