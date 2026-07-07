@@ -57,25 +57,33 @@ export const formatLocalDate = (
   }).format(new Date(isoTimestamp));
 
 /**
- * True only when both datasets have a start date and those dates fall on
- * different calendar days (SPEC section 6.1 coverage disclosure).
+ * The date this project first shows any signal: the earlier of the first cost
+ * row and the first session-log activity. Once tracking is always-on from
+ * release, a coverage-divergence disclosure is noise; a single "project
+ * started" date is the useful fact. Null only when neither dataset exists yet
+ * (a fresh adopter), in which case the header shows no start line at all.
  */
-export const coverageDiverges = (
+export const formatProjectStart = (
   costSince: null | string,
   activitySince: null | string,
   timeZone?: string
-): boolean =>
-  costSince !== null &&
-  activitySince !== null &&
-  formatLocalDate(costSince, timeZone) !==
-    formatLocalDate(activitySince, timeZone);
+): null | string => {
+  const candidates = [costSince, activitySince].filter(
+    (value): value is string => value !== null
+  );
 
-export const formatCoverageDisclosure = (
-  costSince: string,
-  activitySince: string,
-  timeZone?: string
-): string =>
-  `Cost tracking began ${formatLocalDate(costSince, timeZone)}; activity history goes back to ${formatLocalDate(activitySince, timeZone)}.`;
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  const earliest = candidates.reduce(
+    (oldest, value) =>
+      new Date(value).getTime() < new Date(oldest).getTime() ? value : oldest,
+    candidates[0]
+  );
+
+  return formatLocalDate(earliest, timeZone);
+};
 
 export type FreshnessLineInput = {
   scannedAt: string;

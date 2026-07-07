@@ -1,9 +1,8 @@
 import {expect, test} from 'vitest';
 import {
-  coverageDiverges,
-  formatCoverageDisclosure,
   formatFreshnessLine,
   formatLocalDate,
+  formatProjectStart,
   formatScannedAt,
 } from '~/components/Sections/DashboardHeader/format-header';
 
@@ -35,34 +34,23 @@ test('formatLocalDate renders a UTC instant as a YYYY-MM-DD date in the given zo
   expect(formatLocalDate('2026-07-03T00:00:00Z', 'UTC')).toBe('2026-07-03');
 });
 
-test('coverageDiverges is false when either date is missing', () => {
-  expect(coverageDiverges(null, '2026-05-05T00:00:00Z', 'UTC')).toBe(false);
-  expect(coverageDiverges('2026-07-03T00:00:00Z', null, 'UTC')).toBe(false);
-  expect(coverageDiverges(null, null, 'UTC')).toBe(false);
+test('formatProjectStart returns null when neither dataset has a start date', () => {
+  expect(formatProjectStart(null, null, 'UTC')).toBeNull();
 });
 
-test('coverageDiverges is false when both sides land on the same day in the given zone', () => {
-  expect(
-    coverageDiverges('2026-07-03T23:00:00Z', '2026-07-03T01:00:00Z', 'UTC')
-  ).toBe(false);
-});
-
-test('coverageDiverges is true when the two datasets start on different days', () => {
-  expect(
-    coverageDiverges('2026-07-03T00:00:00Z', '2026-05-05T08:00:00Z', 'UTC')
-  ).toBe(true);
-});
-
-test('formatCoverageDisclosure names both dates', () => {
-  expect(
-    formatCoverageDisclosure(
-      '2026-07-03T00:00:00Z',
-      '2026-05-05T08:00:00Z',
-      'UTC'
-    )
-  ).toBe(
-    'Cost tracking began 2026-07-03; activity history goes back to 2026-05-05.'
+test('formatProjectStart uses the only available date when one side is missing', () => {
+  expect(formatProjectStart(null, '2026-05-05T08:00:00Z', 'UTC')).toBe(
+    '2026-05-05'
   );
+  expect(formatProjectStart('2026-07-03T00:00:00Z', null, 'UTC')).toBe(
+    '2026-07-03'
+  );
+});
+
+test('formatProjectStart picks the earlier of the two start dates', () => {
+  expect(
+    formatProjectStart('2026-07-03T00:00:00Z', '2026-05-05T08:00:00Z', 'UTC')
+  ).toBe('2026-05-05');
 });
 
 test('formatFreshnessLine states session count, spec count, and recency', () => {

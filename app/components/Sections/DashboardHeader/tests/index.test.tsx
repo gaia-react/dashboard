@@ -63,7 +63,7 @@ test('renders the wordmark, project identity, freshness line, and a working refr
   expect(refresh).toHaveBeenCalledTimes(1);
 });
 
-test('shows the coverage disclosure when cost and activity history diverge', () => {
+test('shows the project start date as the earlier of cost and activity history', () => {
   render(
     <DashboardHeader
       activity={activityPopulated}
@@ -72,14 +72,13 @@ test('shows the coverage disclosure when cost and activity history diverge', () 
     />
   );
 
-  expect(
-    screen.getByText(
-      'Cost tracking began 2026-07-03; activity history goes back to 2026-05-05.'
-    )
-  ).toBeInTheDocument();
+  // activitySince (2026-05-05T08:00:00Z) precedes costSince (2026-07-03); the
+  // 08:00Z time keeps it on the 5th across US zones, so the date is stable.
+  expect(screen.getByText('Project started 2026-05-05')).toBeInTheDocument();
+  expect(screen.queryByText(/Cost tracking began/)).not.toBeInTheDocument();
 });
 
-test('hides the coverage disclosure when there is no cost history to compare', () => {
+test('derives the project start from activity alone when there is no cost history', () => {
   render(
     <DashboardHeader
       activity={activityEmpty}
@@ -88,7 +87,7 @@ test('hides the coverage disclosure when there is no cost history to compare', (
     />
   );
 
-  expect(screen.queryByText(/Cost tracking began/)).not.toBeInTheDocument();
+  expect(screen.getByText(/^Project started /)).toBeInTheDocument();
   // Freshness still populates from activity alone (empty-project state).
   expect(
     screen.getByText((content) =>
@@ -97,11 +96,11 @@ test('hides the coverage disclosure when there is no cost history to compare', (
   ).toBeInTheDocument();
 });
 
-test('the skeleton mirrors the identity block width so the data swap does not reflow', () => {
+test('the skeleton mirrors the identity block max width so the data swap does not reflow', () => {
   const {unmount} = render(<DashboardHeaderSkeleton />);
   const skeletonIdentity = screen.getByTestId('header-identity-skeleton');
   const skeletonWidthClass = [...skeletonIdentity.classList].find((name) =>
-    name.startsWith('w-')
+    name.startsWith('max-w-')
   );
 
   unmount();
