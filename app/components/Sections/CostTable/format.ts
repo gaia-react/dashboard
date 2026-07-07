@@ -1,7 +1,9 @@
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
-import type {Buckets} from '~/data/schemas/api';
+import type {Buckets, CostEntry} from '~/data/schemas/api';
 
 export {costEntryAnchorId} from '~/components/Sections/anchor-ids';
+
+export {costViewForEntryType} from '~/components/Sections/anchor-ids';
 
 export {sessionAnchorId} from '~/components/Sections/anchor-ids';
 
@@ -17,6 +19,32 @@ export const NO_DATA_LABEL = '-';
 
 export const sumBuckets = (buckets: Buckets): number =>
   buckets.freshInput + buckets.cacheWrite + buckets.cacheRead + buckets.output;
+
+/**
+ * Cumulative recorded dollars / duration across a table (feedback, shown next
+ * to the specs/plans toggle). `null` only when NONE of the entries carry a
+ * figure, same null-vs-zero rule as a single cell; rows with no figure are
+ * otherwise skipped rather than poisoning the whole total.
+ */
+export const sumRecordedDollars = (entries: CostEntry[]): null | number => {
+  const knownValues = entries
+    .map((entry) => entry.totals.recordedDollars)
+    .filter((value): value is number => value !== null);
+
+  return knownValues.length === 0 ?
+      null
+    : knownValues.reduce((sum, value) => sum + value, 0);
+};
+
+export const sumDurationSeconds = (entries: CostEntry[]): null | number => {
+  const knownValues = entries
+    .map((entry) => entry.totals.durationSeconds)
+    .filter((value): value is number => value !== null);
+
+  return knownValues.length === 0 ?
+      null
+    : knownValues.reduce((sum, value) => sum + value, 0);
+};
 
 export const formatTokens = (value: number, locale?: string): string =>
   formatCompactNumber(value, locale);

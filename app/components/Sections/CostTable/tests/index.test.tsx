@@ -5,7 +5,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import {expect, test, vi} from 'vitest';
+import {afterEach, expect, test, vi} from 'vitest';
 import {z} from 'zod';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
@@ -51,6 +51,10 @@ const dataRowKeys = (): string[] =>
     .slice(1) // drop the header row
     .map((row) => row.getAttribute('id'))
     .filter((id): id is string => id?.startsWith('cost-entry-') ?? false);
+
+afterEach(() => {
+  window.history.replaceState(null, '', '/');
+});
 
 test('renders an intentional empty state when there are no entries', () => {
   render(<CostTable entries={emptyEntries} />);
@@ -263,24 +267,133 @@ test('a resolved session shows timestamp-first detail and a working jump-link', 
     name: /view in sessions/i,
   });
 
-  expect(jumpLink).toHaveAttribute(
-    'href',
-    '?tab=sessions&session=session-201-a'
-  );
+  expect(jumpLink).toHaveAttribute('href', '?tab=sessions&id=session-201-a');
 
   fireEvent.click(jumpLink);
   expect(onViewSession).toHaveBeenCalledWith('session-201-a');
 });
 
-test('expanding a row with no phase or session data shows no empty section headings', () => {
+test('a row with no phase or session data has no expand affordance and cannot be clicked', () => {
   render(<CostTable entries={populatedEntries} />);
 
-  fireEvent.click(screen.getByRole('button', {name: /expand spec-777/i}));
+  const emptyRow = screen.getByRole('row', {name: /SPEC-777/});
 
-  const detail = screen.getByTestId('cost-row-detail-SPEC-777');
+  expect(
+    screen.queryByRole('button', {name: /expand spec-777/i})
+  ).not.toBeInTheDocument();
+  expect(emptyRow).toHaveClass('cursor-not-allowed');
+  expect(emptyRow).not.toHaveClass('cursor-pointer');
 
-  expect(within(detail).queryByText('Phases')).not.toBeInTheDocument();
-  expect(within(detail).queryByText('Sessions')).not.toBeInTheDocument();
+  fireEvent.click(emptyRow);
+  expect(
+    screen.queryByTestId('cost-row-detail-SPEC-777')
+  ).not.toBeInTheDocument();
+});
+
+test('removes the Output Tokens column entirely', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  expect(
+    screen.queryByRole('columnheader', {name: /output tokens/i})
+  ).not.toBeInTheDocument();
+});
+
+test('defaults to sorting the ID column descending', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  expect(screen.getByRole('columnheader', {name: 'ID'})).toHaveAttribute(
+    'aria-sort',
+    'descending'
+  );
+  expect(dataRowKeys()).toEqual([
+    'cost-entry-SPEC-777',
+    'cost-entry-SPEC-201',
+    'cost-entry-SPEC-150',
+  ]);
+});
+
+test('clicking a header sorts ascending, clicking it again reverses to descending', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  const titleHeader = screen.getByRole('columnheader', {name: 'Title'});
+
+  fireEvent.click(within(titleHeader).getByRole('button'));
+  expect(titleHeader).toHaveAttribute('aria-sort', 'ascending');
+
+  const ascendingOrder = dataRowKeys();
+
+  fireEvent.click(within(titleHeader).getByRole('button'));
+  expect(titleHeader).toHaveAttribute('aria-sort', 'descending');
+  expect(dataRowKeys()).toEqual(ascendingOrder.toReversed());
+});
+
+test('shows cumulative cost and time for the currently shown table, next to the toggle', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  // Specs: only SPEC-201 has a recorded figure ($3.42); durations sum to
+  // 900s + 2100s = 3000s = 50m (SPEC-777 has neither).
+  expect(
+    within(screen.getByTestId('cost-table-totals')).getByText('$3.42')
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getByTestId('cost-table-totals')).getByText('50m')
+  ).toBeInTheDocument();
+
+  showPlans();
+
+  // Plans: legacy-onboarding ($2.10, 1500s) + PLAN-090 ($1.10, 600s) =
+  // $3.20, 2100s = 35m (archive-notes has neither).
+  expect(
+    within(screen.getByTestId('cost-table-totals')).getByText('$3.20')
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getByTestId('cost-table-totals')).getByText('35m')
+  ).toBeInTheDocument();
+});
+
+test('the view toggle is URL-driven via ?work=', () => {
+  window.history.replaceState(null, '', '/?work=plans');
+
+  render(<CostTable entries={populatedEntries} />);
+
+  expect(screen.getByRole('button', {name: 'Plans (3)'})).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+
+  showPlans();
+  expect(window.location.search).toBe('?work=plans');
+
+  fireEvent.click(screen.getByRole('button', {name: /specs \(/i}));
+  expect(window.location.search).toBe('');
+});
+
+test('an invalid ?work= value falls back to specs', () => {
+  window.history.replaceState(null, '', '/?work=bogus');
+
+  render(<CostTable entries={populatedEntries} />);
+
+  expect(screen.getByRole('button', {name: 'Specs (3)'})).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+});
+
+test('?entry= deep-links into whichever table holds the entry, expanding and highlighting it', () => {
+  window.history.replaceState(null, '', '/?work=specs&entry=PLAN-090');
+
+  render(<CostTable entries={populatedEntries} />);
+
+  // PLAN-090 lives in plans, so ?entry= overrides the ?work=specs request.
+  expect(screen.getByRole('button', {name: 'Plans (3)'})).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+
+  const targetRow = screen.getByRole('row', {name: /PLAN-090/});
+
+  expect(targetRow).toHaveClass('ring-accent/40');
+  expect(screen.getByTestId('cost-row-detail-PLAN-090')).toBeInTheDocument();
 });
 
 test('CostTableSkeleton renders a pixel-matching placeholder hidden from assistive tech', () => {

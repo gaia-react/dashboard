@@ -36,6 +36,10 @@ const modelTotal = (buckets: ModelBuckets): number =>
   buckets.cacheRead +
   buckets.output;
 
+/** Right-aligned numeric cell (feedback): so token/cost/duration figures line
+ * up vertically down a column instead of ragging on their text length. */
+const numericCellClass = 'text-right font-mono tabular-nums';
+
 /** One breakdown mini-table shared by the per-model and per-agent-type
  * sections (identical shape, different key formatter). */
 const BreakdownTable: FC<{
@@ -49,11 +53,22 @@ const BreakdownTable: FC<{
       {entries.map(([key, buckets]) => (
         <tr key={key} className="border-border-soft border-t">
           <td className={subCellClass}>{formatKey(key)}</td>
-          <td className={subCellClass}>{formatTokens(modelTotal(buckets))}</td>
+          <td className={twJoin(subCellClass, numericCellClass)}>
+            {formatTokens(modelTotal(buckets))}
+          </td>
         </tr>
       ))}
     </tbody>
   </table>
+);
+
+/** Fixed widths (feedback) so tokens/cost/elapsed line up across every phase
+ * row, not just within one. */
+const phaseTokensClass = twJoin(numericCellClass, 'inline-block w-20 shrink-0');
+const phaseCostClass = twJoin(numericCellClass, 'inline-block w-16 shrink-0');
+const phaseElapsedClass = twJoin(
+  numericCellClass,
+  'inline-block w-16 shrink-0'
 );
 
 const PhaseRow: FC<{phase: CostEntry['phases'][number]}> = ({phase}) => (
@@ -61,12 +76,15 @@ const PhaseRow: FC<{phase: CostEntry['phases'][number]}> = ({phase}) => (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
       <span className="text-fg font-medium">{formatLabel(phase.kind)}</span>
       <span className="text-fg-dim">
-        {formatTokens(phase.buckets.output)} output tokens
+        <span className={phaseTokensClass}>
+          {formatTokens(phase.buckets.output)}
+        </span>{' '}
+        output tokens
       </span>
-      <span className="text-fg-dim">
+      <span className={twJoin('text-fg-dim', phaseCostClass)}>
         {formatDollarsCell(phase.recordedDollars)}
       </span>
-      <span className="text-fg-dim">
+      <span className={twJoin('text-fg-dim', phaseElapsedClass)}>
         {formatDuration(phase.durationSeconds)}
       </span>
     </div>
