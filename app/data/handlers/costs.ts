@@ -175,27 +175,33 @@ export const getCosts = async (
     'token-rates.json'
   );
 
-  const costRead = await readCostLedgerFile(
-    path.join(localDirectory, 'telemetry', 'cost.jsonl'),
-    cache
-  );
-  const specRead = await readLedgerFile(
-    path.join(localDirectory, 'specs', 'ledger.json'),
-    cache,
-    readSpecLedger
-  );
-  const planRead = await readLedgerFile(
-    path.join(localDirectory, 'plans', 'ledger.json'),
-    cache,
-    readPlanLedger
-  );
   const rateTableLoad = loadRateTable(cache, ratesPath);
 
-  const discoveredDirectories = await discoverProjectDirectories(
-    path.join(config.claudeConfigDir, 'projects'),
-    config.projectRoot,
-    cache
-  );
+  // Four independent reads (different files, different cache keys): run
+  // together rather than one after another (the cache's own doc comment
+  // anticipates concurrent gets sharing one read per path).
+  const [costRead, specRead, planRead, discoveredDirectories] =
+    await Promise.all([
+      readCostLedgerFile(
+        path.join(localDirectory, 'telemetry', 'cost.jsonl'),
+        cache
+      ),
+      readLedgerFile(
+        path.join(localDirectory, 'specs', 'ledger.json'),
+        cache,
+        readSpecLedger
+      ),
+      readLedgerFile(
+        path.join(localDirectory, 'plans', 'ledger.json'),
+        cache,
+        readPlanLedger
+      ),
+      discoverProjectDirectories(
+        path.join(config.claudeConfigDir, 'projects'),
+        config.projectRoot,
+        cache
+      ),
+    ]);
   const join = joinCostGroupsToSessions(costRead.result.groups, {
     claudeConfigDir: config.claudeConfigDir,
     discoveredDirectories,

@@ -162,12 +162,17 @@ export const handleActivity = async (
   query: ActivityQuery = {}
 ): Promise<ActivityResponse> => {
   const {cache, config, resolveAttribution} = context;
-  const {directories, fileCount, scans} =
-    await scanAllProjectDirectories(context);
-  const costGroups = await readCostGroups(
-    cache,
-    path.join(config.projectRoot, '.gaia', 'local', 'telemetry', 'cost.jsonl')
-  );
+
+  // The session-log scan and the cost-ledger read are independent (neither's
+  // input depends on the other's output): run them together instead of one
+  // after another.
+  const [{directories, fileCount, scans}, costGroups] = await Promise.all([
+    scanAllProjectDirectories(context),
+    readCostGroups(
+      cache,
+      path.join(config.projectRoot, '.gaia', 'local', 'telemetry', 'cost.jsonl')
+    ),
+  ]);
   const rateTable = loadRateTable(
     cache,
     path.join(config.projectRoot, '.gaia', 'scripts', 'token-rates.json')
