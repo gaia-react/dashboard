@@ -8,9 +8,7 @@ import {
   costViewForEntryType,
   formatDollarsCell,
   formatDuration,
-  formatTokens,
   NO_DATA_LABEL,
-  sumBuckets,
   sumDurationSeconds,
   sumRecordedDollars,
 } from '~/components/Sections/CostTable/format';
@@ -30,7 +28,7 @@ import type {CostEntry, SessionSummary} from '~/data/schemas/api';
 import {useCollapse} from '~/hooks/useCollapse';
 import {useQueryParams} from '~/hooks/useQueryParams';
 
-const COLUMN_COUNT = 7;
+const COLUMN_COUNT = 6;
 
 /** Hand-coded chevron (DESIGN.md: stroke-based, 1.5px, round caps), rotates
  * to point down when the row is expanded. */
@@ -82,12 +80,34 @@ export type CostTableProps = {
   sessions?: SessionSummary[];
 };
 
-const headerCellClass =
-  'text-fg-mute px-3 py-2 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase';
+/** Column widths (feedback: Title is the widest/flexible column, everything
+ * else is content-sized so its values never wrap). Under `table-fixed`, every
+ * column but Title carries an explicit width; Title (no width class) absorbs
+ * whatever space is left. `TotalsSummary` reuses the cost/time widths so its
+ * totals sit directly above the columns they summarize. */
+const EXPAND_COLUMN_WIDTH = 'w-12';
+const ID_COLUMN_WIDTH = 'w-24';
+const STATUS_COLUMN_WIDTH = 'w-40';
+/** Wide enough for the "Cost $442.91" / "Time 23h 51m" totals (a summed
+ * figure runs longer than any one row's), not just a single row's value. */
+const COST_COLUMN_WIDTH = 'w-36';
+const TIME_COLUMN_WIDTH = 'w-32';
+
+const headerCellClass = 'text-fg-mute text-left';
 const cellClass = 'text-fg-dim px-3 py-2 text-sm';
 
-const sortButtonClass =
-  'text-fg-mute hover:text-fg focus-visible:outline-accent flex items-center gap-1 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2';
+/** Typography (eyebrow convention, matching `ExpandedDetail`'s headings) plus
+ * the padding the `<th>` used to carry. Lives on the button/span itself, not
+ * the `<th>`: a `<button>` resets its own `text-transform` to `none`
+ * (Preflight's form-element normalize), so `uppercase` on an ancestor never
+ * reaches the label text, it has to sit on the element rendering the text. */
+const headerLabelClass =
+  'flex h-full w-full items-center gap-1 px-3 py-2 text-left font-mono text-[0.65rem] tracking-[0.15em] uppercase';
+
+const sortButtonClass = twJoin(
+  headerLabelClass,
+  'text-fg-mute hover:text-fg focus-visible:outline-accent rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2'
+);
 
 const ariaSortFor = (
   sortState: SortState,
@@ -104,65 +124,91 @@ const SortIndicator: FC<{direction: SortDirection}> = ({direction}) => (
   <span aria-hidden={true}>{direction === 'asc' ? '▲' : '▼'}</span>
 );
 
-/** One clickable, keyboard-operable column header (feedback: click to sort,
- * toggling ascending/descending). `aria-sort` lives on the `<th>` per the
- * WAI-ARIA sortable-table pattern; the button inside is the actual control. */
+/** One clickable, keyboard-operable column header (feedback: the whole cell
+ * toggles sort, not just the label). `aria-sort` lives on the `<th>` per the
+ * WAI-ARIA sortable-table pattern; the button fills the cell (`h-full
+ * w-full`) so there is no dead padding a click misses. `disabled` renders a
+ * static, non-focusable label instead (the loading skeleton, feedback: real
+ * sort controls should not be tabbable while nothing has loaded yet). */
 const SortableHeaderCell: FC<{
   children: ReactNode;
   className?: string;
   column: SortColumn;
+  disabled?: boolean;
   onSort: (column: SortColumn) => void;
   sortState: SortState;
-}> = ({children, className, column, onSort, sortState}) => (
+}> = ({children, className, column, disabled = false, onSort, sortState}) => (
   <th
-    aria-sort={ariaSortFor(sortState, column)}
+    aria-sort={disabled ? undefined : ariaSortFor(sortState, column)}
     className={twJoin(headerCellClass, className)}
   >
-    <button
-      className={sortButtonClass}
-      onClick={() => onSort(column)}
-      type="button"
-    >
-      {children}
-      {sortState.column === column && (
-        <SortIndicator direction={sortState.direction} />
-      )}
-    </button>
+    {disabled ?
+      <span className={twJoin(headerLabelClass, 'text-fg-mute')}>
+        {children}
+      </span>
+    : <button
+        className={sortButtonClass}
+        onClick={() => onSort(column)}
+        type="button"
+      >
+        {children}
+        {sortState.column === column && (
+          <SortIndicator direction={sortState.direction} />
+        )}
+      </button>
+    }
   </th>
 );
 
 const TableHead: FC<{
+  disabled?: boolean;
   onSort: (column: SortColumn) => void;
   sortState: SortState;
-}> = ({onSort, sortState}) => (
+}> = ({disabled = false, onSort, sortState}) => (
   <thead>
     <tr className="bg-bg-elev-2">
-      <th className={headerCellClass}>
+      <th className={twJoin(headerCellClass, EXPAND_COLUMN_WIDTH, 'px-3 py-2')}>
         <span className="sr-only">Expand</span>
       </th>
-      <SortableHeaderCell column="id" onSort={onSort} sortState={sortState}>
+      <SortableHeaderCell
+        className={ID_COLUMN_WIDTH}
+        column="id"
+        disabled={disabled}
+        onSort={onSort}
+        sortState={sortState}
+      >
         ID
       </SortableHeaderCell>
       <SortableHeaderCell
-        className="w-48"
         column="title"
+        disabled={disabled}
         onSort={onSort}
         sortState={sortState}
       >
         Title
       </SortableHeaderCell>
-      <SortableHeaderCell column="status" onSort={onSort} sortState={sortState}>
+      <SortableHeaderCell
+        className={STATUS_COLUMN_WIDTH}
+        column="status"
+        disabled={disabled}
+        onSort={onSort}
+        sortState={sortState}
+      >
         Status
       </SortableHeaderCell>
-      <SortableHeaderCell column="tokens" onSort={onSort} sortState={sortState}>
-        Total tokens
-      </SortableHeaderCell>
-      <SortableHeaderCell column="cost" onSort={onSort} sortState={sortState}>
+      <SortableHeaderCell
+        className={COST_COLUMN_WIDTH}
+        column="cost"
+        disabled={disabled}
+        onSort={onSort}
+        sortState={sortState}
+      >
         Cost $
       </SortableHeaderCell>
       <SortableHeaderCell
-        className="hidden md:table-cell"
+        className={twJoin('hidden md:table-cell', TIME_COLUMN_WIDTH)}
         column="time"
+        disabled={disabled}
         onSort={onSort}
         sortState={sortState}
       >
@@ -243,12 +289,9 @@ const CostRow: FC<{
           {entry.id ?? NOT_APPLICABLE}
         </td>
         <td className={cellClass}>{entry.title}</td>
-        <td className={cellClass}>
+        <td className={twJoin(cellClass, 'whitespace-nowrap')}>
           {entry.status === null ? NOT_APPLICABLE : formatLabel(entry.status)}
           {entry.partial && <span className={partialBadgeClass}>Partial</span>}
-        </td>
-        <td className={cellClass}>
-          {formatTokens(sumBuckets(entry.totals.buckets))}
         </td>
         <td
           className={twJoin(cellClass, 'whitespace-nowrap')}
@@ -340,14 +383,24 @@ const TotalsSummary: FC<{cost: null | number; time: null | number}> = ({
   time,
 }) => (
   <div
-    className="text-fg flex items-center gap-4 text-sm"
+    className="text-fg flex flex-1 items-center justify-end text-sm"
     data-testid="cost-table-totals"
   >
-    <span className="flex items-baseline gap-1.5">
+    <span
+      className={twJoin(
+        'flex items-baseline justify-end gap-1.5 px-3 whitespace-nowrap',
+        COST_COLUMN_WIDTH
+      )}
+    >
       <span className={totalsLabelClass}>Cost</span>
       {formatDollarsCell(cost)}
     </span>
-    <span className="flex items-baseline gap-1.5">
+    <span
+      className={twJoin(
+        'hidden items-baseline justify-end gap-1.5 px-3 whitespace-nowrap md:flex',
+        TIME_COLUMN_WIDTH
+      )}
+    >
       <span className={totalsLabelClass}>Time</span>
       {formatDuration(time)}
     </span>
@@ -460,7 +513,7 @@ const CostTable: FC<CostTableProps> = ({entries, onViewSession, sessions}) => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <ViewToggle
           onSelect={handleSelectView}
           planCount={plans.length}
@@ -479,7 +532,7 @@ const CostTable: FC<CostTableProps> = ({entries, onViewSession, sessions}) => {
         />
       : <>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full table-fixed border-collapse">
               <TableHead onSort={handleSortColumn} sortState={sortState} />
               <tbody>
                 {activeEntries.map((entry) => (
@@ -522,7 +575,9 @@ const noopSort = (): void => {};
 /** Pixel-matching loading placeholder for AsyncSection's `skeleton` prop
  * (skeleton-loaders skill): same chrome and column widths as the real
  * table, header labels reused verbatim (static text), row values shimmered
- * (dynamic). */
+ * (dynamic). `disabled` renders the header labels as plain, non-focusable
+ * spans (KNOWN-ISSUES: a real sort `<button>` inside this `aria-hidden`
+ * wrapper was still reachable by Tab, announced to nobody). */
 export const CostTableSkeleton: FC = () => (
   <div
     aria-hidden={true}
@@ -534,8 +589,8 @@ export const CostTableSkeleton: FC = () => (
       <Skeleton className="h-5 w-40" />
     </div>
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <TableHead onSort={noopSort} sortState={DEFAULT_SORT} />
+      <table className="w-full table-fixed border-collapse">
+        <TableHead disabled={true} onSort={noopSort} sortState={DEFAULT_SORT} />
         <tbody>
           {SKELETON_ROW_KEYS.map((key) => (
             <tr key={key} className="border-border-soft border-t">
@@ -550,9 +605,6 @@ export const CostTableSkeleton: FC = () => (
               </td>
               <td className={cellClass}>
                 <Skeleton className="inline-block h-4 w-16" />
-              </td>
-              <td className={cellClass}>
-                <Skeleton className="inline-block h-4 w-12" />
               </td>
               <td className={cellClass}>
                 <Skeleton className="inline-block h-4 w-14" />

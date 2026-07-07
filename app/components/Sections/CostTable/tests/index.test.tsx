@@ -290,11 +290,14 @@ test('a row with no phase or session data has no expand affordance and cannot be
   ).not.toBeInTheDocument();
 });
 
-test('removes the Output Tokens column entirely', () => {
+test('removes the Output Tokens and Total Tokens columns entirely', () => {
   render(<CostTable entries={populatedEntries} />);
 
   expect(
     screen.queryByRole('columnheader', {name: /output tokens/i})
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('columnheader', {name: /total tokens/i})
   ).not.toBeInTheDocument();
 });
 
@@ -325,6 +328,20 @@ test('clicking a header sorts ascending, clicking it again reverses to descendin
   fireEvent.click(within(titleHeader).getByRole('button'));
   expect(titleHeader).toHaveAttribute('aria-sort', 'descending');
   expect(dataRowKeys()).toEqual(ascendingOrder.toReversed());
+});
+
+test('the sort button fills the whole header cell, not just the label text', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  const idHeader = screen.getByRole('columnheader', {name: 'ID'});
+  const button = within(idHeader).getByRole('button');
+
+  // Full-size fill (feedback: click anywhere in the header cell, not just
+  // the label, toggles sort), not a button that only wraps the text.
+  expect(button).toHaveClass('h-full', 'w-full');
+
+  fireEvent.click(button);
+  expect(idHeader).toHaveAttribute('aria-sort', 'ascending');
 });
 
 test('shows cumulative cost and time for the currently shown table, next to the toggle', () => {
@@ -403,4 +420,19 @@ test('CostTableSkeleton renders a pixel-matching placeholder hidden from assisti
 
   expect(skeleton).toHaveAttribute('aria-hidden', 'true');
   expect(within(skeleton).getAllByTestId('skeleton').length).toBeGreaterThan(0);
+});
+
+test('CostTableSkeleton header cells are static labels, not focusable buttons', () => {
+  render(<CostTableSkeleton />);
+
+  // `aria-hidden` hides descendants from the accessibility tree but not from
+  // the tab order (KNOWN-ISSUES): a real `<button>` here would still be
+  // reachable by keyboard while announcing nothing. `hidden: true` opts back
+  // into querying aria-hidden content, so this actually proves none exist
+  // rather than the query silently filtering them out either way.
+  const skeleton = screen.getByTestId('cost-table-skeleton');
+
+  expect(
+    within(skeleton).queryAllByRole('button', {hidden: true})
+  ).toHaveLength(0);
 });

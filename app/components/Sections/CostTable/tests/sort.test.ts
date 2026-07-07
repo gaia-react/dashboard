@@ -6,15 +6,13 @@ import {
 } from '~/components/Sections/CostTable/sort';
 import type {SortableCostEntry} from '~/components/Sections/CostTable/sort';
 
-const zeroBuckets = {cacheRead: 0, cacheWrite: 0, freshInput: 0, output: 0};
-
 const buildEntry = (
   overrides: Partial<SortableCostEntry> & Pick<SortableCostEntry, 'id'>
 ): SortableCostEntry => ({
   sortAt: '2026-01-01T00:00:00Z',
   status: null,
   title: overrides.id ?? 'untitled',
-  totals: {buckets: zeroBuckets, durationSeconds: null, recordedDollars: null},
+  totals: {durationSeconds: null, recordedDollars: null},
   ...overrides,
 });
 

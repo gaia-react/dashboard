@@ -1,6 +1,3 @@
-import {sumBuckets} from '~/components/Sections/CostTable/format';
-import type {Buckets} from '~/data/schemas/api';
-
 /**
  * Minimal shape `sortEntries` reads; every `CostEntry` satisfies this
  * structurally, so callers pass `CostEntry[]` directly and tests can build
@@ -12,13 +9,12 @@ export type SortableCostEntry = {
   status: null | string;
   title: string;
   totals: {
-    buckets: Buckets;
     durationSeconds: null | number;
     recordedDollars: null | number;
   };
 };
 
-export type SortColumn = 'cost' | 'id' | 'status' | 'time' | 'title' | 'tokens';
+export type SortColumn = 'cost' | 'id' | 'status' | 'time' | 'title';
 
 export type SortDirection = 'asc' | 'desc';
 
@@ -32,7 +28,6 @@ const DEFAULT_DIRECTION: Record<SortColumn, SortDirection> = {
   status: 'asc',
   time: 'asc',
   title: 'asc',
-  tokens: 'asc',
 };
 
 export const DEFAULT_SORT: SortState = {
@@ -87,10 +82,6 @@ const compareByColumn = (
 
   if (column === 'status') {
     return statusRank(a.status) - statusRank(b.status);
-  }
-
-  if (column === 'tokens') {
-    return sumBuckets(a.totals.buckets) - sumBuckets(b.totals.buckets);
   }
 
   if (column === 'cost') {

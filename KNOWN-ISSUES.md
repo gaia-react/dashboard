@@ -22,6 +22,12 @@ paper trail rather than silently dropped.
   keys on `counter.source`, which costs and activity counters never share
   (disjoint source vocabularies by contract). No key-collision warning is
   reachable through the real pipeline.
+- **`CostTableSkeleton`'s header row (Work-tab round 2).** `TableHead` /
+  `SortableHeaderCell` grew a `disabled` mode (`CostTable/index.tsx`): the
+  skeleton passes `disabled` and gets a plain, non-focusable `<span>` label
+  instead of reusing the live sort `<button>`, so no focusable control sits
+  inside the `aria-hidden` wrapper anymore. The live (non-skeleton) header is
+  unchanged.
 
 Note: the M5/M6 commits (`b877e44` rename `?session`→`?id` + fix the reverse
 jump-link's dead same-page hash; `d85015e` Work-tab sorting/totals/deep-link)
@@ -40,16 +46,6 @@ is low/medium and flips no stated criterion, so it was intentionally left.
 focusable` flagged `<tr aria-hidden={true}>` in `SessionSkeletonRow`. Not
   reachable: neither the row nor its `Skeleton` children are focusable (plain
   `aria-hidden` divs, no tabIndex/interactive role). Noted inline at the site.
-- **`CostTableSkeleton`'s header row (real, deferred).** Not flagged by
-  react-doctor (its rule only checks a single element's own tag, not
-  descendants), but `CostTable/index.tsx`'s skeleton reuses the live
-  `TableHead` verbatim for pixel parity, so real, focusable `<button>` sort
-  headers sit inside an `aria-hidden` wrapper: a keyboard user can tab into
-  them (no-op `onSort`) while a screen reader announces nothing. Low severity
-  (loading state, brief) and not surgical to fix: it needs a new "static" mode
-  threaded through `TableHead`/`SortableHeaderCell` (e.g. `tabIndex={-1}` +
-  `disabled` on the skeleton's buttons), which is a small contract change,
-  not a bug-fix. Deferred pending that decision.
 
 ### Intl formatter hoisting (M7 react-doctor pass)
 

@@ -40,6 +40,30 @@ const modelTotal = (buckets: ModelBuckets): number =>
  * up vertically down a column instead of ragging on their text length. */
 const numericCellClass = 'text-right font-mono tabular-nums';
 
+/**
+ * One CSS grid shared by every phase row (feedback): a fixed 4-track
+ * template so the phase-name column is one consistent width and the
+ * tokens/cost/elapsed columns occupy identical tracks down every phase,
+ * regardless of phase-name length (Spec/Plan/Execute). `max-content` sizes
+ * each track to its widest cell across ALL phases, not just its own row,
+ * which independent per-row flex containers can't do. `PhaseRow` returns a
+ * fragment of grid items rather than its own container, so its children
+ * become direct children of this grid (fragments add no DOM wrapper).
+ *
+ * A 5th `minmax(0,1fr)` track soaks up whatever width the 4 `max-content`
+ * columns don't use. The summary row never places anything there, so it
+ * stays exactly as compact as before; the divider/breakdown below span all
+ * 5 columns (feedback), so THEY reach the panel's actual right edge instead
+ * of being squeezed to the summary row's (much narrower) intrinsic width,
+ * which is what "span 4" over pure `max-content` tracks did: a spanning
+ * item's width is the sum of the tracks it spans, not the container's.
+ */
+const phasesGridClass =
+  'grid grid-cols-[max-content_repeat(3,max-content)_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2 text-xs';
+/** Full-width divider opening each phase row; a border on the 4 individual
+ * cells would show gaps where `gap-x-4` falls, this spans them instead. */
+const phaseDividerClass = 'border-border-soft col-span-5 border-t';
+
 /** One breakdown mini-table shared by the per-model and per-agent-type
  * sections (identical shape, different key formatter). */
 const BreakdownTable: FC<{
@@ -62,36 +86,29 @@ const BreakdownTable: FC<{
   </table>
 );
 
-/** Fixed widths (feedback) so tokens/cost/elapsed line up across every phase
- * row, not just within one. */
-const phaseTokensClass = twJoin(numericCellClass, 'inline-block w-20 shrink-0');
-const phaseCostClass = twJoin(numericCellClass, 'inline-block w-16 shrink-0');
-const phaseElapsedClass = twJoin(
-  numericCellClass,
-  'inline-block w-16 shrink-0'
-);
-
+/**
+ * One phase's grid cells (feedback: phase-name/tokens/cost/elapsed line up
+ * across every phase). Returns a fragment, not its own container, so its
+ * cells land as direct children of the shared `phasesGridClass` grid in
+ * `ExpandedDetail` and share that grid's column tracks.
+ */
 const PhaseRow: FC<{phase: CostEntry['phases'][number]}> = ({phase}) => (
-  <div className="border-border-soft border-t py-2">
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-      <span className="text-fg font-medium">{formatLabel(phase.kind)}</span>
-      <span className="text-fg-dim">
-        <span className={phaseTokensClass}>
-          {formatTokens(phase.buckets.output)}
-        </span>{' '}
-        output tokens
-      </span>
-      <span className={twJoin('text-fg-dim', phaseCostClass)}>
-        {formatDollarsCell(phase.recordedDollars)}
-      </span>
-      <span className={twJoin('text-fg-dim', phaseElapsedClass)}>
-        {formatDuration(phase.durationSeconds)}
-      </span>
-    </div>
+  <>
+    <div className={phaseDividerClass} />
+    <span className="text-fg font-medium">{formatLabel(phase.kind)}</span>
+    <span className={twJoin('text-fg-dim', numericCellClass)}>
+      {formatTokens(phase.buckets.output)} output tokens
+    </span>
+    <span className={twJoin('text-fg-dim', numericCellClass)}>
+      {formatDollarsCell(phase.recordedDollars)}
+    </span>
+    <span className={twJoin('text-fg-dim', numericCellClass)}>
+      {formatDuration(phase.durationSeconds)}
+    </span>
     {/* Native rows carry model and/or agent-type breakdowns; backfill rows
         carry neither (SPEC 4.1). Each renders independently of the other. */}
     {(phase.byModel !== null || phase.byAgentType !== null) && (
-      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+      <div className="col-span-5 grid gap-3 sm:grid-cols-2">
         {phase.byModel !== null && (
           <BreakdownTable
             entries={Object.entries(phase.byModel)}
@@ -108,7 +125,7 @@ const PhaseRow: FC<{phase: CostEntry['phases'][number]}> = ({phase}) => (
         )}
       </div>
     )}
-  </div>
+  </>
 );
 
 const logMissingBadgeClass =
@@ -195,9 +212,11 @@ const ExpandedDetail: FC<Props> = ({entry, onViewSession, sessionsById}) => (
     {entry.phases.length > 0 && (
       <div>
         <p className={headingClass}>Phases</p>
-        {entry.phases.map((phase) => (
-          <PhaseRow key={`${phase.kind}-${phase.source}`} phase={phase} />
-        ))}
+        <div className={phasesGridClass}>
+          {entry.phases.map((phase) => (
+            <PhaseRow key={`${phase.kind}-${phase.source}`} phase={phase} />
+          ))}
+        </div>
       </div>
     )}
     {entry.sessions.length > 0 && (
