@@ -1,24 +1,43 @@
 import {toDayKey} from '~/components/Charts/date-helpers';
 
+/**
+ * Minimal shape read for the ad-hoc series; mirrors the fields
+ * `deriveEstimatedAdHocDollars` (app/data/aggregate/activity.ts) reads off a
+ * `SessionSummary`, so the same filter (attribution-null AND estimated
+ * basis) reproduces its total, just bucketed by period instead of summed
+ * once.
+ */
+export type AdHocSession = {
+  attribution: null | {entryType: string; key: string};
+  dollars: null | {
+    basis: 'estimated' | 'recorded';
+    lowerBound: boolean;
+    value: number;
+  };
+  endedAt: string;
+};
+
 export type PeriodSpend = {
   buckets: PeriodSpendBucket[];
   granularity: SpendGranularity;
 };
 
 export type PeriodSpendBucket = {
-  /** Recorded dollars summed over this period; 0 for a period with no
-   * priced entries (still rendered, not skipped, so adjacent bars stay a
-   * fair period-over-period comparison). */
-  dollars: number;
+  /** Estimated ad-hoc dollars in this period; 0 where no ad-hoc session
+   * ended here. */
+  adHocDollars: number;
   /** Local calendar day-key (YYYY-MM-DD) marking the period's start. */
   periodStart: string;
+  /** Recorded spec/plan dollars in this period; 0 where no priced entry
+   * falls here, including every period before cost tracking existed. */
+  recordedDollars: number;
 };
 
 /**
- * Minimal shape `buildPeriodSpend` reads; every `CostEntry` satisfies this
- * structurally (same precedent as CostTable/sort.ts's `SortableCostEntry`), so
- * the section passes `CostEntry[]` directly and tests build lightweight
- * fixtures without the full schema.
+ * Minimal shape `buildPeriodSpend` reads for the recorded series; every
+ * `CostEntry` satisfies this structurally (same precedent as CostTable/
+ * sort.ts's `SortableCostEntry`), so the section passes `CostEntry[]`
+ * directly and tests build lightweight fixtures without the full schema.
  */
 export type SpendEntry = {
   sortAt: string;
@@ -33,11 +52,12 @@ const MS_PER_DAY = 86_400_000;
 const MAX_WEEKLY_SPAN_DAYS = 60;
 
 const chooseGranularity = (
-  firstIso: string,
-  lastIso: string
+  windowStart: string,
+  windowEnd: string
 ): SpendGranularity => {
   const spanDays =
-    (new Date(lastIso).getTime() - new Date(firstIso).getTime()) / MS_PER_DAY;
+    (new Date(windowEnd).getTime() - new Date(windowStart).getTime()) /
+    MS_PER_DAY;
 
   return spanDays > MAX_WEEKLY_SPAN_DAYS ? 'month' : 'week';
 };
@@ -69,80 +89,60 @@ const advance = (date: Date, granularity: SpendGranularity): Date =>
   : new Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
 
 /**
- * Where the trend window starts. `costSince` (SPEC 6.1 coverage: the
- * earliest cost ROW ts) wins over the first entry's own date when it's later
- * than it: cost recording didn't exist before it, so entries older than it
- * are guaranteed unpriced and would only pad the chart with dead $0 bars.
- * Clamped both ways: never earlier than the first entry (nothing to bucket
- * before it), and never later than the earliest entry that actually carries
- * a recorded dollar figure, so a real dollar can never fall outside the
- * window and silently disappear from the chart.
- */
-const resolveWindowStart = (
-  entries: SpendEntry[],
-  firstEntryIso: string,
-  costSince: null | string
-): string => {
-  const earliestPricedIso = entries.find(
-    (entry) => entry.totals.recordedDollars !== null
-  )?.sortAt;
-  let windowStart = costSince ?? firstEntryIso;
-
-  if (windowStart < firstEntryIso) {
-    windowStart = firstEntryIso;
-  }
-
-  if (earliestPricedIso !== undefined && earliestPricedIso < windowStart) {
-    windowStart = earliestPricedIso;
-  }
-
-  return windowStart;
-};
-
-/**
- * Recorded dollars per week or month (cost-trend redesign: period-over-period
- * bars replace the cumulative running total). Granularity is derived from the
- * trend window's own span, not hardcoded: a project spanning a couple of
- * months reads clearest as weekly bars, a longer history collapses to
- * monthly. Every period between the window's start and the last entry gets a
- * bucket, even ones with no priced (or no) entries, so gap periods render as
- * an honest $0 bar rather than vanishing and skewing the period-over-period
- * comparison. Unpriced entries (`recordedDollars === null`) contribute 0 to
- * their period, same rule as before: only recorded dollars are ever plotted.
- *
- * `costSince` (`CostsResponse.coverage.costSince`) is optional so existing
- * callers/tests can omit it; without it the window just starts at the first
- * entry, as before.
+ * Recorded spec/plan dollars and estimated ad-hoc dollars, bucketed into the
+ * same weeks or months across an explicit window (cost-trend redesign,
+ * ad-hoc overlay). The window is the caller's to set: it spans the whole
+ * project's activity, not just where cost tracking exists, so the ad-hoc
+ * series can show the full history while the recorded series naturally sits
+ * at 0 before cost tracking began (SPEC 6.1 coverage). Every period in the
+ * window gets a bucket regardless of data, so gap periods render as honest
+ * $0 bars rather than skewing the period-over-period comparison. Unpriced
+ * entries and non-ad-hoc/non-estimated sessions contribute 0, never counted.
  */
 export const buildPeriodSpend = (
-  entries: SpendEntry[],
-  costSince: null | string = null
+  costEntries: SpendEntry[],
+  adHocSessions: AdHocSession[],
+  window: {end: string; start: string}
 ): PeriodSpend => {
-  const firstEntryIso = entries.at(0)?.sortAt;
-  const lastIso = entries.at(-1)?.sortAt;
+  const granularity = chooseGranularity(window.start, window.end);
+  const recordedSums = new Map<string, number>();
 
-  if (firstEntryIso === undefined || lastIso === undefined) {
-    return {buckets: [], granularity: 'week'};
-  }
-
-  const windowStartIso = resolveWindowStart(entries, firstEntryIso, costSince);
-  const granularity = chooseGranularity(windowStartIso, lastIso);
-  const sums = new Map<string, number>();
-
-  for (const entry of entries) {
+  for (const entry of costEntries) {
     const key = toDayKey(periodStartOf(entry.sortAt, granularity));
 
-    sums.set(key, (sums.get(key) ?? 0) + (entry.totals.recordedDollars ?? 0));
+    recordedSums.set(
+      key,
+      (recordedSums.get(key) ?? 0) + (entry.totals.recordedDollars ?? 0)
+    );
+  }
+
+  const adHocSums = new Map<string, number>();
+
+  for (const session of adHocSessions) {
+    // Same predicate as deriveEstimatedAdHocDollars: ad hoc (no spec/plan
+    // attribution) AND priced by the estimate path, never a recorded one.
+    if (
+      session.attribution === null &&
+      session.dollars?.basis === 'estimated'
+    ) {
+      const key = toDayKey(periodStartOf(session.endedAt, granularity));
+
+      adHocSums.set(key, (adHocSums.get(key) ?? 0) + session.dollars.value);
+    }
   }
 
   const buckets: PeriodSpendBucket[] = [];
-  const end = periodStartOf(lastIso, granularity).getTime();
-  let cursor = periodStartOf(windowStartIso, granularity);
+  const end = periodStartOf(window.end, granularity).getTime();
+  let cursor = periodStartOf(window.start, granularity);
 
   while (cursor.getTime() <= end) {
     const key = toDayKey(cursor);
 
-    buckets.push({dollars: sums.get(key) ?? 0, periodStart: key});
+    buckets.push({
+      adHocDollars: adHocSums.get(key) ?? 0,
+      periodStart: key,
+      recordedDollars: recordedSums.get(key) ?? 0,
+    });
     cursor = advance(cursor, granularity);
   }
 

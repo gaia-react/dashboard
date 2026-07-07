@@ -44,11 +44,13 @@ const TabPanel: FC<{children: ReactNode; tab: DashboardTabId}> = ({
 /**
  * Page shell. The header and the contextual KPI row (SPEC section 6.1/6.2)
  * read both `/api/costs` and `/api/activity`, so they gate on `headerState`;
- * the tab content below paints per resource (CostTable and CostTrend the
- * moment `/api/costs` lands, the session-scan sections once `/api/activity`
- * does, PLAN D2). The active tab lives in `?tab=` (Work | Sessions | Insights,
- * the last keyed by id `activity`), with the top blocks pinned above the tab
- * strip.
+ * the tab content below paints per resource (CostTable the moment
+ * `/api/costs` lands, the session-scan sections once `/api/activity` does,
+ * PLAN D2). Cost trend also gates on `headerState`: its ad-hoc overlay needs
+ * `activity.sessions`, so it waits for both resources like the header does,
+ * trading away costs-only progressive paint for that one section. The active
+ * tab lives in `?tab=` (Work | Sessions | Insights, the last keyed by id
+ * `activity`), with the top blocks pinned above the tab strip.
  */
 const App = () => {
   const {activity, costs, refresh} = useDashboardData<
@@ -179,9 +181,11 @@ const App = () => {
               label="Cost trend"
               onRetry={refresh}
               skeleton={<CostTrendSkeleton />}
-              state={costs.state}
+              state={headerState}
             >
-              {(costsData) => <CostTrend costs={costsData} />}
+              {(data) => (
+                <CostTrend activity={data.activity} costs={data.costs} />
+              )}
             </AsyncSection>
 
             <AsyncSection

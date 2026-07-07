@@ -11,9 +11,12 @@ import type {
 } from '~/components/Sections/CostTrend/period-spend';
 import {buildPeriodSpend} from '~/components/Sections/CostTrend/period-spend';
 import Skeleton, {shimmer} from '~/components/Skeleton';
-import type {CostsResponse} from '~/data/schemas/api';
+import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 
 export type CostTrendProps = {
+  /** The already-fetched /api/activity response; the ad-hoc series comes
+   * from its sessions, so this section now needs both resources. */
+  activity: ActivityResponse;
   /** The already-fetched /api/costs response (AsyncSection's render-prop). */
   costs: CostsResponse;
   locale?: string;
@@ -49,9 +52,35 @@ const formatPeriodLabel = (
     );
 
 /**
+ * The window spans the whole project's activity (SPEC 6.7 ad-hoc overlay),
+ * not just where cost tracking exists: `activity.scan.activitySince` is the
+ * earliest timed session across the whole scan, the same "since" shape as
+ * `coverage.costSince` on the cost side. Ends at the later of the activity
+ * scan's own snapshot time and the last cost entry (both should track
+ * "now" closely; the comparison is a cheap safety net, not a real gap).
+ */
+const resolveWindow = (
+  costs: CostsResponse,
+  activity: ActivityResponse
+): {end: string; start: string} => {
+  const start =
+    activity.scan.activitySince ??
+    costs.entries.at(0)?.sortAt ??
+    activity.scan.scannedAt;
+  const lastEntryIso = costs.entries.at(-1)?.sortAt;
+  const end =
+    lastEntryIso !== undefined && lastEntryIso > activity.scan.scannedAt ?
+      lastEntryIso
+    : activity.scan.scannedAt;
+
+  return {end, start};
+};
+
+/**
  * The chart's accessible name/description (accessibility rule): a single
- * sentence stating the period range and total, so a screen-reader user gets
- * the same summary a sighted user reads off the chart's axis and bar labels.
+ * sentence naming both series, the period range, and each series' total, so
+ * a screen-reader user gets the same summary a sighted user reads off the
+ * chart's legend and axis labels.
  */
 const buildChartLabel = (
   buckets: PeriodSpendBucket[],
@@ -62,13 +91,21 @@ const buildChartLabel = (
   const last = buckets.at(-1);
 
   if (!first || !last) {
-    return 'Recorded spend by period';
+    return 'Recorded spec & plan spend and estimated ad-hoc spend by period';
   }
 
-  const total = buckets.reduce((sum, bucket) => sum + bucket.dollars, 0);
+  const recordedTotal = buckets.reduce(
+    (sum, bucket) => sum + bucket.recordedDollars,
+    0
+  );
+  const adHocTotal = buckets.reduce(
+    (sum, bucket) => sum + bucket.adHocDollars,
+    0
+  );
   const periodWord = granularity === 'week' ? 'week' : 'month';
+  const range = `from ${formatPeriodLabel(first.periodStart, granularity, locale)} to ${formatPeriodLabel(last.periodStart, granularity, locale)}`;
 
-  return `Recorded spend by ${periodWord} from ${formatPeriodLabel(first.periodStart, granularity, locale)} to ${formatPeriodLabel(last.periodStart, granularity, locale)}, totaling ${formatDollars(total, locale)}`;
+  return `Recorded spec & plan spend and estimated ad-hoc spend by ${periodWord} ${range}: spec & plan totaling ${formatDollars(recordedTotal, locale)}, ad hoc totaling ${formatDollars(adHocTotal, locale)}`;
 };
 
 const Chrome: FC<{children: ReactNode; periodWord: string}> = ({
@@ -80,8 +117,10 @@ const Chrome: FC<{children: ReactNode; periodWord: string}> = ({
       <p className={eyebrowClassName}>Cost trend</p>
       <h2 className={headingClassName}>Spend over time</h2>
       <p className={captionClassName}>
-        Recorded dollars per {periodWord}, oldest to newest. Only recorded spend
-        counts here, never estimated or token-derived money.
+        Recorded spec &amp; plan spend (solid) beside estimated ad-hoc spend
+        (translucent), per {periodWord}. Ad hoc spans the whole project;
+        recorded cost tracking is recent, so it only shows up in the latest{' '}
+        {periodWord}s.
       </p>
     </header>
     {children}
@@ -89,34 +128,43 @@ const Chrome: FC<{children: ReactNode; periodWord: string}> = ({
 );
 
 /**
- * Cost-trend section (SPEC 6.7 redesign): period-over-period bars replace the
- * old cumulative running total, which hid whether spend was rising or
- * falling week to week. `costs.entries` already arrives chronological (the
- * /api/costs contract); the reducer buckets by week or month depending on
- * the trend window's own span, starting at `coverage.costSince` (SPEC 6.1)
- * rather than the ledger's full history so a project whose specs/plans
- * predate cost tracking doesn't pad the chart with a wall of dead $0 bars. A
- * total of exactly 0, whether from no entries or entries that are all
- * unpriced, renders the empty state instead of a chart made entirely of $0
- * bars.
+ * Cost-trend section (SPEC 6.7 redesign, ad-hoc overlay): period-over-period
+ * grouped bars replace the old cumulative running total, and now carry two
+ * series so the user can compare GAIA spec/plan work against raw ad-hoc
+ * prompting. The window spans the whole project's activity (not clamped to
+ * where cost tracking exists), so the ad-hoc series shows the full history
+ * while the recorded series naturally sits at 0 before cost tracking began.
+ * Both `costs.entries` and `activity.sessions` already arrive chronological.
+ * The empty state only fires when BOTH series total 0: either series alone
+ * carrying a nonzero total is still a real comparison worth showing.
  */
-const CostTrend: FC<CostTrendProps> = ({costs, locale}) => {
+const CostTrend: FC<CostTrendProps> = ({activity, costs, locale}) => {
+  const window = resolveWindow(costs, activity);
   const {buckets, granularity} = buildPeriodSpend(
     costs.entries,
-    costs.coverage.costSince
+    activity.sessions,
+    window
   );
-  const total = buckets.reduce((sum, bucket) => sum + bucket.dollars, 0);
+  const recordedTotal = buckets.reduce(
+    (sum, bucket) => sum + bucket.recordedDollars,
+    0
+  );
+  const adHocTotal = buckets.reduce(
+    (sum, bucket) => sum + bucket.adHocDollars,
+    0
+  );
   const periodWord = granularity === 'week' ? 'week' : 'month';
   const data: PeriodBarDatum[] = buckets.map((bucket) => ({
+    adHocValue: bucket.adHocDollars,
     periodStart: bucket.periodStart,
-    value: bucket.dollars,
+    recordedValue: bucket.recordedDollars,
   }));
 
   return (
     <Chrome periodWord={periodWord}>
-      {total <= 0 ?
+      {recordedTotal <= 0 && adHocTotal <= 0 ?
         <EmptyState
-          description="Recorded spend will appear here once a spec or plan carries a priced cost entry."
+          description="Recorded spend will appear here once a spec or plan carries a priced cost entry; ad-hoc spend once a session outside any spec or plan is priced."
           title="No recorded spend yet"
         />
       : <PeriodSpendBars
@@ -145,7 +193,7 @@ export const CostTrendSkeleton: FC = () => (
       <p className={twMerge(eyebrowClassName, shimmer)}>Cost trend</p>
       <h2 className={twMerge(headingClassName, shimmer)}>Spend over time</h2>
       <p className={twMerge(captionClassName, shimmer)}>
-        Recorded dollars by period, oldest to newest.
+        Recorded spend and estimated ad-hoc spend, by period.
       </p>
     </header>
     <Skeleton className="h-[180px] w-140 max-w-full" />

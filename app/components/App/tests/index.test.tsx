@@ -165,6 +165,33 @@ test('the Work cost table paints while the activity scan is still pending', asyn
   });
 });
 
+test('Cost trend waits for both resources, unlike the costs-only sections it used to match', async () => {
+  const activityDeferred = createDeferred();
+  stubFetch({
+    '/api/activity': async () => activityDeferred.promise,
+    '/api/costs': async () => jsonResponse(costsFixture),
+  });
+
+  render(<App />);
+
+  fireEvent.click(screen.getByRole('tab', {name: 'Insights'}));
+
+  await waitFor(() => {
+    expect(window.location.search).toBe('?tab=activity');
+  });
+  // The ad-hoc series needs activity.sessions, so Cost trend now gates like
+  // the both-resource "Highlights" section, not a costs-only one.
+  expect(busyStateFor('Cost trend')).toBe('true');
+
+  await act(async () => {
+    activityDeferred.resolve(jsonResponse(activityFixture));
+    await activityDeferred.promise;
+  });
+  await waitFor(() => {
+    expect(busyStateFor('Cost trend')).toBe('false');
+  });
+});
+
 test('the header shows a skeleton until BOTH resources resolve, then the real identity', async () => {
   const activityDeferred = createDeferred();
   stubFetch({
