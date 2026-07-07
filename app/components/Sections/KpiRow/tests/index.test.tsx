@@ -32,8 +32,18 @@ const activityEmpty: ActivityResponse = activityResponseSchema.parse(
   readFixture('activity-empty.json')
 );
 
-test('populated: recorded and estimated spend render as distinct, basis-labeled tiles', () => {
-  render(<KpiRow activity={activityPopulated} costs={costsPopulated} />);
+/** activityPopulated with a swapped-in estimated ad hoc figure. */
+const withEstimate = (
+  estimatedAdHocDollars: ActivityResponse['kpis']['estimatedAdHocDollars']
+): ActivityResponse => ({
+  ...activityPopulated,
+  kpis: {...activityPopulated.kpis, estimatedAdHocDollars},
+});
+
+test('work: recorded and estimated spend render as distinct, basis-labeled tiles', () => {
+  render(
+    <KpiRow activity={activityPopulated} costs={costsPopulated} tab="work" />
+  );
 
   const recordedTile = screen.getByRole('group', {name: 'Recorded spend'});
 
@@ -51,39 +61,120 @@ test('populated: recorded and estimated spend render as distinct, basis-labeled 
   expect(screen.queryByText(/56\.45/)).not.toBeInTheDocument();
 });
 
-test('populated: renders a lower-bound marker on the estimated tile when flagged', () => {
-  render(<KpiRow activity={activityPopulated} costs={costsPopulated} />);
+test('work: renders a lower-bound marker on a non-zero estimated tile when flagged', () => {
+  render(
+    <KpiRow activity={activityPopulated} costs={costsPopulated} tab="work" />
+  );
 
   const estimatedTile = screen.getByRole('group', {
     name: 'Estimated ad hoc spend',
   });
 
+  expect(estimatedTile).toHaveTextContent('≥$42.10');
   expect(estimatedTile).toHaveTextContent(/lower bound/i);
 });
 
-test('populated: specs, plans, sessions, tokens, and active-day tiles state their basis', () => {
-  render(<KpiRow activity={activityPopulated} costs={costsPopulated} />);
-
-  expect(screen.getByRole('group', {name: 'Specs merged'})).toHaveTextContent(
-    '20 / 23'
+test('work: a zero estimate never carries a lower-bound marker (W10)', () => {
+  render(
+    <KpiRow
+      activity={withEstimate({lowerBound: true, value: 0})}
+      costs={costsPopulated}
+      tab="work"
+    />
   );
-  expect(screen.getByRole('group', {name: 'Plans'})).toHaveTextContent('6');
+
+  const estimatedTile = screen.getByRole('group', {
+    name: 'Estimated ad hoc spend',
+  });
+
+  expect(estimatedTile).not.toHaveTextContent('≥');
+  expect(estimatedTile).not.toHaveTextContent(/lower bound/i);
+  expect(estimatedTile).toHaveTextContent(/no ad hoc activity to estimate/i);
+});
+
+test('work: no lower-bound marker when the estimate is a firm figure', () => {
+  render(
+    <KpiRow
+      activity={withEstimate({lowerBound: false, value: 10})}
+      costs={costsPopulated}
+      tab="work"
+    />
+  );
+
+  const estimatedTile = screen.getByRole('group', {
+    name: 'Estimated ad hoc spend',
+  });
+
+  expect(estimatedTile).toHaveTextContent('$10.00');
+  expect(estimatedTile).not.toHaveTextContent('≥');
+  expect(estimatedTile).not.toHaveTextContent(/lower bound/i);
+});
+
+test('work: specs and plans show the merged-over-total ratio', () => {
+  render(
+    <KpiRow activity={activityPopulated} costs={costsPopulated} tab="work" />
+  );
+
+  const specsTile = screen.getByRole('group', {name: 'Specs'});
+  const plansTile = screen.getByRole('group', {name: 'Plans'});
+
+  expect(specsTile).toHaveTextContent('20 / 23');
+  expect(specsTile).toHaveTextContent(/merged/i);
+  expect(plansTile).toHaveTextContent('4 / 6');
+  expect(plansTile).toHaveTextContent(/merged/i);
+});
+
+test('sessions: shows session counts and the GAIA-vs-ad-hoc split, not specs or plans', () => {
+  render(
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="sessions"
+    />
+  );
+
   expect(screen.getByRole('group', {name: 'Sessions'})).toHaveTextContent('3');
+  expect(screen.getByRole('group', {name: 'GAIA'})).toHaveTextContent('1');
+  expect(screen.getByRole('group', {name: 'Ad hoc'})).toHaveTextContent('2');
+
+  expect(screen.queryByRole('group', {name: 'Specs'})).not.toBeInTheDocument();
+  expect(screen.queryByRole('group', {name: 'Plans'})).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('group', {name: 'Active days'})
+  ).not.toBeInTheDocument();
+});
+
+test('activity: leads with active days and total tokens, plus spend', () => {
+  render(
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="activity"
+    />
+  );
+
   expect(screen.getByRole('group', {name: 'Active days'})).toHaveTextContent(
     '62'
   );
-
-  for (const tile of [
-    screen.getByRole('group', {name: 'Sessions'}),
-    screen.getByRole('group', {name: 'Active days'}),
-    screen.getByRole('group', {name: 'Total tokens'}),
-  ]) {
-    expect(tile).toHaveTextContent(/all activity/i);
-  }
+  expect(screen.getByRole('group', {name: 'Total tokens'})).toHaveTextContent(
+    '14M'
+  );
+  expect(
+    screen.getByRole('group', {name: 'Recorded spend'})
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole('group', {name: 'Estimated ad hoc spend'})
+  ).toBeInTheDocument();
 });
 
-test('populated: the total-tokens tile is a closed-by-default disclosure with the bucket split', () => {
-  render(<KpiRow activity={activityPopulated} costs={costsPopulated} />);
+test('the total-tokens tile is a closed-by-default disclosure with the bucket split', () => {
+  render(
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="sessions"
+    />
+  );
 
   const tokensTile = screen.getByRole('group', {name: 'Total tokens'});
   // <details> carries an implicit "group" role; scoping within the tile
@@ -98,8 +189,8 @@ test('populated: the total-tokens tile is a closed-by-default disclosure with th
   expect(tokensTile).toHaveTextContent(/output/i);
 });
 
-test('empty: recorded and estimated tiles read as intentional, not broken, while activity KPIs still populate', () => {
-  render(<KpiRow activity={activityEmpty} costs={costsEmpty} />);
+test('empty: recorded and estimated tiles read as intentional, not broken', () => {
+  render(<KpiRow activity={activityEmpty} costs={costsEmpty} tab="work" />);
 
   const recordedTile = screen.getByRole('group', {name: 'Recorded spend'});
 
@@ -112,11 +203,6 @@ test('empty: recorded and estimated tiles read as intentional, not broken, while
 
   expect(estimatedTile).toHaveTextContent(/not available/i);
   expect(estimatedTile).not.toHaveTextContent('$');
-
-  expect(screen.getByRole('group', {name: 'Sessions'})).toHaveTextContent('2');
-  expect(screen.getByRole('group', {name: 'Active days'})).toHaveTextContent(
-    '4'
-  );
 });
 
 test('exports a skeleton for AsyncSection with a matching tile count', () => {
@@ -124,5 +210,5 @@ test('exports a skeleton for AsyncSection with a matching tile count', () => {
 
   // The grid is aria-hidden while loading; `hidden: true` opts the role
   // query into elements normally excluded from the accessibility tree.
-  expect(screen.getAllByRole('group', {hidden: true})).toHaveLength(7);
+  expect(screen.getAllByRole('group', {hidden: true})).toHaveLength(4);
 });

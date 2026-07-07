@@ -45,24 +45,6 @@ const callsTo = (fetchMock: ReturnType<typeof vi.fn>, prefix: string): number =>
   fetchMock.mock.calls.filter(([input]) => String(input).startsWith(prefix))
     .length;
 
-// All seven SPEC section 6.2-6.8 AsyncSection regions the shell composes.
-const sectionLabels = [
-  'Key metrics',
-  'Specs and plans',
-  'Activity',
-  'Model mix',
-  'Sessions',
-  'Cost trend',
-  'Parse health',
-];
-
-// DashboardHeader/KpiRow (6.1/6.2) and the ParseHealth footer (6.8) read
-// fields from BOTH resources, so they cannot paint until costs AND activity
-// have resolved. CostTable and CostTrend read only costs (PLAN D2).
-const bothResourceLabels = ['Key metrics', 'Parse health'];
-const costsOnlyLabels = ['Specs and plans', 'Cost trend'];
-const activityOnlyLabels = ['Activity', 'Model mix', 'Sessions'];
-
 const busyStateFor = (label: string): null | string =>
   screen.getByRole('region', {name: label}).getAttribute('aria-busy');
 
@@ -72,8 +54,20 @@ const expectAllBusy = (labels: string[], busy: boolean): void => {
   }
 };
 
+// The KPI row sits above the tab strip; the Work tab (default) shows the
+// specs & plans cost table. Sections on the other tabs are not mounted until
+// their tab is active.
+const workTabLabels = ['Key metrics', 'Specs and plans'];
+const activityTabLabels = [
+  'Activity',
+  'Model mix',
+  'Cost trend',
+  'Parse health',
+];
+
 afterEach(() => {
   vi.unstubAllGlobals();
+  window.history.replaceState(null, '', '/');
 });
 
 test('renders the GAIA wordmark', () => {
@@ -87,7 +81,7 @@ test('renders the GAIA wordmark', () => {
   expect(screen.getByText('Dashboard')).toBeInTheDocument();
 });
 
-test('renders a busy region for every section while both endpoints are pending', () => {
+test('defaults to the Work tab, mounting only its sections', () => {
   stubFetch({
     '/api/activity': async () => createDeferred().promise,
     '/api/costs': async () => createDeferred().promise,
@@ -95,10 +89,57 @@ test('renders a busy region for every section while both endpoints are pending',
 
   render(<App />);
 
-  expectAllBusy(sectionLabels, true);
+  expect(
+    screen.getByRole('tab', {name: 'Work', selected: true})
+  ).toBeInTheDocument();
+  expectAllBusy(workTabLabels, true);
+  // Other tabs' sections are not in the DOM until selected.
+  expect(
+    screen.queryByRole('region', {name: 'Sessions'})
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('region', {name: 'Model mix'})
+  ).not.toBeInTheDocument();
 });
 
-test('cost-only sections paint while the activity scan is still pending', async () => {
+test('selecting a tab updates the URL and swaps the mounted sections', async () => {
+  stubFetch({
+    '/api/activity': async () => jsonResponse(activityFixture),
+    '/api/costs': async () => jsonResponse(costsFixture),
+  });
+
+  render(<App />);
+
+  fireEvent.click(screen.getByRole('tab', {name: 'Activity'}));
+
+  await waitFor(() => {
+    expect(window.location.search).toBe('?tab=activity');
+  });
+
+  for (const label of activityTabLabels) {
+    expect(screen.getByRole('region', {name: label})).toBeInTheDocument();
+  }
+  expect(
+    screen.queryByRole('region', {name: 'Specs and plans'})
+  ).not.toBeInTheDocument();
+});
+
+test('honors the tab in the URL on first render', () => {
+  window.history.replaceState(null, '', '/?tab=sessions');
+  stubFetch({
+    '/api/activity': async () => jsonResponse(activityFixture),
+    '/api/costs': async () => jsonResponse(costsFixture),
+  });
+
+  render(<App />);
+
+  expect(
+    screen.getByRole('tab', {name: 'Sessions', selected: true})
+  ).toBeInTheDocument();
+  expect(screen.getByRole('region', {name: 'Sessions'})).toBeInTheDocument();
+});
+
+test('the Work cost table paints while the activity scan is still pending', async () => {
   const activityDeferred = createDeferred();
   stubFetch({
     '/api/activity': async () => activityDeferred.promise,
@@ -108,18 +149,17 @@ test('cost-only sections paint while the activity scan is still pending', async 
   render(<App />);
 
   await waitFor(() => {
-    expectAllBusy(costsOnlyLabels, false);
+    expect(busyStateFor('Specs and plans')).toBe('false');
   });
-  // Two-resource sections stay busy: they need activity too, not just costs.
-  expectAllBusy(bothResourceLabels, true);
-  expectAllBusy(activityOnlyLabels, true);
+  // The KPI row needs activity too, so it stays busy until the scan lands.
+  expect(busyStateFor('Key metrics')).toBe('true');
 
   await act(async () => {
     activityDeferred.resolve(jsonResponse(activityFixture));
     await activityDeferred.promise;
   });
   await waitFor(() => {
-    expectAllBusy(sectionLabels, false);
+    expectAllBusy(workTabLabels, false);
   });
 });
 
@@ -136,7 +176,6 @@ test('the header shows a skeleton until BOTH resources resolve, then the real id
     screen.getByText('project · /Users/you/projects/project')
   ).toBeInTheDocument();
 
-  // Costs alone resolving is not enough: the header still needs activity.
   await waitFor(() => {
     expect(busyStateFor('Specs and plans')).toBe('false');
   });
@@ -171,19 +210,18 @@ test('the refresh button refetches both endpoints', async () => {
   render(<App />);
 
   await waitFor(() => {
-    expectAllBusy(sectionLabels, false);
+    expectAllBusy(workTabLabels, false);
   });
 
   fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
 
   await waitFor(() => {
-    expectAllBusy(sectionLabels, false);
+    expect(callsTo(fetchMock, '/api/costs')).toBe(2);
   });
-  expect(callsTo(fetchMock, '/api/costs')).toBe(2);
   expect(callsTo(fetchMock, '/api/activity')).toBe(2);
 });
 
-test('a costs failure surfaces an error with a retry on every section that needs costs', async () => {
+test('a costs failure surfaces an error with a retry on every mounted section that needs costs', async () => {
   let costsCalls = 0;
   const fetchMock = stubFetch({
     '/api/activity': async () => jsonResponse(activityFixture),
@@ -199,15 +237,13 @@ test('a costs failure surfaces an error with a retry on every section that needs
   render(<App />);
 
   await waitFor(() => {
-    // "Specs and plans", "Cost trend" (costs-only) plus "Key metrics",
-    // "Parse health" (both-resource) all surface the costs failure.
-    expect(screen.getAllByRole('alert')).toHaveLength(4);
+    // On the Work tab, "Key metrics" (both-resource) and "Specs and plans"
+    // (costs-only) both surface the costs failure.
+    expect(screen.getAllByRole('alert')).toHaveLength(2);
   });
   expect(screen.getAllByRole('alert')[0]).toHaveTextContent(
     'connection refused'
   );
-  // Activity-only sections are unaffected by the costs failure.
-  expectAllBusy(activityOnlyLabels, false);
 
   fireEvent.click(screen.getAllByRole('button', {name: 'Retry'})[0]);
 
