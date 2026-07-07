@@ -17,8 +17,11 @@ import {z} from 'zod';
 /**
  * Token buckets in GAIA's vocabulary, cache write collapsed to one number.
  * Maps the parsers' `fresh_input` / `cache_write` / `cache_read` / `output`.
+ * Not exported: only used to compose the schemas below in this file. The
+ * inferred `Buckets` type (exported at the bottom) is the public contract
+ * piece other modules actually import.
  */
-export const bucketsSchema = z.object({
+const bucketsSchema = z.object({
   cacheRead: z.number(),
   cacheWrite: z.number(),
   freshInput: z.number(),
@@ -29,8 +32,10 @@ export const bucketsSchema = z.object({
  * Per-model / per-agent-type buckets: cache write split by TTL, mirroring the
  * cost ledger's `by_model` / `by_agent_type` value shape (`cache_write_5m` /
  * `cache_write_1h`), camelCased. Collapsing the split reproduces `Buckets`.
+ * Not exported: same reasoning as `bucketsSchema` above, the `ModelBuckets`
+ * type is the public piece.
  */
-export const modelBucketsSchema = z.object({
+const modelBucketsSchema = z.object({
   cacheRead: z.number(),
   cacheWrite1h: z.number(),
   cacheWrite5m: z.number(),
@@ -53,8 +58,11 @@ export const modelBucketsSchema = z.object({
  * one. `buildSessionParseHealth` therefore hardcodes `filesUnparseable: 0` for
  * `session-logs`; a fully-malformed transcript still surfaces via its lines
  * counted in `linesSkipped`, just not as a distinct file count.
+ *
+ * Not exported: only used to build `parseHealthSliceSchema` below. The
+ * inferred `ParseHealthCounter` type is the public contract piece.
  */
-export const parseHealthCounterSchema = z.object({
+const parseHealthCounterSchema = z.object({
   filesScanned: z.number(),
   filesUnparseable: z.number(),
   linesRead: z.number(),
@@ -76,8 +84,12 @@ export const parseHealthSliceSchema = z.object({
   unknownStatuses: z.array(z.string()),
 });
 
-/** A cost-ledger session reference; `logFound: false` renders "log missing". */
-export const linkedSessionSchema = z.object({
+/**
+ * A cost-ledger session reference; `logFound: false` renders "log missing".
+ * Not exported: only used to build `costEntrySchema` below. The inferred
+ * `LinkedSession` type is the public contract piece.
+ */
+const linkedSessionSchema = z.object({
   kind: z.string(),
   logFound: z.boolean(),
   sessionId: z.string(),
@@ -86,8 +98,10 @@ export const linkedSessionSchema = z.object({
 /**
  * Per-phase detail for an expanded cost-table row (SPEC section 6.3).
  * `byModel` / `byAgentType` are null on backfill and pre-attribution rows.
+ * Not exported: only used to build `costEntrySchema` below. The inferred
+ * `PhaseRollup` type is the public contract piece.
  */
-export const phaseRollupSchema = z.object({
+const phaseRollupSchema = z.object({
   buckets: bucketsSchema,
   byAgentType: z.record(z.string(), modelBucketsSchema).nullable(),
   byModel: z.record(z.string(), modelBucketsSchema).nullable(),

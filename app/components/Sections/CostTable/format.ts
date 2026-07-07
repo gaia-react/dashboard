@@ -49,10 +49,20 @@ export const sumDurationSeconds = (entries: CostEntry[]): null | number => {
 export const formatTokens = (value: number, locale?: string): string =>
   formatCompactNumber(value, locale);
 
+const DOLLARS_OPTIONS: Intl.NumberFormatOptions = {
+  currency: 'USD',
+  style: 'currency',
+};
+/** `locale` is undefined on every real call; only tests pass one explicitly.
+ * Reuse this hoisted formatter on that common path instead of rebuilding one
+ * per table row. */
+const defaultDollarsFormat = new Intl.NumberFormat(undefined, DOLLARS_OPTIONS);
+
 export const formatDollars = (value: number, locale?: string): string =>
-  new Intl.NumberFormat(locale, {currency: 'USD', style: 'currency'}).format(
-    value
-  );
+  (locale === undefined ? defaultDollarsFormat : (
+    new Intl.NumberFormat(locale, DOLLARS_OPTIONS)
+  )
+  ).format(value);
 
 /** Recorded dollars only (SPEC section 5 rule 3); never an estimate. */
 export const formatDollarsCell = (
@@ -76,8 +86,17 @@ export const formatDuration = (seconds: null | number): string => {
   return hours === 0 ? `${minutes}m` : `${hours}h ${minutes}m`;
 };
 
+const DATE_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+};
+const defaultDateTimeFormat = new Intl.DateTimeFormat(
+  undefined,
+  DATE_TIME_OPTIONS
+);
+
 export const formatDateTime = (iso: string, locale?: string): string =>
-  new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(iso));
+  (locale === undefined ?
+    defaultDateTimeFormat
+  : new Intl.DateTimeFormat(locale, DATE_TIME_OPTIONS)
+  ).format(new Date(iso));

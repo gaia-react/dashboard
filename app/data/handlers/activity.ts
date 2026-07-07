@@ -47,6 +47,12 @@ export type ActivityQuery = {
  * Validate the requested timezone by asking Intl to resolve it; an invalid
  * or absent name falls back to UTC (the client always sends a browser-derived
  * zone, so this is a defensive default, not an error path).
+ *
+ * react-doctor flags the formatter below as rebuilt "each call"; left as-is:
+ * this runs once per API request (not in a loop), and `requested` is an
+ * arbitrary caller-supplied IANA name with no single dominant value, so
+ * there is nothing to hoist to a module-level default the way the locale
+ * formatters elsewhere in this codebase do.
  */
 const resolveTimeZone = (requested: string | undefined): string => {
   if (requested === undefined || requested === '') {

@@ -88,6 +88,12 @@ export type MonthLabel = {
  * One label per month, placed at the first week column whose earliest day
  * falls in that month. A label immediately followed (within one column) by
  * the next month's label is dropped: a partial leading month has no room.
+ *
+ * react-doctor flags the formatter below as rebuilt "each call": it already
+ * builds once per call to `buildMonthLabels` and reuses it across the loop,
+ * so the residual cost is once per render, not once per week column. Left
+ * unhoisted: a cross-render cache would need `useMemo` at the call site, not
+ * a plain module constant, since `locale` still (rarely) varies.
  */
 export const buildMonthLabels = (
   weeks: WeekColumn[],
@@ -120,19 +126,43 @@ export const buildMonthLabels = (
   return labels;
 };
 
+const DAY_LABEL_OPTIONS: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+};
+/** `locale` is undefined on every real call (the viewer's browser locale);
+ * only tests pass one explicitly for determinism. Reuse this hoisted
+ * formatter on that common path instead of rebuilding one per heatmap cell. */
+const defaultDayLabelFormat = new Intl.DateTimeFormat(
+  undefined,
+  DAY_LABEL_OPTIONS
+);
+
 export const formatDayLabel = (dayKey: string, locale?: string): string =>
-  new Intl.DateTimeFormat(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(parseDayKey(dayKey));
+  (locale === undefined ?
+    defaultDayLabelFormat
+  : new Intl.DateTimeFormat(locale, DAY_LABEL_OPTIONS)
+  ).format(parseDayKey(dayKey));
+
+const WEEK_LABEL_OPTIONS: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'short',
+};
+const defaultWeekLabelFormat = new Intl.DateTimeFormat(
+  undefined,
+  WEEK_LABEL_OPTIONS
+);
 
 export const formatWeekLabel = (weekKey: string, locale?: string): string =>
-  new Intl.DateTimeFormat(locale, {day: 'numeric', month: 'short'}).format(
-    parseDayKey(weekKey)
-  );
+  (locale === undefined ?
+    defaultWeekLabelFormat
+  : new Intl.DateTimeFormat(locale, WEEK_LABEL_OPTIONS)
+  ).format(parseDayKey(weekKey));
 
-/** Sunday-first weekday names, for heatmap row labels. */
+/** Sunday-first weekday names, for heatmap row labels. Same react-doctor note
+ * as `buildMonthLabels` above: already builds one formatter and reuses it
+ * across its own 7-item loop, so left unhoisted. */
 export const buildWeekdayLabels = (locale?: string): string[] => {
   const weekdayFormat = new Intl.DateTimeFormat(locale, {weekday: 'short'});
 

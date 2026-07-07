@@ -1,5 +1,5 @@
 import type {FC} from 'react';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {twJoin} from 'tailwind-merge';
 import {verticalBarPath} from '~/components/Charts/bar-path';
 import type {LegendItem} from '~/components/Charts/ChartLegend';
@@ -63,13 +63,14 @@ const TrendBars: FC<Props> = ({
 }) => {
   const [hovered, setHovered] = useState<HoveredBar>();
 
+  // Hoisted per `locale` (stable across a render, varies only across chart
+  // instances/tests) instead of rebuilt on every bar's aria-label.
+  const dollarsFormat = useMemo(
+    () => new Intl.NumberFormat(locale, {currency: 'USD', style: 'currency'}),
+    [locale]
+  );
   const formatDollarsValue =
-    formatDollars ??
-    ((value: number) =>
-      new Intl.NumberFormat(locale, {
-        currency: 'USD',
-        style: 'currency',
-      }).format(value));
+    formatDollars ?? ((value: number) => dollarsFormat.format(value));
   const formatTokensValue =
     formatTokens ??
     ((value: number) => `${formatCompactNumber(value, locale)} tokens`);

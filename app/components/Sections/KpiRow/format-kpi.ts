@@ -1,11 +1,18 @@
 import type {Buckets} from '~/data/schemas/api';
 
-/** USD, always two decimals; `locale` is exposed only for test determinism. */
+const DOLLARS_OPTIONS: Intl.NumberFormatOptions = {
+  currency: 'USD',
+  style: 'currency',
+};
+const defaultDollarsFormat = new Intl.NumberFormat(undefined, DOLLARS_OPTIONS);
+
+/** USD, always two decimals; `locale` is exposed only for test determinism,
+ * so the hoisted formatter above covers every real call. */
 export const formatDollars = (value: number, locale?: string): string =>
-  new Intl.NumberFormat(locale, {
-    currency: 'USD',
-    style: 'currency',
-  }).format(value);
+  (locale === undefined ? defaultDollarsFormat : (
+    new Intl.NumberFormat(locale, DOLLARS_OPTIONS)
+  )
+  ).format(value);
 
 /** Total tokens across all four buckets, for the KPI row's headline number. */
 export const sumBuckets = (buckets: Buckets): number =>

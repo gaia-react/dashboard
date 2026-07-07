@@ -116,6 +116,10 @@ const logMissingBadgeClass =
 const jumpLinkClass =
   'text-secondary-soft hover:text-secondary focus-visible:outline-accent ml-2 rounded-sm underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2';
 
+/* react-doctor false positive (no-aria-hidden-on-focusable): the rule flags
+ * this `<tr>` as if it hid a focusable node, but neither the row nor its
+ * `Skeleton` children (plain `aria-hidden` divs, no tabIndex/interactive
+ * role) are focusable, so there is nothing for a keyboard user to land on. */
 const SessionSkeletonRow: FC = () => (
   <tr aria-hidden={true} data-testid="session-detail-skeleton">
     <td className={timestampCellClass}>

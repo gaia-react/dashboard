@@ -73,5 +73,17 @@ export const niceTicks = (maxValue: number, tickCount = 4): number[] => {
   return ticks;
 };
 
+const COMPACT_NUMBER_OPTIONS: Intl.NumberFormatOptions = {notation: 'compact'};
+/** `locale` is undefined on every real call; only tests pass one explicitly.
+ * Reuse this hoisted formatter on that common path instead of rebuilding one
+ * per chart/heatmap cell (this is called across every visible datum). */
+const defaultCompactNumberFormat = new Intl.NumberFormat(
+  undefined,
+  COMPACT_NUMBER_OPTIONS
+);
+
 export const formatCompactNumber = (value: number, locale?: string): string =>
-  new Intl.NumberFormat(locale, {notation: 'compact'}).format(value);
+  (locale === undefined ?
+    defaultCompactNumberFormat
+  : new Intl.NumberFormat(locale, COMPACT_NUMBER_OPTIONS)
+  ).format(value);
