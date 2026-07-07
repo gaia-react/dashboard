@@ -86,8 +86,8 @@ const Insights: FC<InsightsProps> = ({activity, costs, locale}) => {
   return (
     <div className={sectionChromeClassName}>
       <header>
-        <p className={eyebrowClassName}>Insights</p>
-        <h2 className={headingClassName}>Highlights</h2>
+        <p className={eyebrowClassName}>Highlights</p>
+        <h2 className={headingClassName}>What stood out</h2>
         <p className={captionClassName}>
           The standouts across this project&apos;s cost and activity.
         </p>
@@ -185,8 +185,8 @@ export const InsightsSkeleton: FC = () => (
     data-testid="insights-skeleton"
   >
     <header>
-      <p className={twMerge(eyebrowClassName, shimmer)}>Insights</p>
-      <h2 className={twMerge(headingClassName, shimmer)}>Highlights</h2>
+      <p className={twMerge(eyebrowClassName, shimmer)}>Highlights</p>
+      <h2 className={twMerge(headingClassName, shimmer)}>What stood out</h2>
     </header>
     <div className="grid gap-4 sm:grid-cols-3">
       {['a', 'b', 'c'].map((key) => (

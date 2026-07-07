@@ -51,7 +51,7 @@ const ModelMix: FC<ModelMixProps> = ({locale, modelTotals, modelWeekly}) => {
   return (
     <div className={sectionChromeClassName}>
       <header>
-        <p className={eyebrowClassName}>Model mix</p>
+        <p className={eyebrowClassName}>Model Usage</p>
         <h2 className={headingClassName}>Which models do the work</h2>
         <p className={captionClassName}>
           Output tokens per model, in total and week by week.
@@ -98,7 +98,7 @@ export const ModelMixSkeleton: FC = () => (
     data-testid="model-mix-skeleton"
   >
     <header>
-      <p className={twMerge(eyebrowClassName, shimmer)}>Model mix</p>
+      <p className={twMerge(eyebrowClassName, shimmer)}>Model Usage</p>
       <h2 className={twMerge(headingClassName, shimmer)}>
         Which models do the work
       </h2>

@@ -42,8 +42,10 @@ test('renders the section chrome and the three headline stat tiles from fixture 
     />
   );
 
-  expect(screen.getByText('Insights')).toBeInTheDocument();
-  expect(screen.getByRole('heading', {name: 'Highlights'})).toBeInTheDocument();
+  expect(screen.getByText('Highlights')).toBeInTheDocument();
+  expect(
+    screen.getByRole('heading', {name: 'What stood out'})
+  ).toBeInTheDocument();
 
   expect(screen.getByText('Most active day')).toBeInTheDocument();
   expect(screen.getByText('Jun 2, 2026')).toBeInTheDocument();

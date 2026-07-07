@@ -46,8 +46,9 @@ const TabPanel: FC<{children: ReactNode; tab: DashboardTabId}> = ({
  * read both `/api/costs` and `/api/activity`, so they gate on `headerState`;
  * the tab content below paints per resource (CostTable and CostTrend the
  * moment `/api/costs` lands, the session-scan sections once `/api/activity`
- * does, PLAN D2). The active tab lives in `?tab=` (Work | Sessions | Activity),
- * with the top blocks pinned above the tab strip.
+ * does, PLAN D2). The active tab lives in `?tab=` (Work | Sessions | Insights,
+ * the last keyed by id `activity`), with the top blocks pinned above the tab
+ * strip.
  */
 const App = () => {
   const {activity, costs, refresh} = useDashboardData<
@@ -150,18 +151,18 @@ const App = () => {
         {tab === 'activity' && (
           <TabPanel tab="activity">
             <AsyncSection
-              label="Activity"
+              label="Highlights"
               onRetry={refresh}
-              skeleton={<ActivityHeatmapSkeleton />}
-              state={activity.state}
+              skeleton={<InsightsSkeleton />}
+              state={headerState}
             >
-              {(activityData) => (
-                <ActivityHeatmap heatmap={activityData.heatmap} />
+              {(data) => (
+                <Insights activity={data.activity} costs={data.costs} />
               )}
             </AsyncSection>
 
             <AsyncSection
-              label="Model mix"
+              label="Model Usage"
               onRetry={refresh}
               skeleton={<ModelMixSkeleton />}
               state={activity.state}
@@ -175,23 +176,23 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
-              label="Insights"
-              onRetry={refresh}
-              skeleton={<InsightsSkeleton />}
-              state={headerState}
-            >
-              {(data) => (
-                <Insights activity={data.activity} costs={data.costs} />
-              )}
-            </AsyncSection>
-
-            <AsyncSection
               label="Cost trend"
               onRetry={refresh}
               skeleton={<CostTrendSkeleton />}
               state={costs.state}
             >
               {(costsData) => <CostTrend costs={costsData} />}
+            </AsyncSection>
+
+            <AsyncSection
+              label="Activity"
+              onRetry={refresh}
+              skeleton={<ActivityHeatmapSkeleton />}
+              state={activity.state}
+            >
+              {(activityData) => (
+                <ActivityHeatmap heatmap={activityData.heatmap} />
+              )}
             </AsyncSection>
 
             {/* Parse health is a footer that only appears when a data problem

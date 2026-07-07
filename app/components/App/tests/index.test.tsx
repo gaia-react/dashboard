@@ -60,7 +60,12 @@ const expectAllBusy = (labels: string[], busy: boolean): void => {
 const workTabLabels = ['Key metrics', 'Specs and plans'];
 // Parse health is intentionally omitted: it only renders when a data problem
 // exists (feedback), so it is not an always-present region.
-const activityTabLabels = ['Activity', 'Model mix', 'Insights', 'Cost trend'];
+const activityTabLabels = [
+  'Highlights',
+  'Model Usage',
+  'Cost trend',
+  'Activity',
+];
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -95,7 +100,7 @@ test('defaults to the Work tab, mounting only its sections', () => {
     screen.queryByRole('region', {name: 'Sessions'})
   ).not.toBeInTheDocument();
   expect(
-    screen.queryByRole('region', {name: 'Model mix'})
+    screen.queryByRole('region', {name: 'Model Usage'})
   ).not.toBeInTheDocument();
 });
 
@@ -107,7 +112,7 @@ test('selecting a tab updates the URL and swaps the mounted sections', async () 
 
   render(<App />);
 
-  fireEvent.click(screen.getByRole('tab', {name: 'Activity'}));
+  fireEvent.click(screen.getByRole('tab', {name: 'Insights'}));
 
   await waitFor(() => {
     expect(window.location.search).toBe('?tab=activity');
