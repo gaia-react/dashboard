@@ -221,6 +221,70 @@ describe('buildCostEntries', () => {
     ).toBeNull();
   });
 
+  test('carries the SPEC-032 adversarial audit onto its phase, camelCased', () => {
+    const entry = findEntry(result.entries, 'SPEC-201');
+    const specPhase = entry.phases.find((phase) => phase.kind === 'spec');
+
+    expect(specPhase?.audit).toEqual({
+      buckets: {cacheRead: 120, cacheWrite: 80, freshInput: 40, output: 150},
+      dollars: null,
+      elapsedSeconds: 30,
+      intensity: 'deep',
+      lenses: ['DP', 'CG'],
+    });
+  });
+
+  test('never folds the audit subset into the phase or entry totals', () => {
+    const entry = findEntry(result.entries, 'SPEC-201');
+    const specPhase = entry.phases.find((phase) => phase.kind === 'spec');
+
+    // The phase buckets are the terminal-row buckets, unchanged by the nested
+    // (subset) audit; every audit bucket is <= its phase bucket.
+    expect(specPhase?.buckets).toEqual({
+      cacheRead: 300,
+      cacheWrite: 200,
+      freshInput: 100,
+      output: 400,
+    });
+    expect(specPhase?.audit?.buckets.output).toBeLessThanOrEqual(
+      specPhase?.buckets.output ?? 0
+    );
+    // The execute (backfill) phase has no audit at all.
+    expect(
+      entry.phases.find((phase) => phase.kind === 'execute')?.audit
+    ).toBeUndefined();
+  });
+
+  test('surfaces ad-hoc reviews without inflating recorded dollars', () => {
+    // The ad-hoc code-review-audit row ($0.90, null spec/plan) has no entry.
+    expect(result.entries.some((entry) => entry.key.includes('adhoc'))).toBe(
+      false
+    );
+    expect(result.adHocReviews).toHaveLength(1);
+    expect(result.adHocReviews[0]).toMatchObject({
+      recordedDollars: 0.9,
+      reviewId: 'agent-aggadhoc01',
+      sessionId: '90000009-0000-4000-8000-000000000009',
+    });
+    expect(result.adHocReviews[0].buckets).toEqual({
+      cacheRead: 24,
+      cacheWrite: 12,
+      freshInput: 6,
+      output: 9,
+    });
+
+    // Recorded dollars reconciles to the visible entries (3.5 + 4.25 + 3),
+    // NOT the old sum-every-terminal-row that would add the $0.90 ad-hoc
+    // review and read $11.65.
+    expect(result.recordedDollars).toBeCloseTo(10.75, 10);
+    const entrySum = result.entries.reduce(
+      (total, entry) => total + (entry.totals.recordedDollars ?? 0),
+      0
+    );
+
+    expect(result.recordedDollars).toBeCloseTo(entrySum, 10);
+  });
+
   test('reports the earliest coverage timestamp across all groups', () => {
     // The SPEC-200 spec row has a null started_at; its ts (06-01T09:00) is
     // the earliest coverage point in the fixture.

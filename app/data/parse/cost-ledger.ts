@@ -92,6 +92,23 @@ const attributionKey = (attribution: CostAttribution): string => {
   return 'unattributed';
 };
 
+/**
+ * The grouping key for one row. Phase rows (spec/plan/execute) are cumulative
+ * snapshots, so they fold by (attribution, kind, session) and reduce to a
+ * terminal row. Review rows (SPEC-032) are NOT cumulative: an ultrareview emits
+ * one row per run in a single session, each with its own `review_id` and its
+ * own dollars. Folding those by (attribution, kind, session) would collapse the
+ * runs and silently drop every run but one, so a review row keys by `review_id`
+ * and stays its own group (a single terminal row).
+ */
+const groupKey = (row: CostRecord, attribution: CostAttribution): string => {
+  const base = `${attributionKey(attribution)}|${row.kind}|${row.session_id}`;
+
+  return row.kind === 'review' && row.review_id ?
+      `${base}|${row.review_id}`
+    : base;
+};
+
 /** final:true wins regardless of seq; ties and fallback resolve by max seq. */
 const selectTerminalRow = (rows: CostRecord[]): CostRecord => {
   const finalRows = rows.filter((row) => row.final);
@@ -170,7 +187,7 @@ export const parseCostLedger = async (
     }
 
     const attribution = deriveAttribution(row);
-    const key = `${attributionKey(attribution)}|${row.kind}|${row.session_id}`;
+    const key = groupKey(row, attribution);
     const group = pending.get(key) ?? {
       attribution,
       backfillRows: [],

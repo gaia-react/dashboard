@@ -207,7 +207,7 @@ export const getCosts = async (
     discoveredDirectories,
   });
 
-  const {costSince, entries, recordedDollars} = buildCostEntries({
+  const {adHocReviews, costSince, entries, recordedDollars} = buildCostEntries({
     costGroups: costRead.result.groups,
     planLedgerEntries: planRead.result.entries,
     resolveSessionLogFound: buildLogFoundResolver(join),
@@ -225,6 +225,7 @@ export const getCosts = async (
   ).length;
 
   return costsResponseSchema.parse({
+    adHocReviews,
     coverage: {costSince},
     entries,
     kpis: {

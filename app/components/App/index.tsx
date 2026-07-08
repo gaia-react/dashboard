@@ -3,6 +3,7 @@ import AsyncSection from '~/components/AsyncSection';
 import ActivityHeatmap, {
   ActivityHeatmapSkeleton,
 } from '~/components/Sections/ActivityHeatmap';
+import AdHocReviews from '~/components/Sections/AdHocReviews';
 import CostTable, {CostTableSkeleton} from '~/components/Sections/CostTable';
 import CostTrend, {CostTrendSkeleton} from '~/components/Sections/CostTrend';
 import type {DashboardTabId} from '~/components/Sections/dashboard-tabs';
@@ -129,6 +130,17 @@ const App = () => {
                 />
               )}
             </AsyncSection>
+
+            {/* Ad-hoc code reviews (SPEC-032) sit below the cost table and
+                only appear when the project has any: net-new recorded spend
+                with no spec/plan row, surfaced so the KPI reconciles. */}
+            {costs.state.status === 'success' &&
+              costs.state.data.adHocReviews.length > 0 && (
+                <AdHocReviews
+                  onViewSession={viewSession}
+                  reviews={costs.state.data.adHocReviews}
+                />
+              )}
           </TabPanel>
         )}
 

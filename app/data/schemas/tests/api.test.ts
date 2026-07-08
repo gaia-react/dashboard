@@ -12,6 +12,7 @@ import {
  * mini-project composite fixture in spirit (neutral paths only).
  */
 const validCostsResponse: CostsResponse = {
+  adHocReviews: [],
   coverage: {costSince: '2026-06-20T09:05:05Z'},
   entries: [
     {
@@ -231,6 +232,56 @@ describe('costsResponseSchema', () => {
     expect(costsResponseSchema.parse(validCostsResponse)).toEqual(
       validCostsResponse
     );
+  });
+
+  test('defaults adHocReviews to an empty array when a pre-SPEC-032 response omits it', () => {
+    const {adHocReviews, ...withoutAdHocReviews} = validCostsResponse;
+    const parsed = costsResponseSchema.parse(withoutAdHocReviews);
+
+    expect(parsed.adHocReviews).toEqual([]);
+  });
+
+  test('round-trips the SPEC-032 audit drill-down and ad-hoc review shapes', () => {
+    const [entry] = validCostsResponse.entries;
+    const [phase] = entry.phases;
+    const enriched: CostsResponse = {
+      ...validCostsResponse,
+      adHocReviews: [
+        {
+          at: '2026-07-05T14:00:00.000Z',
+          buckets: {cacheRead: 8, cacheWrite: 4, freshInput: 2, output: 3},
+          durationSeconds: 60,
+          recordedDollars: 0.75,
+          reviewId: 'agent-adhoc0001',
+          sessionId: 'ssssssss-1111-2222-3333-444444444444',
+        },
+      ],
+      entries: [
+        {
+          ...entry,
+          phases: [
+            {
+              ...phase,
+              audit: {
+                buckets: {
+                  cacheRead: 30,
+                  cacheWrite: 20,
+                  freshInput: 5,
+                  output: 40,
+                },
+                dollars: 0.01,
+                elapsedSeconds: 45,
+                intensity: 'standard',
+                lenses: ['FG', 'TST'],
+              },
+            },
+            ...entry.phases.slice(1),
+          ],
+        },
+      ],
+    };
+
+    expect(costsResponseSchema.parse(enriched)).toEqual(enriched);
   });
 
   test('rejects an out-of-vocabulary rateTable status', () => {

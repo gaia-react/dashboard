@@ -5,3 +5,6 @@ dist-ssr
 .DS_Store
 coverage
 .vite
+
+# Local build-orchestration scaffolding; kept out of git by design.
+tasks/

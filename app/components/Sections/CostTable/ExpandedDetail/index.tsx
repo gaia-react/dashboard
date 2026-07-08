@@ -11,7 +11,12 @@ import {
 import Skeleton from '~/components/Skeleton';
 import {formatLabel} from '~/data/format/labels';
 import {formatModelName} from '~/data/format/model-name';
-import type {CostEntry, ModelBuckets, SessionSummary} from '~/data/schemas/api';
+import type {
+  AdversarialAudit,
+  CostEntry,
+  ModelBuckets,
+  SessionSummary,
+} from '~/data/schemas/api';
 
 type Props = {
   entry: CostEntry;
@@ -87,6 +92,58 @@ const BreakdownTable: FC<{
   </table>
 );
 
+const auditLensClass =
+  'border-border-soft text-fg-mute inline-block rounded-sm border px-1.5 py-0.5 font-mono text-[0.6rem] tracking-wider uppercase';
+const auditTermClass = 'text-fg-mute';
+const auditValueClass = 'font-mono tabular-nums';
+
+/**
+ * The SPEC-032 adversarial-audit drill-down for one phase (buckets, cost,
+ * elapsed, lenses, spec-only intensity). A strict subset of the phase it sits
+ * under, so the copy says so and the figures are never added to any total.
+ * Spans all five grid tracks, like the breakdown block above it.
+ */
+const AuditDetail: FC<{audit: AdversarialAudit}> = ({audit}) => (
+  <div className="border-border-soft col-span-5 flex flex-col gap-1.5 border-l-2 pl-3">
+    <div>
+      <p className={headingClass}>Adversarial audit</p>
+      <p className="text-fg-mute text-[0.65rem]">
+        A subset of this phase, shown for detail and never added to any total.
+      </p>
+    </div>
+    <dl className="text-fg-dim grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs">
+      <dt className={auditTermClass}>Tokens</dt>
+      <dd className={auditValueClass}>
+        {formatTokens(sumBuckets(audit.buckets))}
+      </dd>
+      <dt className={auditTermClass}>Cost</dt>
+      <dd className={auditValueClass}>{formatDollarsCell(audit.dollars)}</dd>
+      <dt className={auditTermClass}>Elapsed</dt>
+      <dd className={auditValueClass}>
+        {formatDuration(audit.elapsedSeconds)}
+      </dd>
+      {audit.intensity !== null && (
+        <>
+          <dt className={auditTermClass}>Intensity</dt>
+          <dd>{formatLabel(audit.intensity)}</dd>
+        </>
+      )}
+      {audit.lenses.length > 0 && (
+        <>
+          <dt className={auditTermClass}>Lenses</dt>
+          <dd className="flex flex-wrap gap-1">
+            {audit.lenses.map((lens) => (
+              <span key={lens} className={auditLensClass}>
+                {lens}
+              </span>
+            ))}
+          </dd>
+        </>
+      )}
+    </dl>
+  </div>
+);
+
 /**
  * One phase's grid cells (feedback: phase-name/tokens/cost/elapsed line up
  * across every phase). Returns a fragment, not its own container, so its
@@ -126,6 +183,9 @@ const PhaseRow: FC<{phase: CostEntry['phases'][number]}> = ({phase}) => (
         )}
       </div>
     )}
+    {/* SPEC-032 adversarial-audit drill-down, present only on the spec/plan
+        phases that carried it (a subset, never summed into any total). */}
+    {phase.audit && <AuditDetail audit={phase.audit} />}
   </>
 );
 

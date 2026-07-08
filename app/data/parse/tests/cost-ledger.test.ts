@@ -139,8 +139,69 @@ describe('parseCostLedger', () => {
       {lineNumber: 14, schemaVersion: 2},
     ]);
     // Every other fixture line parsed cleanly.
-    expect(health.linesRead).toBe(14);
+    expect(health.linesRead).toBe(17);
     expect(health.lineErrors).toEqual([]);
     expect(health.invalidRows).toEqual([]);
+  });
+
+  test('rides the SPEC-032 audit annotation through onto the terminal row', async () => {
+    const {groups} = await parseCostLedger(fixturePath);
+
+    const specGroup = findGroup(
+      groups,
+      (group) =>
+        group.attribution.type === 'spec' &&
+        group.attribution.id === 'SPEC-101' &&
+        group.kind === 'spec'
+    );
+
+    // The nested audit is an unknown-to-the-old-schema field; it survives
+    // parsing untouched, snake_case intact (camelCasing happens downstream).
+    expect(specGroup.terminalRow.audit?.adversarial).toMatchObject({
+      buckets: {cache_read: 30, cache_write: 20, fresh_input: 5, output: 40},
+      dollars: 0.01,
+      elapsed_seconds: 45,
+      intensity: 'standard',
+      lenses: ['FG', 'TST', 'COV', 'RT'],
+    });
+  });
+
+  test('keys review rows by review_id so same-session runs are not collapsed', async () => {
+    const {groups} = await parseCostLedger(fixturePath);
+
+    // Two code-review-audit runs share one session; folding by (attribution,
+    // kind, session) like a cumulative phase would drop one. Each review_id is
+    // its own single-row group instead.
+    const reviewRuns = groups.filter(
+      (group) =>
+        group.kind === 'review' &&
+        group.sessionId === 'rrrrrrrr-1111-2222-3333-444444444444'
+    );
+
+    expect(reviewRuns).toHaveLength(2);
+    expect(reviewRuns.every((group) => group.rowCount === 1)).toBe(true);
+    expect(
+      reviewRuns
+        .map((group) => group.terminalRow.dollars ?? 0)
+        .toSorted((a, b) => a - b)
+    ).toEqual([1, 2]);
+  });
+
+  test('keeps an ad-hoc review unattributed while preserving its source tag', async () => {
+    const {groups} = await parseCostLedger(fixturePath);
+
+    const adHocReview = findGroup(
+      groups,
+      (group) =>
+        group.kind === 'review' &&
+        group.sessionId === 'ssssssss-1111-2222-3333-444444444444'
+    );
+
+    // Null spec_id/plan_id degrades to unattributed, but the identifying
+    // source tag rides through on the terminal row (never collapsed away).
+    expect(adHocReview.attribution).toEqual({type: 'unattributed'});
+    expect(adHocReview.terminalRow.source).toBe('code-review-audit');
+    expect(adHocReview.terminalRow.review_id).toBe('agent-adhoc0001');
+    expect(adHocReview.terminalRow.dollars).toBe(0.75);
   });
 });
