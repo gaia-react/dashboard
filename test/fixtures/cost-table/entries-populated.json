@@ -135,6 +135,18 @@
       {
         "kind": "spec",
         "source": "native",
+        "audit": {
+          "buckets": {
+            "freshInput": 800,
+            "cacheWrite": 200,
+            "cacheRead": 2400,
+            "output": 360
+          },
+          "dollars": 0.12,
+          "elapsedSeconds": 42,
+          "intensity": "standard",
+          "lenses": ["FG", "TST", "COV", "RT"]
+        },
         "buckets": {
           "freshInput": 2000,
           "cacheWrite": 500,

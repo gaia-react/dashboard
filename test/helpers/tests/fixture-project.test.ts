@@ -51,7 +51,7 @@ describe('mini-project composite fixture', () => {
     );
 
     expect(result.errors).toHaveLength(1);
-    expect(result.parsed).toBe(10);
+    expect(result.parsed).toBe(11);
 
     const parsed = rows.map((row) => costRecordSchema.parse(row));
     const kinds = new Set(parsed.map((row) => row.kind));

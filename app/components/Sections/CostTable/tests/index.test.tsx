@@ -222,6 +222,36 @@ test('shows the entry total tokens on the phases heading line', () => {
   expect(within(detail).getByText('Total tokens: 74K')).toBeInTheDocument();
 });
 
+test('expanding an audited phase reveals the adversarial-audit drill-down', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  fireEvent.click(screen.getByRole('button', {name: /expand spec-201/i}));
+
+  const detail = screen.getByTestId('cost-row-detail-SPEC-201');
+
+  // The SPEC-032 drill-down: labeled a subset, with its cost, elapsed, lenses,
+  // and spec-only intensity. $0.12 is distinct from the phase's $0.41 recorded
+  // dollars, proving the subset is shown, not the phase figure.
+  expect(within(detail).getByText('Adversarial audit')).toBeInTheDocument();
+  expect(within(detail).getByText(/subset of this phase/i)).toBeInTheDocument();
+  expect(within(detail).getByText('$0.12')).toBeInTheDocument();
+  expect(within(detail).getByText('FG')).toBeInTheDocument();
+  expect(within(detail).getByText('RT')).toBeInTheDocument();
+  expect(within(detail).getByText('Standard')).toBeInTheDocument();
+});
+
+test('a phase with no audit shows no adversarial-audit drill-down', () => {
+  render(<CostTable entries={populatedEntries} />);
+
+  fireEvent.click(screen.getByRole('button', {name: /expand spec-150/i}));
+
+  const detail = screen.getByTestId('cost-row-detail-SPEC-150');
+
+  expect(
+    within(detail).queryByText('Adversarial audit')
+  ).not.toBeInTheDocument();
+});
+
 test('expanding a backfill-only row shows phase detail with no breakdown', () => {
   render(<CostTable entries={populatedEntries} />);
 

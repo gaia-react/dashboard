@@ -2,6 +2,8 @@ import {canonicalizeTimestamp} from '~/data/aggregate/timestamp';
 import type {CostGroup} from '~/data/parse/cost-ledger';
 import type {NormalizedLedgerEntry} from '~/data/parse/ledgers';
 import type {
+  AdHocReview,
+  AdversarialAudit,
   Buckets,
   CostEntry,
   LinkedSession,
@@ -9,6 +11,7 @@ import type {
   PhaseRollup,
 } from '~/data/schemas/api';
 import type {
+  CostAdversarialAudit,
   CostBucketTotals,
   CostSplitBuckets,
 } from '~/data/schemas/cost-record';
@@ -42,6 +45,12 @@ export type CostEntriesInput = {
 
 export type CostEntriesResult = {
   /**
+   * Ad-hoc `code-review-audit` reviews (SPEC-032): null spec_id/plan_id, so no
+   * cost-table entry. Surfaced separately (never in `recordedDollars`) so their
+   * net-new recorded spend stays visible. Chronological by coverage timestamp.
+   */
+  adHocReviews: AdHocReview[];
+  /**
    * Earliest cost coverage timestamp across every group (terminal row's
    * `started_at`, falling back to `ts`), for the section 6.1 disclosure.
    */
@@ -49,8 +58,10 @@ export type CostEntriesResult = {
   /** Section 6.3 rows, chronological by `sortAt`. */
   entries: CostEntry[];
   /**
-   * Sum of recorded `dollars` over every terminal row, including
-   * unattributed telemetry groups that have no table row. Tiers 1+2 only.
+   * Sum of recorded `dollars` over the visible cost-table entries (tiers 1+2
+   * only), so the "Recorded spend" KPI reconciles to exactly what the table
+   * shows. Ad-hoc reviews (surfaced separately) and any unattributed telemetry
+   * that has no row are deliberately excluded.
    */
   recordedDollars: number;
 };
@@ -71,6 +82,14 @@ const emptyBuckets = (): Buckets => ({
   cacheWrite: 0,
   freshInput: 0,
   output: 0,
+});
+
+/** Map one on-disk collapsed-cache-write bucket row to the camelCase boundary. */
+const bucketsFromTotals = (row: CostBucketTotals): Buckets => ({
+  cacheRead: row.cache_read,
+  cacheWrite: row.cache_write,
+  freshInput: row.fresh_input,
+  output: row.output,
 });
 
 const addBuckets = (into: Buckets, row: CostBucketTotals): void => {
@@ -150,6 +169,72 @@ const mergedBreakdown = (
   return mergeSplitBucketMaps(maps as Record<string, CostSplitBuckets>[]);
 };
 
+/**
+ * The renderable SPEC-032 adversarial-audit annotations across a phase's
+ * groups: a well-formed one carries buckets (the only field the drill-down
+ * cannot render without). Everything else degrades to a default.
+ */
+const collectAudits = (groups: CostGroup[]): CostAdversarialAudit[] => {
+  const audits: CostAdversarialAudit[] = [];
+
+  for (const group of groups) {
+    const audit = group.terminalRow.audit?.adversarial;
+
+    if (audit?.buckets !== undefined) {
+      audits.push(audit);
+    }
+  }
+
+  return audits;
+};
+
+/**
+ * Carry the adversarial-audit drill-down onto a phase rollup (SPEC-032),
+ * camelCased and merged across the phase's groups. Each audit is a strict
+ * SUBSET of its own session's terminal row and the phase buckets are the sum of
+ * those terminal rows, so the merged audit buckets stay <= the phase buckets:
+ * a drill-down, never added to any total. Undefined when the phase carries no
+ * audit (backfill phases and every non-audited spec/plan phase).
+ */
+const mergeAudit = (groups: CostGroup[]): AdversarialAudit | undefined => {
+  const audits = collectAudits(groups);
+
+  if (audits.length === 0) {
+    return undefined;
+  }
+
+  const buckets = emptyBuckets();
+  const lenses = new Set<string>();
+  const intensities = new Set<string>();
+  let elapsedSeconds = 0;
+
+  for (const audit of audits) {
+    if (audit.buckets) {
+      addBuckets(buckets, audit.buckets);
+    }
+
+    for (const lens of audit.lenses ?? []) {
+      lenses.add(lens);
+    }
+
+    if (audit.intensity !== undefined) {
+      intensities.add(audit.intensity);
+    }
+
+    elapsedSeconds += audit.elapsed_seconds ?? 0;
+  }
+
+  return {
+    buckets,
+    dollars: sumNullable(audits.map((audit) => audit.dollars)),
+    elapsedSeconds,
+    // One intensity across the merged audits keeps it; a mix (or none, e.g.
+    // plan audits) reports null rather than picking a winner.
+    intensity: intensities.size === 1 ? [...intensities][0] : null,
+    lenses: [...lenses],
+  };
+};
+
 /** One rollup per (kind, source) pair, buckets summed across its sessions. */
 const buildPhases = (groups: CostGroup[]): PhaseRollup[] => {
   const pairs = new Map<string, CostGroup[]>();
@@ -165,8 +250,10 @@ const buildPhases = (groups: CostGroup[]): PhaseRollup[] => {
   const phases = [...pairs.values()].map((pairGroups): PhaseRollup => {
     const {kind, source} = pairGroups[0];
     const isNative = source === 'native';
+    const audit = mergeAudit(pairGroups);
 
     return {
+      ...(audit ? {audit} : {}),
       buckets: sumGroupBuckets(pairGroups),
       byAgentType:
         isNative ?
@@ -253,6 +340,31 @@ const earliestCoverageAt = (groups: CostGroup[]): null | string => {
     canonicalTimestamps[0]
   );
 };
+
+/**
+ * An ad-hoc code-review row (SPEC-032): a `code-review-audit` review with no
+ * spec/plan association, so it never lands in a cost-table entry. Keyed on the
+ * source tag (threaded through parse untouched, never collapsed to "native").
+ */
+const isAdHocReview = (group: CostGroup): boolean =>
+  group.attribution.type === 'unattributed' &&
+  group.terminalRow.source === 'code-review-audit';
+
+/** Surface ad-hoc reviews as their own rows, chronological by coverage ts. */
+const buildAdHocReviews = (groups: CostGroup[]): AdHocReview[] =>
+  groups
+    .filter(isAdHocReview)
+    .map(
+      (group): AdHocReview => ({
+        at: canonicalizeTimestamp(groupCoverageAt(group)) ?? EPOCH,
+        buckets: bucketsFromTotals(group.terminalRow.buckets),
+        durationSeconds: group.terminalRow.duration_seconds ?? null,
+        recordedDollars: group.terminalRow.dollars ?? null,
+        reviewId: group.terminalRow.review_id ?? null,
+        sessionId: group.sessionId,
+      })
+    )
+    .toSorted((a, b) => Date.parse(a.at) - Date.parse(b.at));
 
 type EntrySeed = {
   entryType: CostEntry['entryType'];
@@ -370,9 +482,13 @@ export const buildCostEntries = ({
     .toSorted((a, b) => Date.parse(a.sortAt) - Date.parse(b.sortAt));
 
   return {
+    adHocReviews: buildAdHocReviews(costGroups),
     costSince: earliestCoverageAt(costGroups),
     entries,
+    // Sum the visible entries so "Recorded spend" reconciles to the cost table
+    // (attributed reviews already fold into their spec/plan entry). Ad-hoc
+    // reviews are surfaced above, not counted here.
     recordedDollars:
-      sumNullable(costGroups.map((group) => group.terminalRow.dollars)) ?? 0,
+      sumNullable(entries.map((entry) => entry.totals.recordedDollars)) ?? 0,
   };
 };

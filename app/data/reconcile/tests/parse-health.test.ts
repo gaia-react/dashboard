@@ -44,11 +44,11 @@ describe('buildCostParseHealth', () => {
     });
 
     expect(parseHealthSliceSchema.safeParse(slice).success).toBe(true);
-    // cost-jsonl fixture: 14 lines, 1 rejected (unsupported schema_version 2).
+    // cost-jsonl fixture: 17 lines, 1 rejected (unsupported schema_version 2).
     expect(slice.counters).toContainEqual({
       filesScanned: 1,
       filesUnparseable: 0,
-      linesRead: 14,
+      linesRead: 17,
       linesSkipped: 1,
       source: 'cost.jsonl',
     });

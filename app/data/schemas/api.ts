@@ -96,12 +96,31 @@ const linkedSessionSchema = z.object({
 });
 
 /**
+ * GAIA SPEC-032 adversarial-audit drill-down carried onto a spec/plan phase
+ * (buckets camelCased, cache-write collapsed like `Buckets`). A strict subset
+ * of the enclosing phase, so it renders as detail and is NEVER summed into any
+ * phase / entry / grand total. `intensity` is null on plan audits (SPEC-only).
+ * Not exported: only used to build `phaseRollupSchema` below. The inferred
+ * `AdversarialAudit` type is the public contract piece.
+ */
+const adversarialAuditSchema = z.object({
+  buckets: bucketsSchema,
+  dollars: z.number().nullable(),
+  elapsedSeconds: z.number(),
+  intensity: z.string().nullable(),
+  lenses: z.array(z.string()),
+});
+
+/**
  * Per-phase detail for an expanded cost-table row (SPEC section 6.3).
  * `byModel` / `byAgentType` are null on backfill and pre-attribution rows.
+ * `audit` is present only on the spec/plan phases that carried a SPEC-032
+ * adversarial-audit annotation (most rows omit it).
  * Not exported: only used to build `costEntrySchema` below. The inferred
  * `PhaseRollup` type is the public contract piece.
  */
 const phaseRollupSchema = z.object({
+  audit: adversarialAuditSchema.optional(),
   buckets: bucketsSchema,
   byAgentType: z.record(z.string(), modelBucketsSchema).nullable(),
   byModel: z.record(z.string(), modelBucketsSchema).nullable(),
@@ -136,8 +155,31 @@ export const costEntrySchema = z.object({
   }),
 });
 
+/**
+ * One ad-hoc code-review row (GAIA SPEC-032): a `code-review-audit` review with
+ * no spec/plan association, so it has no cost-table entry. Surfaced on its own
+ * (never folded into the `recordedDollars` KPI, which is spec & plan work) so
+ * its net-new recorded spend stays visible instead of silently inflating a KPI.
+ */
+export const adHocReviewSchema = z.object({
+  /** Coverage timestamp (`started_at`, else `ts`). */
+  at: z.iso.datetime(),
+  buckets: bucketsSchema,
+  durationSeconds: z.number().nullable(),
+  recordedDollars: z.number().nullable(),
+  /** Producer `review_id` (one row per run); null if the row omitted it. */
+  reviewId: z.string().nullable(),
+  sessionId: z.string(),
+});
+
 /** `GET /api/costs` (PLAN section 3). */
 export const costsResponseSchema = z.object({
+  /**
+   * Ad-hoc (null spec_id / plan_id) `code-review-audit` reviews (SPEC-032):
+   * recorded spend with no spec/plan row. Empty for projects with none;
+   * `.default([])` lets pre-SPEC-032 response fixtures omit the field.
+   */
+  adHocReviews: z.array(adHocReviewSchema).default([]),
   /** Earliest cost row ts, for the section 6.1 coverage disclosure. */
   coverage: z.object({costSince: z.iso.datetime().nullable()}),
   /** Section 6.3 rows, chronological. */
@@ -240,6 +282,10 @@ export const apiErrorSchema = z.object({
 });
 
 export type ActivityResponse = z.infer<typeof activityResponseSchema>;
+
+export type AdHocReview = z.infer<typeof adHocReviewSchema>;
+
+export type AdversarialAudit = z.infer<typeof adversarialAuditSchema>;
 
 export type ApiError = z.infer<typeof apiErrorSchema>;
 

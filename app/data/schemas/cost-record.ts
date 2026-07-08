@@ -36,7 +36,32 @@ const splitBucketsSchema = z.looseObject({
   output: z.number(),
 });
 
+/**
+ * GAIA SPEC-032 adversarial-audit annotation, nested under `audit.adversarial`
+ * on spec/plan phase rows only. Its buckets use the collapsed cache-write shape
+ * (same as the top-level `buckets`) and are a strict SUBSET of the enclosing
+ * phase, so this is a drill-down that is never summed into any total.
+ *
+ * Every field is optional so a malformed annotation degrades to "no audit"
+ * (fields undefined) rather than dropping the whole phase row: the additive
+ * contract must never cost us a spec/plan row. `intensity` is genuinely
+ * conditional upstream too (SPEC audits carry it; plan audits omit it).
+ */
+const adversarialAuditSchema = z.looseObject({
+  buckets: bucketTotalsSchema.optional(),
+  dollars: z.number().nullable().optional(),
+  elapsed_seconds: z.number().optional(),
+  intensity: z.string().optional(),
+  lenses: z.array(z.string()).optional(),
+});
+
+const auditAnnotationSchema = z.looseObject({
+  adversarial: adversarialAuditSchema.optional(),
+});
+
 export const costRecordSchema = z.looseObject({
+  /** SPEC-032 audit drill-down on spec/plan phase rows; absent otherwise. */
+  audit: auditAnnotationSchema.optional(),
   buckets: bucketTotalsSchema,
   /** Omitted entirely (never {}) when attribution fails or on backfill rows. */
   by_agent_type: z.record(z.string(), splitBucketsSchema).optional(),
@@ -54,6 +79,8 @@ export const costRecordSchema = z.looseObject({
   /** Display-only, except slug-attributed backfill rows (SPEC section 4.1). */
   plan_slug: z.string().nullable().optional(),
   rate_table_id: z.string().nullable().optional(),
+  /** SPEC-032 review record id: one row per run, deduped upstream. */
+  review_id: z.string().nullable().optional(),
   schema_version: z.literal(SUPPORTED_SCHEMA_VERSION),
   seq: z.number(),
   /** Present (value or null) on post-SPEC-024 native rows; absent before. */
@@ -66,6 +93,8 @@ export const costRecordSchema = z.looseObject({
   total: z.number(),
   ts: z.string(),
 });
+
+export type CostAdversarialAudit = z.infer<typeof adversarialAuditSchema>;
 
 export type CostBucketTotals = z.infer<typeof bucketTotalsSchema>;
 

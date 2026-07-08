@@ -107,12 +107,36 @@ describe('getCosts on the mini-project composite fixture', () => {
     expect(costCounter).toEqual({
       filesScanned: 1,
       filesUnparseable: 0,
-      linesRead: 11,
+      linesRead: 12,
       linesSkipped: 1,
       source: 'cost.jsonl',
     });
     expect(response.parseHealth.unknownKinds).toEqual(['review']);
     expect(response.parseHealth.unknownStatuses).toEqual([]);
+  });
+
+  test('surfaces an ad-hoc review so recorded spend reconciles to the table', () => {
+    // The $0.75 ad-hoc code-review-audit row (null spec/plan) has no table
+    // entry. The OLD sum-every-terminal-row KPI counted it and read $15.70;
+    // the KPI now reconciles to exactly the visible entries ($14.95).
+    expect(response.adHocReviews).toHaveLength(1);
+    expect(response.adHocReviews[0]).toMatchObject({
+      recordedDollars: 0.75,
+      reviewId: 'agent-miniadhoc1',
+      sessionId: 'cdcdcdcd-1111-2222-3333-444444444444',
+    });
+
+    const visibleEntrySpend = response.entries.reduce(
+      (total, entry) => total + (entry.totals.recordedDollars ?? 0),
+      0
+    );
+
+    expect(response.kpis.recordedDollars).toBeCloseTo(14.95, 10);
+    expect(response.kpis.recordedDollars).toBeCloseTo(visibleEntrySpend, 10);
+    // The ad-hoc review's dollars are surfaced, never folded into the KPI.
+    expect(response.entries.map((entry) => entry.key)).not.toContain(
+      'agent-miniadhoc1'
+    );
   });
 });
 
