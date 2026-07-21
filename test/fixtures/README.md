@@ -14,6 +14,69 @@ report, never a reason to weaken a fixture.
   (`new URL('...', import.meta.url)`), never a `/Users/...` literal.
 - No real secrets, tokens, or personal paths. Sanitize `session_cwd` and any
   sample paths to neutral placeholders (`/Users/you/projects/my-app`).
+- **Raw telemetry keeps `buckets`; client-response fixtures never do.** See
+  "Phase 8 v2: buckets are a raw-telemetry concept only" below before touching
+  any `.jsonl` fixture or any fixture shaped like a `CostsResponse` /
+  `ActivityResponse`.
+
+## Phase 8 v2: buckets are a raw-telemetry concept only
+
+The v2 redesign removed granular token buckets (`fresh_input` / `cache_write` /
+`cache_read` / `output`) from every **client-facing** shape (`app/data/schemas/api.ts`):
+a scalar `totalTokens` replaces every bucket breakdown, and per-model /
+per-agent-type maps carry a token scalar per key instead of a bucket object per
+key. This is a client-contract change ONLY. Two fixture populations exist, and
+they must never be confused:
+
+- **Raw telemetry (`.jsonl` files GAIA itself writes to `cost.jsonl`)**: these
+  MUST keep their `buckets` field, on every row, forever. `app/data/pricing/rates.ts`
+  prices `fresh_input` / `cache_write` / `cache_read` / `output` at four
+  different per-token rates; stripping buckets from a raw fixture silently
+  destroys pricing-layer test coverage, and the failure will not surface until
+  a rate bug ships, phases later. The fixtures that must keep buckets:
+  `test/fixtures/cost-entries/cost.jsonl`, `test/fixtures/cost-jsonl/cost.jsonl`,
+  `test/fixtures/cost-ledger/cost.jsonl`, and
+  `test/fixtures/mini-project/project/.gaia/local/telemetry/cost.jsonl`. (Nothing
+  under `jsonl/`, `ledgers/`, or `sessions/` carries this bucket concept at all;
+  they exercise a different layer and were untouched by this migration.)
+- **Client-response fixtures (anything schema-parsed through `costsResponseSchema`
+  / `activityResponseSchema`, i.e. anything under `api/`, `activity-heatmap/`,
+  `cost-table/`, `cost-trend/`, `header-kpi/`, `insights/`, `model-mix/`, or
+  `sessions-list/`)**: these correctly DROP `buckets`/`totalBuckets`/
+  `outputByModel` and carry `totalTokens` / `tokensByModel` instead, matching
+  `app/data/schemas/api.ts`. If you are editing one of these and see a
+  `buckets` key, that fixture is stale against the contract, not intentionally
+  bucket-shaped; convert it, don't preserve it.
+
+Who touched what in this migration:
+
+- **W3** (`app/data/parse/cost-ledger.ts`) added `test/fixtures/cost-ledger/cost.jsonl`
+  (new): `command` and `review` as known kinds, all three `github` shapes (pr,
+  issue, absent), `run_id` keying/fallback. Raw telemetry; keeps buckets.
+- **W4** (`app/data/aggregate/cost-entries.ts`) extended
+  `test/fixtures/cost-entries/cost.jsonl`: added `github` to two SPEC-200
+  execute rows (proving most-recent-wins tiebreak) and three `kind: "command"`
+  rows. Raw telemetry; keeps buckets. The integrator later added a fourth
+  command row (`gaia-harden`) whose `buckets` deliberately sum to a different
+  number than its own `total`, so `buildCommandEvents`/`sumRowTotals` reading
+  the row's own `total` field is provably a passthrough, not a bucket re-sum
+  that happens to agree.
+- **W7** (`app/components/**`) converted every fixture under
+  `activity-heatmap/`, `cost-table/`, `cost-trend/`, `header-kpi/`, `insights/`,
+  `model-mix/`, and `sessions-list/` from the old bucket-shaped client response
+  to the scalar contract, and engineered `activity-heatmap/populated.json` and
+  `model-mix/populated.json` so total tokens genuinely diverge from output
+  tokens (proving the heatmap and per-model metrics moved to total, not output).
+- **Integrator** converted `test/fixtures/api/costs.json` and `activity.json`
+  the same way (`buckets`/`totalBuckets`/`outputByModel` -> `totalTokens` /
+  `tokensByModel`, added the now-required `github` field on cost entries).
+  This directory was not claimed by any Phase 8 task file even though
+  `app/components/App/tests/index.test.tsx` and
+  `app/hooks/tests/useDashboardData.test.ts` read it directly; flagging the gap
+  here so the next fixture migration checks this directory's ownership
+  explicitly instead of assuming it is covered.
+- **K2** (`app/data/schemas/api.ts`, `cost-record.ts`) did not touch any
+  fixture; it defined the scalar contract every fixture above now matches.
 
 ## Layout
 
@@ -29,6 +92,7 @@ Each workstream owns and authors the fixtures for its slice. Drop files here:
 | `mini-project/` | P2    | Composite fixture project (`.gaia/local` + fake claude-projects dirs) for end-to-end handler tests, plus an empty-project variant                                                                                                                 |
 | `empty-project/`| P2    | Fresh-adopter composite: rate table only, no `.gaia/local`, two ad hoc sessions; handlers must render empty-but-intentional                                                                                                                       |
 | `cost-entries/` | W5    | Cost-entries aggregation: multi-session spec totals, slug-row titling/ordering traps, per-source badges, cumulative no-final groups                                                                                                               |
+| `cost-ledger/`  | Phase 8 W3 | cost.jsonl: `command`/`review` as known kinds, all three `github` shapes (pr/issue/absent), `run_id` keying and its no-`run_id` fallback                                                                                                     |
 | `api/`          | W9    | Canned PLAN section 3 `CostsResponse`/`ActivityResponse` envelopes for data-hook and page-shell tests                                                                                                                                             |
 | `charts/`       | W8    | Chart-kit input slices: heatmap days, model totals, weekly stacks, trend entries                                                                                                                                                                  |
 
@@ -127,6 +191,18 @@ scenario map: `mini-project/README.md`.
   SPEC-202/PLAN-010 carry no cost at all (`source: none`).
 - `cost-entries/README.md`: scenario map plus the hand-computed expected
   totals the tests assert.
+- Phase 8 v2 additions (see "Phase 8 v2" above for the raw-vs-response
+  distinction): `github` on two execute rows, four `kind: "command"` rows
+  (one deliberately `buckets`-sum-diverges-from-`total`), all documented in
+  `cost-entries/README.md`. Raw telemetry; keeps buckets throughout.
+
+### `cost-ledger/` (Phase 8 W3)
+
+- `cost-ledger/cost.jsonl`: 8 rows proving `command` and `review` are known
+  `kind` values (a genuinely unknown `triage` kind still surfaces), two
+  `command` rows sharing a session but different `run_id` (two groups), a
+  `command` row with no `run_id` (base-key fallback), and all three `github`
+  artifact shapes (`pr`, `issue`, absent). Raw telemetry; keeps buckets.
 
 ### `api/` (W9)
 
@@ -140,6 +216,15 @@ scenario map: `mini-project/README.md`.
   `activityResponseSchema` in `schemas/api.ts`, including the real
   `parseHealth` shape); the App composition test round-trips both through
   their schemas at load time so a future drift fails loudly.
+- Phase 8 v2: the integrator converted both from the bucket-shaped response
+  shape (`totals.buckets`, `kpis.totalBuckets`, `modelWeekly[].outputByModel`)
+  to the scalar contract (`totalTokens`, `tokensByModel`), and added the
+  now-required `github: null` on the cost entry. Unlike every other directory
+  in this table, no Phase 8 task file claimed this one, even though
+  `App/tests/index.test.tsx` and `useDashboardData.test.ts` read it directly
+  and do NOT parse it through the schema first (no honesty check), so a stale
+  fixture here fails as a confusing runtime `TypeError` deep in a component,
+  not a clear Zod error at fixture load.
 
 ### `charts/` (W8)
 

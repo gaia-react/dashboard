@@ -1,5 +1,3 @@
-import type {Buckets} from '~/data/schemas/api';
-
 const DOLLARS_OPTIONS: Intl.NumberFormatOptions = {
   currency: 'USD',
   style: 'currency',
@@ -13,7 +11,3 @@ export const formatDollars = (value: number, locale?: string): string =>
     new Intl.NumberFormat(locale, DOLLARS_OPTIONS)
   )
   ).format(value);
-
-/** Total tokens across all four buckets, for the KPI row's headline number. */
-export const sumBuckets = (buckets: Buckets): number =>
-  buckets.cacheRead + buckets.cacheWrite + buckets.freshInput + buckets.output;

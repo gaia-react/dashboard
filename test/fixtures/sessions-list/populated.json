@@ -6,17 +6,12 @@
     "activitySince": "2026-07-05T12:00:00Z"
   },
   "kpis": {
-    "totalBuckets": {
-      "freshInput": 10000,
-      "cacheWrite": 5000,
-      "cacheRead": 80000,
-      "output": 20000
-    },
     "activeDays": 3,
     "estimatedAdHocDollars": {
       "value": 12.5,
       "lowerBound": false
-    }
+    },
+    "totalTokens": 115000
   },
   "heatmap": [],
   "modelTotals": [],
@@ -31,12 +26,6 @@
       "models": [
         "claude-opus-4-1"
       ],
-      "buckets": {
-        "freshInput": 1200,
-        "cacheWrite": 3000,
-        "cacheRead": 42000,
-        "output": 8000
-      },
       "turnCount": 18,
       "gitBranch": "main",
       "attribution": {
@@ -47,7 +36,8 @@
         "basis": "recorded",
         "value": 14.35,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 54200
     },
     {
       "sessionId": "aaaaaaaa-0000-4000-8000-000000000002",
@@ -58,12 +48,6 @@
       "models": [
         "claude-haiku-4-5"
       ],
-      "buckets": {
-        "freshInput": 200,
-        "cacheWrite": 100,
-        "cacheRead": 1500,
-        "output": 600
-      },
       "turnCount": 6,
       "gitBranch": "feature/pagination",
       "attribution": {
@@ -74,7 +58,8 @@
         "basis": "estimated",
         "value": 0.75,
         "lowerBound": true
-      }
+      },
+      "totalTokens": 2400
     },
     {
       "sessionId": "aaaaaaaa-0000-4000-8000-000000000003",
@@ -86,12 +71,6 @@
         "claude-sonnet-4-5",
         "claude-opus-4-1"
       ],
-      "buckets": {
-        "freshInput": 400,
-        "cacheWrite": 200,
-        "cacheRead": 3000,
-        "output": 1500
-      },
       "turnCount": 9,
       "gitBranch": "main",
       "attribution": null,
@@ -99,7 +78,8 @@
         "basis": "estimated",
         "value": 2.1,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 5100
     },
     {
       "sessionId": "aaaaaaaa-0000-4000-8000-000000000004",
@@ -110,19 +90,14 @@
       "models": [
         "claude-opus-4-1"
       ],
-      "buckets": {
-        "freshInput": 100,
-        "cacheWrite": 50,
-        "cacheRead": 900,
-        "output": 300
-      },
       "turnCount": 3,
       "gitBranch": null,
       "attribution": {
         "entryType": "plan-slug",
         "key": "slug:vintage-plan"
       },
-      "dollars": null
+      "dollars": null,
+      "totalTokens": 1350
     },
     {
       "sessionId": "aaaaaaaa-0000-4000-8000-000000000005",
@@ -133,16 +108,11 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 100,
-        "output": 80
-      },
       "turnCount": 2,
       "gitBranch": null,
       "attribution": null,
-      "dollars": null
+      "dollars": null,
+      "totalTokens": 240
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000001",
@@ -153,12 +123,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -166,7 +130,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000002",
@@ -177,12 +142,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -190,7 +149,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000003",
@@ -201,12 +161,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -214,7 +168,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000004",
@@ -225,12 +180,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -238,7 +187,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000005",
@@ -249,12 +199,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -262,7 +206,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000006",
@@ -273,12 +218,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -286,7 +225,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000007",
@@ -297,12 +237,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -310,7 +244,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000008",
@@ -321,12 +256,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -334,7 +263,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000009",
@@ -345,12 +275,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -358,7 +282,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000010",
@@ -369,12 +294,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -382,7 +301,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000011",
@@ -393,12 +313,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -406,7 +320,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000012",
@@ -417,12 +332,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -430,7 +339,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000013",
@@ -441,12 +351,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -454,7 +358,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000014",
@@ -465,12 +370,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -478,7 +377,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000015",
@@ -489,12 +389,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -502,7 +396,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000016",
@@ -513,12 +408,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -526,7 +415,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000017",
@@ -537,12 +427,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -550,7 +434,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000018",
@@ -561,12 +446,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -574,7 +453,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000019",
@@ -585,12 +465,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -598,7 +472,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000020",
@@ -609,12 +484,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -622,7 +491,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000021",
@@ -633,12 +503,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -646,7 +510,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000022",
@@ -657,12 +522,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -670,7 +529,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000023",
@@ -681,12 +541,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -694,7 +548,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000024",
@@ -705,12 +560,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -718,7 +567,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000025",
@@ -729,12 +579,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -742,7 +586,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000026",
@@ -753,12 +598,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -766,7 +605,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000027",
@@ -777,12 +617,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -790,7 +624,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000028",
@@ -801,12 +636,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -814,7 +643,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000029",
@@ -825,12 +655,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -838,7 +662,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000030",
@@ -849,12 +674,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -862,7 +681,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000031",
@@ -873,12 +693,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -886,7 +700,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000032",
@@ -897,12 +712,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -910,7 +719,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000033",
@@ -921,12 +731,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -934,7 +738,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000034",
@@ -945,12 +750,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -958,7 +757,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000035",
@@ -969,12 +769,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -982,7 +776,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000036",
@@ -993,12 +788,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1006,7 +795,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000037",
@@ -1017,12 +807,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1030,7 +814,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000038",
@@ -1041,12 +826,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1054,7 +833,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000039",
@@ -1065,12 +845,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1078,7 +852,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000040",
@@ -1089,12 +864,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1102,7 +871,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000041",
@@ -1113,12 +883,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1126,7 +890,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000042",
@@ -1137,12 +902,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1150,7 +909,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000043",
@@ -1161,12 +921,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1174,7 +928,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000044",
@@ -1185,12 +940,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1198,7 +947,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000045",
@@ -1209,12 +959,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1222,7 +966,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000046",
@@ -1233,12 +978,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1246,7 +985,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000047",
@@ -1257,12 +997,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1270,7 +1004,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000048",
@@ -1281,12 +1016,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1294,7 +1023,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     },
     {
       "sessionId": "bbbbbbbb-0000-4000-8000-000000000049",
@@ -1305,12 +1035,6 @@
       "models": [
         "claude-sonnet-4-5"
       ],
-      "buckets": {
-        "freshInput": 50,
-        "cacheWrite": 10,
-        "cacheRead": 200,
-        "output": 100
-      },
       "turnCount": 1,
       "gitBranch": null,
       "attribution": null,
@@ -1318,7 +1042,8 @@
         "basis": "estimated",
         "value": 0.05,
         "lowerBound": false
-      }
+      },
+      "totalTokens": 360
     }
   ],
   "parseHealth": {

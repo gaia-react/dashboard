@@ -117,16 +117,17 @@ describe('handleActivity on the mini-project fixture', () => {
       ({model}) => model === 'claude-opus-4-8'
     );
 
-    // 11111111 main (10 + last-wins duplicate 100) + subagent 42, bbbbbbbb
-    // 100, aaaaaaaa 500.
-    expect(opus?.buckets.output).toBe(752);
+    // Total tokens (all buckets), not output alone (752, the old figure):
+    // 11111111 main (360 + 120) + subagent 52, bbbbbbbb (3390 + 3350),
+    // aaaaaaaa (9100 + 4550).
+    expect(opus?.totalTokens).toBe(20_922);
 
     const sonnet = response.modelTotals.find(
       ({model}) => model === 'claude-sonnet-4-6'
     );
 
-    // 11111111 (9) + 22222222 (12).
-    expect(sonnet?.buckets.output).toBe(21);
+    // 11111111 (179) + 22222222 (10 + 13); output alone would be 21.
+    expect(sonnet?.totalTokens).toBe(202);
   });
 
   test('session summaries carry titles, branches, and turn counts', async () => {
@@ -269,6 +270,6 @@ describe('handleActivity on the empty-project fixture', () => {
     expect(response.kpis.estimatedAdHocDollars).toBeNull();
     expect(response.sessions.every(({dollars}) => dollars === null)).toBe(true);
     // Token figures still render.
-    expect(response.kpis.totalBuckets.output).toBeGreaterThan(0);
+    expect(response.kpis.totalTokens).toBeGreaterThan(0);
   });
 });

@@ -21,8 +21,9 @@
       "sortAt": "2026-06-01T00:00:00.000Z",
       "source": "native",
       "partial": false,
+      "github": null,
       "totals": {
-        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "totalTokens": 0,
         "recordedDollars": 12.5,
         "durationSeconds": 3600
       },
@@ -38,8 +39,9 @@
       "sortAt": "2026-06-02T00:00:00.000Z",
       "source": "native",
       "partial": false,
+      "github": null,
       "totals": {
-        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "totalTokens": 0,
         "recordedDollars": 40,
         "durationSeconds": 5400
       },
@@ -55,8 +57,9 @@
       "sortAt": "2026-06-03T00:00:00.000Z",
       "source": "backfill",
       "partial": true,
+      "github": null,
       "totals": {
-        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "totalTokens": 0,
         "recordedDollars": null,
         "durationSeconds": 1800
       },
@@ -72,8 +75,9 @@
       "sortAt": "2026-06-04T00:00:00.000Z",
       "source": "native",
       "partial": false,
+      "github": null,
       "totals": {
-        "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 0},
+        "totalTokens": 0,
         "recordedDollars": 0,
         "durationSeconds": 600
       },

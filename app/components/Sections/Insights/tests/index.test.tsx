@@ -49,17 +49,17 @@ test('renders the section chrome and the three headline stat tiles from fixture 
 
   expect(screen.getByText('Most active day')).toBeInTheDocument();
   expect(screen.getByText('Jun 2, 2026')).toBeInTheDocument();
-  expect(screen.getByText('5K output · 7 sessions')).toBeInTheDocument();
+  expect(screen.getByText('5K tokens · 7 sessions')).toBeInTheDocument();
 
   expect(screen.getByText('Busiest model')).toBeInTheDocument();
-  expect(screen.getByText('6K output tokens')).toBeInTheDocument();
+  expect(screen.getByText('6K tokens')).toBeInTheDocument();
 
   expect(screen.getByText('Recorded work time')).toBeInTheDocument();
   expect(screen.getByText('3h 10m')).toBeInTheDocument();
   expect(screen.getByText('Across all specs & plans')).toBeInTheDocument();
 });
 
-test('busiest model humanizes the raw id, excluding the <synthetic> bucket despite its higher raw output', () => {
+test('busiest model humanizes the raw id, excluding <synthetic> despite its higher raw total', () => {
   render(
     <Insights
       activity={activityPopulated}
@@ -68,8 +68,8 @@ test('busiest model humanizes the raw id, excluding the <synthetic> bucket despi
     />
   );
 
-  // claude-sonnet-5 (6K output) beats claude-opus-4-8 (4K); <synthetic> has
-  // the highest raw output (9K) but is excluded from the ranking entirely
+  // claude-sonnet-5 (6K total tokens) beats claude-opus-4-8 (4K); <synthetic>
+  // has the highest raw total (9K) but is excluded from the ranking entirely
   // (insights.ts busiestModel), so it never surfaces even as a loser.
   expect(screen.getByText('Claude Sonnet 5')).toBeInTheDocument();
   expect(screen.queryByText('claude-sonnet-5')).not.toBeInTheDocument();

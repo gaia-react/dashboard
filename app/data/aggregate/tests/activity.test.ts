@@ -29,7 +29,13 @@ const makeScan = (partial: Partial<SessionScan> = {}): SessionScan => ({
   ...partial,
 });
 
-/** A session with activity at 23:30Z and 00:30Z across a UTC day boundary. */
+/**
+ * A session with activity at 23:30Z and 00:30Z across a UTC day boundary.
+ * Each hour carries both fresh input and output, so total tokens and output
+ * tokens genuinely differ (10 vs 5, 13 vs 7): the fixture the heatmap-metric
+ * change (SPEC section 6.4 override, Phase 8 v2) needs to prove itself
+ * against, not a fixture where the two happen to coincide.
+ */
 const straddlingScan = (): SessionScan =>
   makeScan({
     byModel: {'claude-sonnet-4-6': buckets({freshInput: 11, output: 12})},
@@ -62,20 +68,14 @@ const aggregate = (
   });
 
 describe('heatmap timezone fold', () => {
-  test('a UTC-midnight-straddling session lands on two UTC days', () => {
+  test('a UTC-midnight-straddling session lands on two UTC days, with totalTokens (not output)', () => {
     const result = aggregate({scans: [straddlingScan()], timeZone: 'UTC'});
 
     expect(result.heatmap).toEqual([
-      {
-        buckets: {cacheRead: 0, cacheWrite: 0, freshInput: 5, output: 5},
-        date: '2026-06-25',
-        sessionCount: 1,
-      },
-      {
-        buckets: {cacheRead: 0, cacheWrite: 0, freshInput: 6, output: 7},
-        date: '2026-06-26',
-        sessionCount: 1,
-      },
+      // totalOf({freshInput: 5, output: 5}) = 10, output alone is 5.
+      {date: '2026-06-25', sessionCount: 1, totalTokens: 10},
+      // totalOf({freshInput: 6, output: 7}) = 13, output alone is 7.
+      {date: '2026-06-26', sessionCount: 1, totalTokens: 13},
     ]);
     expect(result.kpis.activeDays).toBe(2);
   });
@@ -86,12 +86,9 @@ describe('heatmap timezone fold', () => {
       timeZone: 'Asia/Tokyo',
     });
 
+    // Both hours combine: totalOf(5,5) + totalOf(6,7) = 10 + 13 = 23.
     expect(result.heatmap).toEqual([
-      {
-        buckets: {cacheRead: 0, cacheWrite: 0, freshInput: 11, output: 12},
-        date: '2026-06-26',
-        sessionCount: 1,
-      },
+      {date: '2026-06-26', sessionCount: 1, totalTokens: 23},
     ]);
     expect(result.kpis.activeDays).toBe(1);
   });
@@ -103,11 +100,7 @@ describe('heatmap timezone fold', () => {
     });
 
     expect(result.heatmap).toEqual([
-      {
-        buckets: {cacheRead: 0, cacheWrite: 0, freshInput: 11, output: 12},
-        date: '2026-06-25',
-        sessionCount: 1,
-      },
+      {date: '2026-06-25', sessionCount: 1, totalTokens: 23},
     ]);
   });
 
@@ -131,15 +124,17 @@ describe('heatmap timezone fold', () => {
   });
 });
 
+/** Builds a scan from per-model bucket PARTIALS (not just output), so tests
+ * can construct total-token totals that genuinely diverge from output. */
 const scanWithModels = (
   sessionId: string,
-  outputByModel: Record<string, number>,
+  byModelPartials: Record<string, Partial<TokenBuckets>>,
   hour: string
 ): SessionScan => {
   const byModel = Object.fromEntries(
-    Object.entries(outputByModel).map(([model, output]) => [
+    Object.entries(byModelPartials).map(([model, partial]) => [
       model,
-      buckets({output}),
+      buckets(partial),
     ])
   );
 
@@ -154,65 +149,119 @@ const scanWithModels = (
 };
 
 describe('model mix', () => {
-  test('totals sum across sessions, sorted by output descending', () => {
+  test('totals sum across sessions by TOTAL tokens, not output, sorted descending', () => {
     const result = aggregate({
       scans: [
-        scanWithModels('s1', {'claude-opus-4-8': 10}, '2026-06-01T10:00:00Z'),
+        scanWithModels(
+          's1',
+          {'claude-opus-4-8': {output: 50}},
+          '2026-06-01T10:00:00Z'
+        ),
         scanWithModels(
           's2',
-          {'claude-opus-4-8': 5, 'claude-sonnet-4-6': 40},
+          {
+            // opus total across both sessions: 50 + (5 + 5) = 60 (output
+            // alone would be 50 + 5 = 55). Ranking by output would put opus
+            // ahead of sonnet (55 > 10); ranking by total flips that
+            // (60 < 100), proving the metric is genuinely total tokens.
+            'claude-opus-4-8': {freshInput: 5, output: 5},
+            'claude-sonnet-4-6': {cacheRead: 90, output: 10},
+          },
           '2026-06-02T10:00:00Z'
         ),
       ],
     });
 
-    expect(result.modelTotals.map(({model}) => model)).toEqual([
-      'claude-sonnet-4-6',
-      'claude-opus-4-8',
+    expect(result.modelTotals).toEqual([
+      {model: 'claude-sonnet-4-6', totalTokens: 100},
+      {model: 'claude-opus-4-8', totalTokens: 60},
     ]);
-    expect(result.modelTotals[1].buckets.output).toBe(15);
   });
 
-  test('more than 6 models: the tail groups into "other", sums preserved', () => {
-    const outputs: Record<string, number> = {};
+  test('more than 6 models: the tail groups into "other", total-token sums preserved', () => {
+    const byModelPartials: Record<string, Partial<TokenBuckets>> = {};
 
     for (let rank = 1; rank <= 8; rank += 1) {
-      outputs[`claude-model-${rank}`] = 100 - rank;
+      // freshInput uniform across every model: total tokens differ from
+      // output tokens (proving the metric switch) without disturbing the
+      // output-based rank order the "other" grouping mechanics rely on.
+      byModelPartials[`claude-model-${rank}`] = {
+        freshInput: 500,
+        output: 100 - rank,
+      };
     }
 
     const result = aggregate({
-      scans: [scanWithModels('s1', outputs, '2026-06-03T10:00:00Z')],
+      scans: [scanWithModels('s1', byModelPartials, '2026-06-03T10:00:00Z')],
     });
 
     expect(result.modelTotals).toHaveLength(7);
     expect(result.modelTotals.at(-1)?.model).toBe('other');
-    // The two smallest series (92 + 93) fold into "other".
-    expect(result.modelTotals.at(-1)?.buckets.output).toBe(185);
+    // The two smallest total-token series (rank 7: 593, rank 8: 592) fold
+    // into "other"; output alone would have been 93 + 92 = 185.
+    expect(result.modelTotals.at(-1)?.totalTokens).toBe(1185);
 
-    const weekly = result.modelWeekly[0].outputByModel;
+    const weekly = result.modelWeekly[0].tokensByModel;
 
     expect(Object.keys(weekly)).toHaveLength(7);
-    expect(weekly.other).toBe(185);
+    expect(weekly.other).toBe(1185);
   });
 
-  test('weekly stacks bucket output by Monday-start week of the local day', () => {
+  test('weekly stacks bucket TOTAL tokens by Monday-start week of the local day', () => {
     const result = aggregate({
       scans: [
         // Saturday 2026-06-20 and Wednesday 2026-06-24: different weeks.
-        scanWithModels('s1', {'claude-opus-4-8': 7}, '2026-06-20T09:00:00Z'),
-        scanWithModels('s2', {'claude-opus-4-8': 9}, '2026-06-24T09:00:00Z'),
+        scanWithModels(
+          's1',
+          {'claude-opus-4-8': {freshInput: 3, output: 7}},
+          '2026-06-20T09:00:00Z'
+        ),
+        scanWithModels(
+          's2',
+          {'claude-opus-4-8': {cacheRead: 4, output: 9}},
+          '2026-06-24T09:00:00Z'
+        ),
       ],
     });
 
+    // totalOf({freshInput: 3, output: 7}) = 10 (output alone: 7).
+    // totalOf({cacheRead: 4, output: 9}) = 13 (output alone: 9).
     expect(result.modelWeekly).toEqual([
-      {outputByModel: {'claude-opus-4-8': 7}, weekStart: '2026-06-15'},
-      {outputByModel: {'claude-opus-4-8': 9}, weekStart: '2026-06-22'},
+      {tokensByModel: {'claude-opus-4-8': 10}, weekStart: '2026-06-15'},
+      {tokensByModel: {'claude-opus-4-8': 13}, weekStart: '2026-06-22'},
     ]);
+  });
+
+  test('modelTotals reconciles with the sum of modelWeekly across weeks', () => {
+    const result = aggregate({
+      scans: [
+        scanWithModels(
+          's1',
+          {'claude-opus-4-8': {freshInput: 3, output: 7}},
+          '2026-06-20T09:00:00Z'
+        ),
+        scanWithModels(
+          's2',
+          {'claude-opus-4-8': {cacheRead: 4, output: 9}},
+          '2026-06-24T09:00:00Z'
+        ),
+      ],
+    });
+
+    const weeklySum = result.modelWeekly.reduce(
+      (sum, week) => sum + (week.tokensByModel['claude-opus-4-8'] ?? 0),
+      0
+    );
+
+    expect(result.modelTotals).toEqual([
+      {model: 'claude-opus-4-8', totalTokens: 23},
+    ]);
+    expect(weeklySum).toBe(23);
   });
 });
 
 describe('KPIs', () => {
-  test('totalBuckets covers ALL activity, timestamped or not', () => {
+  test('totalTokens covers ALL activity, timestamped or not', () => {
     const untimed = makeScan({
       byModel: {'claude-opus-4-8': buckets({freshInput: 100, output: 50})},
       sessionId: 'untimed-session',
@@ -220,16 +269,25 @@ describe('KPIs', () => {
 
     const result = aggregate({scans: [straddlingScan(), untimed]});
 
-    expect(result.kpis.totalBuckets).toEqual({
-      cacheRead: 0,
-      cacheWrite: 0,
-      freshInput: 111,
-      output: 62,
-    });
+    // straddling session total (from its own byModel) = 11 + 12 = 23;
+    // untimed session total = 100 + 50 = 150. Combined: 173 (output alone
+    // would have been 12 + 50 = 62).
+    expect(result.kpis.totalTokens).toBe(173);
     expect(result.untimedSessionIds).toEqual(['untimed-session']);
     expect(result.sessions.map(({sessionId}) => sessionId)).toEqual([
       'straddle-session',
     ]);
+  });
+
+  test('kpis.totalTokens reconciles with the heatmap sum when every session is timed', () => {
+    const result = aggregate({scans: [straddlingScan()]});
+    const heatmapSum = result.heatmap.reduce(
+      (sum, cell) => sum + cell.totalTokens,
+      0
+    );
+
+    expect(result.kpis.totalTokens).toBe(23);
+    expect(heatmapSum).toBe(23);
   });
 
   test('estimatedAdHocDollars is null when the rate table is unusable', () => {
@@ -300,7 +358,7 @@ describe('KPIs', () => {
 });
 
 describe('session summaries', () => {
-  test('reverse-chronological, uuid-fallback title becomes null', () => {
+  test('reverse-chronological, uuid-fallback title becomes null, scalar totalTokens', () => {
     const untitled = makeScan({
       endedAt: '2026-06-27T10:30:00.000Z',
       sessionId: 'untitled-session',
@@ -316,7 +374,11 @@ describe('session summaries', () => {
     ]);
     expect(result.sessions[0].title).toBeNull();
     expect(result.sessions[0].gitBranch).toBeNull();
+    // Default byModel is empty: no tokens at all.
+    expect(result.sessions[0].totalTokens).toBe(0);
     expect(result.sessions[1].title).toBe('Straddles UTC midnight');
+    // freshInput 11 + output 12 = 23 (output alone would be 12).
+    expect(result.sessions[1].totalTokens).toBe(23);
   });
 
   test('an unpriced claude model marks the estimate a lower bound', () => {
@@ -401,7 +463,7 @@ describe('session summaries', () => {
       kpis: {
         activeDays: 0,
         estimatedAdHocDollars: null,
-        totalBuckets: {cacheRead: 0, cacheWrite: 0, freshInput: 0, output: 0},
+        totalTokens: 0,
       },
       modelTotals: [],
       modelWeekly: [],

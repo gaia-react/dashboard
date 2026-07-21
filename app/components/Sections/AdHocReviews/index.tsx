@@ -1,14 +1,13 @@
 import type {FC, MouseEvent} from 'react';
 import {twJoin} from 'tailwind-merge';
+import {sessionsTabHref} from '~/components/Sections/anchor-ids';
 import {
   formatDateTime,
   formatDollars,
   formatDollarsCell,
   formatDuration,
   formatTokens,
-  sessionsTabHref,
-  sumBuckets,
-} from '~/components/Sections/CostTable/format';
+} from '~/data/format/units';
 import type {AdHocReview} from '~/data/schemas/api';
 
 /**
@@ -77,7 +76,7 @@ const ReviewRow: FC<{
         {formatDateTime(review.at)}
       </td>
       <td className={twJoin(cellClass, numericCellClass)}>
-        {formatTokens(sumBuckets(review.buckets))}
+        {formatTokens(review.totalTokens)}
       </td>
       <td className={twJoin(cellClass, numericCellClass)}>
         {formatDollarsCell(review.recordedDollars)}

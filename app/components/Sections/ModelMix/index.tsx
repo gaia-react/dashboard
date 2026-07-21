@@ -30,15 +30,15 @@ export const captionClassName = 'text-fg-mute text-sm';
 const chartHeadingClassName = 'text-fg-dim text-sm font-medium';
 
 /**
- * SPEC 6.5: total output tokens per model (horizontal bars, bucket detail on
- * hover) and a stacked by-week output-tokens series per model. Wraps the W8
- * HorizontalBars + StackedWeeklyBars kits; owns the section chrome and maps
+ * SPEC 6.5: total tokens per model (horizontal bars) and a stacked by-week
+ * total-tokens series per model. Wraps the W8 HorizontalBars +
+ * StackedWeeklyBars kits; owns the section chrome and maps
  * ActivityResponse.modelTotals / modelWeekly into their props. Presentational:
  * the integrator hands this already-fetched ActivityResponse slice through
  * AsyncSection's render prop.
  */
 const ModelMix: FC<ModelMixProps> = ({locale, modelTotals, modelWeekly}) => {
-  const totalsData = buildModelTotalsData(modelTotals, locale);
+  const totalsData = buildModelTotalsData(modelTotals);
   const {seriesLabels, weeklyData} = buildModelWeeklyData(modelWeekly);
   // weeklyData always carries one entry per input week, even when every
   // model that week was `<synthetic>` and filtered out to an empty `values`
@@ -54,26 +54,24 @@ const ModelMix: FC<ModelMixProps> = ({locale, modelTotals, modelWeekly}) => {
         <p className={eyebrowClassName}>Model Usage</p>
         <h2 className={headingClassName}>Which models do the work</h2>
         <p className={captionClassName}>
-          Output tokens per model, in total and week by week.
+          Tokens per model, in total and week by week.
         </p>
       </header>
       {hasActivity ?
         <div className="grid gap-8 md:grid-cols-2">
           <div className="flex flex-col gap-3">
-            <h3 className={chartHeadingClassName}>Output tokens by model</h3>
+            <h3 className={chartHeadingClassName}>Tokens by model</h3>
             <HorizontalBars
               data={totalsData}
               formatValue={(value) => formatCompactNumber(value, locale)}
-              label="Output tokens by model"
+              label="Tokens by model"
             />
           </div>
           <div className="flex flex-col gap-3">
-            <h3 className={chartHeadingClassName}>
-              Output tokens by model, weekly
-            </h3>
+            <h3 className={chartHeadingClassName}>Tokens by model, weekly</h3>
             <StackedWeeklyBars
               data={weeklyData}
-              label="Output tokens by model, weekly"
+              label="Tokens by model, weekly"
               locale={locale}
               seriesLabels={seriesLabels}
             />
@@ -103,19 +101,19 @@ export const ModelMixSkeleton: FC = () => (
         Which models do the work
       </h2>
       <p className={twMerge(captionClassName, shimmer)}>
-        Output tokens per model, in total and week by week.
+        Tokens per model, in total and week by week.
       </p>
     </header>
     <div className="grid gap-8 md:grid-cols-2">
       <div className="flex flex-col gap-3">
         <h3 className={twMerge(chartHeadingClassName, shimmer)}>
-          Output tokens by model
+          Tokens by model
         </h3>
         <Skeleton className="h-40 w-full max-w-120" />
       </div>
       <div className="flex flex-col gap-3">
         <h3 className={twMerge(chartHeadingClassName, shimmer)}>
-          Output tokens by model, weekly
+          Tokens by model, weekly
         </h3>
         <Skeleton className="h-52 w-full max-w-140" />
       </div>

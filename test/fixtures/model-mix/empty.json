@@ -3,7 +3,7 @@
   "kpis": {
     "activeDays": 0,
     "estimatedAdHocDollars": null,
-    "totalBuckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0}
+    "totalTokens": 0
   },
   "modelTotals": [],
   "modelWeekly": [],

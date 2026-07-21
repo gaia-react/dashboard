@@ -49,7 +49,10 @@ export type CostLedgerHealth = {
    * is idempotent, so this is an upstream bug; native wins.
    */
   nativeBackfillCollisions: string[];
-  /** kind values outside the known spec | plan | execute set, verbatim, in first-seen order. */
+  /**
+   * kind values outside the known (command, execute, plan, review, spec)
+   * set, verbatim, in first-seen order.
+   */
   unknownKinds: string[];
   /** Rows rejected because their schema_version is not supported. */
   unsupportedSchemaVersions: {lineNumber: number; schemaVersion: number}[];
@@ -60,7 +63,7 @@ export type CostLedgerResult = {
   health: CostLedgerHealth;
 };
 
-const KNOWN_KINDS = new Set(['execute', 'plan', 'spec']);
+const KNOWN_KINDS = new Set(['command', 'execute', 'plan', 'review', 'spec']);
 
 const isBackfill = (row: CostRecord): boolean => row.source === 'backfill';
 
@@ -100,13 +103,26 @@ const attributionKey = (attribution: CostAttribution): string => {
  * own dollars. Folding those by (attribution, kind, session) would collapse the
  * runs and silently drop every run but one, so a review row keys by `review_id`
  * and stays its own group (a single terminal row).
+ *
+ * Command rows (the six `gaia-*` commands) get the same cheap defense keyed by
+ * `run_id`: verification against real data found no `run_id` spanning more
+ * than one row and no session spanning more than one run, so this changes
+ * nothing today, but it costs one condition and prevents a future collapse
+ * the same way the `review_id` branch does. A row of either kind with no id
+ * to key on falls back to the base key.
  */
 const groupKey = (row: CostRecord, attribution: CostAttribution): string => {
   const base = `${attributionKey(attribution)}|${row.kind}|${row.session_id}`;
 
-  return row.kind === 'review' && row.review_id ?
-      `${base}|${row.review_id}`
-    : base;
+  if (row.kind === 'review' && row.review_id) {
+    return `${base}|${row.review_id}`;
+  }
+
+  if (row.kind === 'command' && row.run_id) {
+    return `${base}|${row.run_id}`;
+  }
+
+  return base;
 };
 
 /** final:true wins regardless of seq; ties and fallback resolve by max seq. */

@@ -40,6 +40,27 @@ const nativeRow = {
   ts: '2026-07-02T08:01:05Z',
 };
 
+const commandRow = {
+  buckets: {cache_read: 4, cache_write: 5, fresh_input: 1, output: 5},
+  command: 'gaia-debt',
+  dollars: 0.01,
+  duration_available: true,
+  duration_seconds: 90,
+  ended_at: '2026-07-14T11:51:25.000Z',
+  final: true,
+  github: {number: 769, repo: 'gaia-react/gaia', type: 'pr'},
+  kind: 'command',
+  plan_id: null,
+  run_id: 'gaia-debt-20260714T114955Z-7b0a',
+  schema_version: 1,
+  seq: 0,
+  session_id: 'eeeeeeee-1111-2222-3333-444444444444',
+  spec_id: null,
+  started_at: '2026-07-14T11:49:55.000Z',
+  total: 15,
+  ts: '2026-07-14T11:51:25Z',
+};
+
 const backfillRow = {
   buckets: {
     cache_read: 10_213_662,
@@ -104,5 +125,47 @@ describe('costRecordSchema', () => {
     expect(result.session_cwd).toBeUndefined();
     expect(result.started_at).toBeNull();
     expect(result.ended_at).toBeNull();
+  });
+
+  test('parses a command row with a pr github artifact', () => {
+    const result = costRecordSchema.parse(commandRow);
+
+    expect(result.command).toBe('gaia-debt');
+    expect(result.run_id).toBe('gaia-debt-20260714T114955Z-7b0a');
+    expect(result.github).toEqual({
+      number: 769,
+      repo: 'gaia-react/gaia',
+      type: 'pr',
+    });
+  });
+
+  test('parses a command row with an issue github artifact (gaia-forensics)', () => {
+    const result = costRecordSchema.parse({
+      ...commandRow,
+      command: 'gaia-forensics',
+      github: {number: 42, repo: 'gaia-react/gaia', type: 'issue'},
+    });
+
+    expect(result.github).toEqual({
+      number: 42,
+      repo: 'gaia-react/gaia',
+      type: 'issue',
+    });
+  });
+
+  test('parses a command row with no github artifact at all', () => {
+    const {github, ...withoutGithub} = commandRow;
+    const result = costRecordSchema.parse(withoutGithub);
+
+    expect(result.github).toBeUndefined();
+  });
+
+  test('accepts an unknown github.type value verbatim', () => {
+    const result = costRecordSchema.parse({
+      ...commandRow,
+      github: {number: 1, repo: 'gaia-react/gaia', type: 'discussion'},
+    });
+
+    expect(result.github?.type).toBe('discussion');
   });
 });

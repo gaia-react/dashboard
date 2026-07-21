@@ -12,12 +12,7 @@
       "value": 42.1,
       "lowerBound": true
     },
-    "totalBuckets": {
-      "freshInput": 1000000,
-      "cacheWrite": 3000000,
-      "cacheRead": 9000000,
-      "output": 1000000
-    }
+    "totalTokens": 14000000
   },
   "modelTotals": [],
   "modelWeekly": [],
@@ -29,12 +24,7 @@
       "durationSeconds": 1695,
       "turnCount": 12,
       "models": ["claude-opus-4-8"],
-      "buckets": {
-        "freshInput": 60546,
-        "cacheWrite": 854188,
-        "cacheRead": 13369755,
-        "output": 57898
-      },
+      "totalTokens": 14342387,
       "gitBranch": "spec-023-cost-artifacts",
       "title": "Cost artifacts and telemetry for the dashboard",
       "attribution": {"entryType": "spec", "key": "SPEC-023"},
@@ -47,12 +37,7 @@
       "durationSeconds": 2700,
       "turnCount": 8,
       "models": ["claude-haiku-4"],
-      "buckets": {
-        "freshInput": 4000,
-        "cacheWrite": 1200,
-        "cacheRead": 3000,
-        "output": 900
-      },
+      "totalTokens": 9100,
       "gitBranch": null,
       "title": "Ad hoc exploration",
       "attribution": null,
@@ -65,12 +50,7 @@
       "durationSeconds": 1200,
       "turnCount": 5,
       "models": ["claude-sonnet-4-8"],
-      "buckets": {
-        "freshInput": 2000,
-        "cacheWrite": 600,
-        "cacheRead": 1500,
-        "output": 500
-      },
+      "totalTokens": 4600,
       "gitBranch": null,
       "title": null,
       "attribution": null,

@@ -2,10 +2,7 @@ import type {FC, ReactNode} from 'react';
 import {twJoin} from 'tailwind-merge';
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import type {DashboardTabId} from '~/components/Sections/dashboard-tabs';
-import {
-  formatDollars,
-  sumBuckets,
-} from '~/components/Sections/KpiRow/format-kpi';
+import {formatDollars} from '~/components/Sections/KpiRow/format-kpi';
 import {countSessionsByAttribution} from '~/components/Sections/SessionsList/format';
 import {shimmer} from '~/components/Skeleton';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
@@ -38,15 +35,22 @@ const KpiTile: FC<KpiTileProps> = ({children, label}) => (
   </div>
 );
 
-const RecordedSpendTile: FC<{costs: CostsResponse}> = ({costs}) => (
-  <KpiTile label="Recorded spend">
-    <p className={valueClass}>{formatDollars(costs.kpis.recordedDollars)}</p>
-    <p className={sublabelClass}>Recorded, spec &amp; plan work</p>
-    {costs.kpis.recordedDollars === 0 && (
-      <p className={noteClass}>No recorded cost yet</p>
-    )}
-  </KpiTile>
-);
+const RecordedSpendTile: FC<{costs: CostsResponse}> = ({costs}) => {
+  // Null means nothing anywhere has a recorded dollar figure yet (a fresh
+  // project); render it the same as zero rather than a distinct "no data"
+  // state, since the tile already has one for exactly that meaning.
+  const recordedDollars = costs.kpis.recordedDollars ?? 0;
+
+  return (
+    <KpiTile label="Recorded spend">
+      <p className={valueClass}>{formatDollars(recordedDollars)}</p>
+      <p className={sublabelClass}>Recorded, spec &amp; plan work</p>
+      {recordedDollars === 0 && (
+        <p className={noteClass}>No recorded cost yet</p>
+      )}
+    </KpiTile>
+  );
+};
 
 const EstimatedAdHocTile: FC<{activity: ActivityResponse}> = ({activity}) => {
   const {estimatedAdHocDollars} = activity.kpis;
@@ -107,36 +111,14 @@ const CountTile: FC<{label: string; sublabel: string; value: number}> = ({
   </KpiTile>
 );
 
-const bucketRows = (
-  buckets: ActivityResponse['kpis']['totalBuckets']
-): {label: string; value: number}[] => [
-  {label: 'Fresh input', value: buckets.freshInput},
-  {label: 'Cache write', value: buckets.cacheWrite},
-  {label: 'Cache read', value: buckets.cacheRead},
-  {label: 'Output', value: buckets.output},
-];
-
-const TotalTokensTile: FC<{activity: ActivityResponse}> = ({activity}) => {
-  const {totalBuckets} = activity.kpis;
-
-  return (
-    <KpiTile label="Total tokens">
-      <details>
-        <summary className={twJoin(valueClass, 'cursor-pointer')}>
-          {formatCompactNumber(sumBuckets(totalBuckets))}
-        </summary>
-        <ul className="text-fg-dim mt-2 flex flex-col gap-0.5 text-xs">
-          {bucketRows(totalBuckets).map((row) => (
-            <li key={row.label}>
-              {row.label}: {formatCompactNumber(row.value)}
-            </li>
-          ))}
-        </ul>
-      </details>
-      <p className={sublabelClass}>All activity, tap to expand</p>
-    </KpiTile>
-  );
-};
+const TotalTokensTile: FC<{activity: ActivityResponse}> = ({activity}) => (
+  <KpiTile label="Total tokens">
+    <p className={valueClass}>
+      {formatCompactNumber(activity.kpis.totalTokens)}
+    </p>
+    <p className={sublabelClass}>All activity</p>
+  </KpiTile>
+);
 
 /**
  * SPEC section 6.2, contextual per tab (feedback): the top-block tiles sit

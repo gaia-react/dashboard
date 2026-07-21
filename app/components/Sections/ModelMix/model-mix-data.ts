@@ -1,10 +1,8 @@
 import {OTHER_SERIES_KEY} from '~/components/Charts/chart-palette';
-import type {TooltipRow} from '~/components/Charts/ChartTooltip';
 import type {HorizontalBarDatum} from '~/components/Charts/HorizontalBars';
-import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import type {WeeklyStackDatum} from '~/components/Charts/StackedWeeklyBars';
 import {formatModelName} from '~/data/format/model-name';
-import type {ActivityResponse, Buckets} from '~/data/schemas/api';
+import type {ActivityResponse} from '~/data/schemas/api';
 
 /**
  * Data mapping for ModelMix (SPEC section 6.5): ActivityResponse.modelTotals
@@ -35,39 +33,19 @@ const isRealModel = (model: string): boolean => model !== SYNTHETIC_MODEL;
 export const escapeSeriesKey = (model: string): string =>
   model === OTHER_SERIES_KEY ? `${model}.model` : model;
 
-const BUCKET_ROWS: {bucketKey: keyof Buckets; label: string}[] = [
-  {bucketKey: 'output', label: 'output'},
-  {bucketKey: 'cacheRead', label: 'cache read'},
-  {bucketKey: 'cacheWrite', label: 'cache write'},
-  {bucketKey: 'freshInput', label: 'fresh input'},
-];
-
-const buildBucketTooltipRows = (
-  buckets: Buckets,
-  locale: string | undefined
-): TooltipRow[] =>
-  BUCKET_ROWS.map(({bucketKey, label}) => ({
-    label,
-    value: formatCompactNumber(buckets[bucketKey], locale),
-  }));
-
-/** Totals per model (output tokens, full bucket split on hover). Model ids are
- * humanized for display (feedback); the underlying data is untouched. */
+/** Totals per model (total tokens). Model ids are humanized for display
+ * (feedback); the underlying data is untouched. No hover detail: the bucket
+ * split that used to back it is gone from the client contract (Phase 8 v2),
+ * and the bar value is already direct-labeled. */
 export const buildModelTotalsData = (
-  modelTotals: ActivityResponse['modelTotals'],
-  locale?: string
+  modelTotals: ActivityResponse['modelTotals']
 ): HorizontalBarDatum[] =>
   modelTotals
     .filter((entry) => isRealModel(entry.model))
-    .map(({buckets, model}) => {
-      const label = formatModelName(model);
-
-      return {
-        label,
-        tooltip: {rows: buildBucketTooltipRows(buckets, locale), title: label},
-        value: buckets.output,
-      };
-    });
+    .map(({model, totalTokens}) => ({
+      label: formatModelName(model),
+      value: totalTokens,
+    }));
 
 export type WeeklySeriesData = {
   /** Display name per (possibly escaped) series key, for StackedWeeklyBars. */
@@ -75,21 +53,21 @@ export type WeeklySeriesData = {
   weeklyData: WeeklyStackDatum[];
 };
 
-/** Stacked by-week output-tokens series per model. */
+/** Stacked by-week total-tokens series per model. */
 export const buildModelWeeklyData = (
   modelWeekly: ActivityResponse['modelWeekly']
 ): WeeklySeriesData => {
   const seriesLabels: Record<string, string> = {};
   const weeklyData = modelWeekly.map((week) => {
     const values: Record<string, number> = {};
-    const realEntries = Object.entries(week.outputByModel).filter(([model]) =>
+    const realEntries = Object.entries(week.tokensByModel).filter(([model]) =>
       isRealModel(model)
     );
 
-    for (const [model, output] of realEntries) {
+    for (const [model, totalTokens] of realEntries) {
       const seriesKey = escapeSeriesKey(model);
 
-      values[seriesKey] = output;
+      values[seriesKey] = totalTokens;
       // The series key stays raw (chart identity); only the label is humanized.
       seriesLabels[seriesKey] = formatModelName(model);
     }

@@ -1,20 +1,18 @@
 import type {FC, MouseEvent} from 'react';
 import {twJoin} from 'tailwind-merge';
+import {sessionsTabHref} from '~/components/Sections/anchor-ids';
+import Skeleton from '~/components/Skeleton';
+import {formatLabel} from '~/data/format/labels';
+import {formatModelName} from '~/data/format/model-name';
 import {
   formatDateTime,
   formatDollarsCell,
   formatDuration,
   formatTokens,
-  sessionsTabHref,
-  sumBuckets,
-} from '~/components/Sections/CostTable/format';
-import Skeleton from '~/components/Skeleton';
-import {formatLabel} from '~/data/format/labels';
-import {formatModelName} from '~/data/format/model-name';
+} from '~/data/format/units';
 import type {
   AdversarialAudit,
   CostEntry,
-  ModelBuckets,
   SessionSummary,
 } from '~/data/schemas/api';
 
@@ -34,13 +32,6 @@ const subCellClass = 'text-fg-dim px-2 py-1 text-xs align-top';
 /** Fixed-width timestamp column so the commands to its right line up. */
 const timestampCellClass =
   'text-fg-mute w-44 shrink-0 px-2 py-1 text-xs align-top font-mono tabular-nums whitespace-nowrap';
-
-const modelTotal = (buckets: ModelBuckets): number =>
-  buckets.freshInput +
-  buckets.cacheWrite5m +
-  buckets.cacheWrite1h +
-  buckets.cacheRead +
-  buckets.output;
 
 /** Right-aligned numeric cell (feedback): so token/cost/duration figures line
  * up vertically down a column instead of ragging on their text length. */
@@ -73,18 +64,18 @@ const phaseDividerClass = 'border-border-soft col-span-5 border-t';
 /** One breakdown mini-table shared by the per-model and per-agent-type
  * sections (identical shape, different key formatter). */
 const BreakdownTable: FC<{
-  entries: [string, ModelBuckets][];
+  entries: [string, number][];
   formatKey: (key: string) => string;
   label: string;
 }> = ({entries, formatKey, label}) => (
   <table className="w-full border-collapse">
     <caption className={twJoin(headingClass, 'text-left')}>{label}</caption>
     <tbody>
-      {entries.map(([key, buckets]) => (
+      {entries.map(([key, totalTokens]) => (
         <tr key={key} className="border-border-soft border-t">
           <td className={subCellClass}>{formatKey(key)}</td>
           <td className={twJoin(subCellClass, numericCellClass)}>
-            {formatTokens(modelTotal(buckets))}
+            {formatTokens(totalTokens)}
           </td>
         </tr>
       ))}
@@ -113,9 +104,7 @@ const AuditDetail: FC<{audit: AdversarialAudit}> = ({audit}) => (
     </div>
     <dl className="text-fg-dim grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs">
       <dt className={auditTermClass}>Tokens</dt>
-      <dd className={auditValueClass}>
-        {formatTokens(sumBuckets(audit.buckets))}
-      </dd>
+      <dd className={auditValueClass}>{formatTokens(audit.totalTokens)}</dd>
       <dt className={auditTermClass}>Cost</dt>
       <dd className={auditValueClass}>{formatDollarsCell(audit.dollars)}</dd>
       <dt className={auditTermClass}>Elapsed</dt>
@@ -155,7 +144,7 @@ const PhaseRow: FC<{phase: CostEntry['phases'][number]}> = ({phase}) => (
     <div className={phaseDividerClass} />
     <span className="text-fg font-medium">{formatLabel(phase.kind)}</span>
     <span className={twJoin('text-fg-dim', numericCellClass)}>
-      {formatTokens(phase.buckets.output)} output tokens
+      {formatTokens(phase.totalTokens)} tokens
     </span>
     <span className={twJoin('text-fg-dim', numericCellClass)}>
       {formatDollarsCell(phase.recordedDollars)}
@@ -275,7 +264,7 @@ const ExpandedDetail: FC<Props> = ({entry, onViewSession, sessionsById}) => (
         <div className="flex items-baseline justify-between">
           <p className={headingClass}>Phases</p>
           <p className={headingClass}>
-            Total tokens: {formatTokens(sumBuckets(entry.totals.buckets))}
+            Total tokens: {formatTokens(entry.totals.totalTokens)}
           </p>
         </div>
         <div className={phasesGridClass}>

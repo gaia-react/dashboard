@@ -4,12 +4,23 @@
     "name": "my-app",
     "root": "/Users/you/projects/my-app"
   },
-  "rateTable": {"id": "sha256:fixture", "status": "ok"},
-  "coverage": {"costSince": "2026-06-09T00:00:00Z"},
+  "rateTable": {
+    "id": "sha256:fixture",
+    "status": "ok"
+  },
+  "coverage": {
+    "costSince": "2026-06-09T00:00:00Z"
+  },
   "kpis": {
-    "plans": {"merged": 0, "total": 0},
+    "plans": {
+      "merged": 0,
+      "total": 0
+    },
     "recordedDollars": 35,
-    "specs": {"merged": 2, "total": 3}
+    "specs": {
+      "merged": 2,
+      "total": 3
+    }
   },
   "parseHealth": {
     "counters": [],
@@ -30,15 +41,11 @@
       "status": "merged",
       "title": "Week one, entry one",
       "totals": {
-        "buckets": {
-          "cacheRead": 100,
-          "cacheWrite": 20,
-          "freshInput": 30,
-          "output": 40
-        },
         "durationSeconds": 300,
-        "recordedDollars": 10
-      }
+        "recordedDollars": 10,
+        "totalTokens": 190
+      },
+      "github": null
     },
     {
       "entryType": "spec",
@@ -52,15 +59,11 @@
       "status": "merged",
       "title": "Week one, entry two",
       "totals": {
-        "buckets": {
-          "cacheRead": 100,
-          "cacheWrite": 20,
-          "freshInput": 30,
-          "output": 40
-        },
         "durationSeconds": 300,
-        "recordedDollars": 5
-      }
+        "recordedDollars": 5,
+        "totalTokens": 190
+      },
+      "github": null
     },
     {
       "entryType": "spec",
@@ -74,15 +77,11 @@
       "status": "specified",
       "title": "Week three, after a gap week",
       "totals": {
-        "buckets": {
-          "cacheRead": 100,
-          "cacheWrite": 20,
-          "freshInput": 30,
-          "output": 40
-        },
         "durationSeconds": 300,
-        "recordedDollars": 20
-      }
+        "recordedDollars": 20,
+        "totalTokens": 190
+      },
+      "github": null
     }
   ]
 }

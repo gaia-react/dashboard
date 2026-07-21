@@ -3,6 +3,8 @@ import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 import {
   activityResponseSchema,
   apiErrorSchema,
+  commandEventSchema,
+  costEntrySchema,
   costsResponseSchema,
 } from '~/data/schemas/api';
 
@@ -13,52 +15,33 @@ import {
  */
 const validCostsResponse: CostsResponse = {
   adHocReviews: [],
+  commandEvents: [],
   coverage: {costSince: '2026-06-20T09:05:05Z'},
   entries: [
     {
       entryType: 'spec',
+      github: {number: 769, repo: 'gaia-react/gaia', type: 'pr'},
       id: 'SPEC-100',
       key: 'SPEC-100',
       partial: false,
       phases: [
         {
-          buckets: {
-            cacheRead: 12_000,
-            cacheWrite: 1000,
-            freshInput: 150,
-            output: 500,
-          },
-          byAgentType: {
-            main: {
-              cacheRead: 5000,
-              cacheWrite1h: 400,
-              cacheWrite5m: 0,
-              freshInput: 100,
-              output: 300,
-            },
-          },
-          byModel: {
-            'claude-opus-4-8': {
-              cacheRead: 12_000,
-              cacheWrite1h: 400,
-              cacheWrite5m: 600,
-              freshInput: 150,
-              output: 500,
-            },
-          },
+          byAgentType: {main: 5800},
+          byModel: {'claude-opus-4-8': 13_050},
           durationSeconds: 700,
           kind: 'execute',
           recordedDollars: 1.37,
           source: 'native',
+          totalTokens: 13_650,
         },
         {
-          buckets: {cacheRead: 41, cacheWrite: 51, freshInput: 11, output: 51},
           byAgentType: null,
           byModel: null,
           durationSeconds: 500,
           kind: 'spec',
           recordedDollars: null,
           source: 'backfill',
+          totalTokens: 154,
         },
       ],
       sessions: [
@@ -78,18 +61,14 @@ const validCostsResponse: CostsResponse = {
       status: 'merged',
       title: 'Fixture: worktree cost tracking end to end.',
       totals: {
-        buckets: {
-          cacheRead: 12_041,
-          cacheWrite: 1051,
-          freshInput: 161,
-          output: 551,
-        },
         durationSeconds: 1200,
         recordedDollars: 1.37,
+        totalTokens: 13_804,
       },
     },
     {
       entryType: 'plan-slug',
+      github: null,
       id: null,
       key: 'slug:legacy-plan',
       partial: false,
@@ -100,14 +79,9 @@ const validCostsResponse: CostsResponse = {
       status: null,
       title: 'legacy-plan',
       totals: {
-        buckets: {
-          cacheRead: 10_960_588,
-          cacheWrite: 578_313,
-          freshInput: 77_523,
-          output: 141_096,
-        },
         durationSeconds: 3067,
         recordedDollars: 13.58,
+        totalTokens: 11_757_520,
       },
     },
   ],
@@ -140,40 +114,21 @@ const validCostsResponse: CostsResponse = {
 
 const validActivityResponse: ActivityResponse = {
   heatmap: [
-    {
-      buckets: {cacheRead: 260, cacheWrite: 133, freshInput: 177, output: 561},
-      date: '2026-06-24',
-      sessionCount: 1,
-    },
-    {
-      buckets: {cacheRead: 0, cacheWrite: 0, freshInput: 5, output: 5},
-      date: '2026-06-25',
-      sessionCount: 1,
-    },
+    {date: '2026-06-24', sessionCount: 1, totalTokens: 1131},
+    {date: '2026-06-25', sessionCount: 1, totalTokens: 10},
   ],
   kpis: {
     activeDays: 2,
     estimatedAdHocDollars: {lowerBound: true, value: 0.42},
-    totalBuckets: {
-      cacheRead: 260,
-      cacheWrite: 133,
-      freshInput: 182,
-      output: 566,
-    },
+    totalTokens: 1141,
   },
   modelTotals: [
-    {
-      buckets: {cacheRead: 200, cacheWrite: 53, freshInput: 152, output: 557},
-      model: 'claude-opus-4-8',
-    },
-    {
-      buckets: {cacheRead: 60, cacheWrite: 80, freshInput: 30, output: 9},
-      model: 'claude-sonnet-4-6',
-    },
+    {model: 'claude-opus-4-8', totalTokens: 962},
+    {model: 'claude-sonnet-4-6', totalTokens: 179},
   ],
   modelWeekly: [
     {
-      outputByModel: {'claude-opus-4-8': 557, 'claude-sonnet-4-6': 9},
+      tokensByModel: {'claude-opus-4-8': 557, 'claude-sonnet-4-6': 9},
       weekStart: '2026-06-22',
     },
   ],
@@ -200,7 +155,6 @@ const validActivityResponse: ActivityResponse = {
   sessions: [
     {
       attribution: {entryType: 'spec', key: 'SPEC-100'},
-      buckets: {cacheRead: 0, cacheWrite: 0, freshInput: 11, output: 4},
       dollars: {basis: 'recorded', lowerBound: false, value: 1.37},
       durationSeconds: 1140,
       endedAt: '2026-07-01T10:20:00.000Z',
@@ -209,11 +163,11 @@ const validActivityResponse: ActivityResponse = {
       sessionId: 'aaaaaaaa-1111-2222-3333-444444444444',
       startedAt: '2026-07-01T10:01:00.000Z',
       title: 'Fix the widget pipeline',
+      totalTokens: 15,
       turnCount: 1,
     },
     {
       attribution: null,
-      buckets: {cacheRead: 260, cacheWrite: 133, freshInput: 177, output: 561},
       dollars: null,
       durationSeconds: 4500,
       endedAt: '2026-06-24T11:20:00.000Z',
@@ -222,6 +176,7 @@ const validActivityResponse: ActivityResponse = {
       sessionId: '11111111-1111-4111-8111-111111111111',
       startedAt: '2026-06-24T10:05:00.000Z',
       title: null,
+      totalTokens: 1131,
       turnCount: 4,
     },
   ],
@@ -241,7 +196,14 @@ describe('costsResponseSchema', () => {
     expect(parsed.adHocReviews).toEqual([]);
   });
 
-  test('round-trips the SPEC-032 audit drill-down and ad-hoc review shapes', () => {
+  test('defaults commandEvents to an empty array when an older response omits it', () => {
+    const {commandEvents, ...withoutCommandEvents} = validCostsResponse;
+    const parsed = costsResponseSchema.parse(withoutCommandEvents);
+
+    expect(parsed.commandEvents).toEqual([]);
+  });
+
+  test('round-trips the SPEC-032 audit drill-down, ad-hoc review, and command event shapes', () => {
     const [entry] = validCostsResponse.entries;
     const [phase] = entry.phases;
     const enriched: CostsResponse = {
@@ -249,11 +211,25 @@ describe('costsResponseSchema', () => {
       adHocReviews: [
         {
           at: '2026-07-05T14:00:00.000Z',
-          buckets: {cacheRead: 8, cacheWrite: 4, freshInput: 2, output: 3},
           durationSeconds: 60,
           recordedDollars: 0.75,
           reviewId: 'agent-adhoc0001',
           sessionId: 'ssssssss-1111-2222-3333-444444444444',
+          totalTokens: 17,
+        },
+      ],
+      commandEvents: [
+        {
+          at: '2026-07-14T11:49:55.000Z',
+          byAgentType: {main: 15},
+          byModel: {'claude-opus-4-8': 15},
+          command: 'gaia-debt',
+          durationSeconds: 90,
+          github: {number: 769, repo: 'gaia-react/gaia', type: 'pr'},
+          recordedDollars: 0.01,
+          runId: 'gaia-debt-20260714T114955Z-7b0a',
+          sessionId: 'eeeeeeee-1111-2222-3333-444444444444',
+          totalTokens: 15,
         },
       ],
       entries: [
@@ -263,16 +239,11 @@ describe('costsResponseSchema', () => {
             {
               ...phase,
               audit: {
-                buckets: {
-                  cacheRead: 30,
-                  cacheWrite: 20,
-                  freshInput: 5,
-                  output: 40,
-                },
                 dollars: 0.01,
                 elapsedSeconds: 45,
                 intensity: 'standard',
                 lenses: ['FG', 'TST'],
+                totalTokens: 95,
               },
             },
             ...entry.phases.slice(1),
@@ -301,6 +272,93 @@ describe('costsResponseSchema', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('costEntrySchema', () => {
+  test('accepts a null github', () => {
+    const [entry] = validCostsResponse.entries;
+    const result = costEntrySchema.safeParse({...entry, github: null});
+
+    expect(result.success).toBe(true);
+  });
+
+  test('accepts a phase byModel as a scalar map', () => {
+    const [entry] = validCostsResponse.entries;
+    const [phase] = entry.phases;
+    const result = costEntrySchema.safeParse({
+      ...entry,
+      phases: [{...phase, byModel: {'claude-opus-4-8': 13_050}}],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  test('rejects the old ModelBuckets shape for a phase byModel', () => {
+    const [entry] = validCostsResponse.entries;
+    const [phase] = entry.phases;
+    const result = costEntrySchema.safeParse({
+      ...entry,
+      phases: [
+        {
+          ...phase,
+          byModel: {
+            'claude-opus-4-8': {
+              cacheRead: 12_000,
+              cacheWrite1h: 400,
+              cacheWrite5m: 600,
+              freshInput: 150,
+              output: 500,
+            },
+          },
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('commandEventSchema', () => {
+  const validCommandEvent = {
+    at: '2026-07-14T11:49:55.000Z',
+    byAgentType: {main: 15},
+    byModel: {'claude-opus-4-8': 15},
+    command: 'gaia-debt',
+    durationSeconds: 90,
+    github: {number: 769, repo: 'gaia-react/gaia', type: 'pr'},
+    recordedDollars: 0.01,
+    runId: 'gaia-debt-20260714T114955Z-7b0a',
+    sessionId: 'eeeeeeee-1111-2222-3333-444444444444',
+    totalTokens: 15,
+  };
+
+  test('rejects a missing command', () => {
+    const {command, ...withoutCommand} = validCommandEvent;
+    const result = commandEventSchema.safeParse(withoutCommand);
+
+    expect(result.success).toBe(false);
+  });
+
+  test('accepts null runId, durationSeconds, recordedDollars, and byModel', () => {
+    const result = commandEventSchema.safeParse({
+      ...validCommandEvent,
+      byModel: null,
+      durationSeconds: null,
+      recordedDollars: null,
+      runId: null,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  test('accepts a null github (4 of 33 gaia-debt rows carry none)', () => {
+    const result = commandEventSchema.safeParse({
+      ...validCommandEvent,
+      github: null,
+    });
+
+    expect(result.success).toBe(true);
   });
 });
 

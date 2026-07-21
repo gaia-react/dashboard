@@ -2,13 +2,12 @@ import type {FC, KeyboardEvent, MouseEvent, ReactNode} from 'react';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {twJoin} from 'tailwind-merge';
 import EmptyState from '~/components/EmptyState';
-import ExpandedDetail from '~/components/Sections/CostTable/ExpandedDetail';
 import {
   costEntryAnchorId,
   costViewForEntryType,
-  formatDollarsCell,
-  formatDuration,
-  NO_DATA_LABEL,
+} from '~/components/Sections/anchor-ids';
+import ExpandedDetail from '~/components/Sections/CostTable/ExpandedDetail';
+import {
   sumDurationSeconds,
   sumRecordedDollars,
 } from '~/components/Sections/CostTable/format';
@@ -24,6 +23,11 @@ import {
 } from '~/components/Sections/CostTable/sort';
 import Skeleton from '~/components/Skeleton';
 import {formatLabel} from '~/data/format/labels';
+import {
+  formatDollarsCell,
+  formatDuration,
+  NO_DATA_LABEL,
+} from '~/data/format/units';
 import type {CostEntry, SessionSummary} from '~/data/schemas/api';
 import {useCollapse} from '~/hooks/useCollapse';
 import {useQueryParams} from '~/hooks/useQueryParams';

@@ -6,40 +6,40 @@
     "activitySince": "2026-06-01T00:00:00.000Z"
   },
   "kpis": {
-    "totalBuckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 15000},
+    "totalTokens": 15000,
     "activeDays": 2,
     "estimatedAdHocDollars": null
   },
   "heatmap": [
     {
       "date": "2026-06-01",
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 1000},
+      "totalTokens": 1000,
       "sessionCount": 3
     },
     {
       "date": "2026-06-02",
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 5000},
+      "totalTokens": 5000,
       "sessionCount": 7
     }
   ],
   "modelTotals": [
     {
       "model": "<synthetic>",
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 9000}
+      "totalTokens": 9000
     },
     {
       "model": "claude-opus-4-8",
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 4000}
+      "totalTokens": 4000
     },
     {
       "model": "claude-sonnet-5",
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 6000}
+      "totalTokens": 6000
     }
   ],
   "modelWeekly": [
     {
       "weekStart": "2026-06-01",
-      "outputByModel": {"claude-opus-4-8": 4000, "claude-sonnet-5": 6000}
+      "tokensByModel": {"claude-opus-4-8": 4000, "claude-sonnet-5": 6000}
     }
   ],
   "sessions": [
@@ -50,7 +50,7 @@
       "endedAt": "2026-06-01T09:10:00.000Z",
       "durationSeconds": 600,
       "models": ["claude-opus-4-8"],
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 100},
+      "totalTokens": 100,
       "turnCount": 2,
       "gitBranch": null,
       "attribution": null,
@@ -63,7 +63,7 @@
       "endedAt": "2026-06-02T10:00:00.000Z",
       "durationSeconds": 7200,
       "models": ["claude-sonnet-5"],
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 3000},
+      "totalTokens": 3000,
       "turnCount": 20,
       "gitBranch": "feat/dashboard-v1",
       "attribution": {"entryType": "spec", "key": "SPEC-002"},
@@ -76,7 +76,7 @@
       "endedAt": "2026-06-02T12:00:00.000Z",
       "durationSeconds": 3600,
       "models": ["claude-opus-4-8"],
-      "buckets": {"freshInput": 0, "cacheWrite": 0, "cacheRead": 0, "output": 2000},
+      "totalTokens": 2000,
       "turnCount": 15,
       "gitBranch": null,
       "attribution": null,

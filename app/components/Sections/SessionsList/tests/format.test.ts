@@ -16,7 +16,6 @@ import {
   sessionDisplayTitle,
   SESSIONS_PAGE_SIZE,
   totalPageCount,
-  totalTokenCount,
   uniqueModelNames,
   workTabHref,
 } from '~/components/Sections/SessionsList/format';
@@ -141,17 +140,6 @@ test('totalPageCount rounds up and floors at one page', () => {
   expect(totalPageCount(54)).toBe(2);
   expect(totalPageCount(50)).toBe(1);
   expect(totalPageCount(0)).toBe(1);
-});
-
-test('totalTokenCount sums all four buckets', () => {
-  expect(
-    totalTokenCount({
-      cacheRead: 42_000,
-      cacheWrite: 3000,
-      freshInput: 1200,
-      output: 8000,
-    })
-  ).toBe(54_200);
 });
 
 test('sessionDisplayTitle falls back to the session id when title is null', () => {

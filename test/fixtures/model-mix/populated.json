@@ -3,47 +3,42 @@
   "kpis": {
     "activeDays": 10,
     "estimatedAdHocDollars": {"lowerBound": false, "value": 12.5},
-    "totalBuckets": {
-      "cacheRead": 1490999,
-      "cacheWrite": 67999,
-      "freshInput": 23999,
-      "output": 84999
-    }
+    "totalTokens": 1668996
   },
   "modelTotals": [
     {
       "model": "claude-opus-4-8",
-      "buckets": {"cacheRead": 900000, "cacheWrite": 40000, "freshInput": 12000, "output": 50000}
+      "totalTokens": 1002000
     },
     {
       "model": "claude-sonnet-4-5",
-      "buckets": {"cacheRead": 500000, "cacheWrite": 22000, "freshInput": 8000, "output": 28000}
+      "totalTokens": 558000
     },
     {
       "model": "claude-haiku-4-5",
-      "buckets": {"cacheRead": 90000, "cacheWrite": 5000, "freshInput": 3000, "output": 6000}
+      "totalTokens": 104000
     },
     {
       "model": "<synthetic>",
-      "buckets": {"cacheRead": 999, "cacheWrite": 999, "freshInput": 999, "output": 999}
+      "totalTokens": 3996
     }
   ],
   "modelWeekly": [
     {
       "weekStart": "2026-06-22",
-      "outputByModel": {
-        "claude-opus-4-8": 20000,
-        "claude-sonnet-4-5": 11000,
-        "claude-haiku-4-5": 2500,
-        "<synthetic>": 200
+      "tokensByModel": {
+        "claude-opus-4-8": 45000,
+        "claude-sonnet-4-5": 24000,
+        "claude-haiku-4-5": 5500,
+        "<synthetic>": 400
       }
     },
     {
       "weekStart": "2026-06-29",
-      "outputByModel": {
-        "claude-opus-4-8": 30000,
-        "claude-sonnet-4-5": 17000,
-        "claude-haiku-4-5": 3500
+      "tokensByModel": {
+        "claude-opus-4-8": 65000,
+        "claude-sonnet-4-5": 37000,
+        "claude-haiku-4-5": 7500
       }
     }
   ],

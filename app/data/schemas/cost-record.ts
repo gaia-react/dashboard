@@ -67,12 +67,30 @@ export const costRecordSchema = z.looseObject({
   by_agent_type: z.record(z.string(), splitBucketsSchema).optional(),
   /** Omitted means "predates per-model attribution"; dollars is null there. */
   by_model: z.record(z.string(), splitBucketsSchema).optional(),
+  /**
+   * A `command` row's slug, e.g. `gaia-debt`, `gaia-wiki`. Present only on
+   * `kind: "command"` rows.
+   */
+  command: z.string().optional(),
   dollars: z.number().nullable().optional(),
   duration_available: z.boolean().optional(),
   duration_seconds: z.number().nullable().optional(),
   ended_at: z.string().nullable().optional(),
   final: z.boolean(),
-  /** Known kinds today: execute, plan, spec. Any string is accepted. */
+  /**
+   * Artifact link for a command or execute-phase row: `type` is `"pr"` or
+   * `"issue"` today, but any string is accepted (an unrecognized value
+   * degrades to a generic label, never a throw). Absent on rows with no
+   * linked artifact (4 of 33 `gaia-debt` rows carry none).
+   */
+  github: z
+    .looseObject({
+      number: z.number(),
+      repo: z.string(),
+      type: z.string(),
+    })
+    .optional(),
+  /** Known kinds today: execute, plan, spec, review, command. Any string is accepted. */
   kind: z.string(),
   partial: z.boolean().optional(),
   plan_id: z.string().nullable().optional(),
@@ -81,6 +99,13 @@ export const costRecordSchema = z.looseObject({
   rate_table_id: z.string().nullable().optional(),
   /** SPEC-032 review record id: one row per run, deduped upstream. */
   review_id: z.string().nullable().optional(),
+  /**
+   * Command-row run identifier, e.g. `gaia-debt-20260714T114955Z-7b0a`.
+   * Verified: no `run_id` spans more than one row and no session spans more
+   * than one run, but keying by it is the same cheap defense `review_id`
+   * already gets.
+   */
+  run_id: z.string().nullable().optional(),
   schema_version: z.literal(SUPPORTED_SCHEMA_VERSION),
   seq: z.number(),
   /** Present (value or null) on post-SPEC-024 native rows; absent before. */

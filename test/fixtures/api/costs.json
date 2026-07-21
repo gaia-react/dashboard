@@ -22,13 +22,9 @@
       "sortAt": "2026-07-04T16:01:52Z",
       "source": "native",
       "partial": false,
+      "github": null,
       "totals": {
-        "buckets": {
-          "freshInput": 60546,
-          "cacheWrite": 854188,
-          "cacheRead": 13369755,
-          "output": 57898
-        },
+        "totalTokens": 14342387,
         "recordedDollars": 14.35,
         "durationSeconds": 1695
       },

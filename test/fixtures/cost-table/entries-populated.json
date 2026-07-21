@@ -9,32 +9,23 @@
     "source": "backfill",
     "partial": false,
     "totals": {
-      "buckets": {
-        "freshInput": 4200,
-        "cacheWrite": 1800,
-        "cacheRead": 61000,
-        "output": 9100
-      },
       "recordedDollars": 2.1,
-      "durationSeconds": 1500
+      "durationSeconds": 1500,
+      "totalTokens": 76100
     },
     "phases": [
       {
         "kind": "plan",
         "source": "backfill",
-        "buckets": {
-          "freshInput": 4200,
-          "cacheWrite": 1800,
-          "cacheRead": 61000,
-          "output": 9100
-        },
         "recordedDollars": 2.1,
         "durationSeconds": 1500,
         "byModel": null,
-        "byAgentType": null
+        "byAgentType": null,
+        "totalTokens": 76100
       }
     ],
-    "sessions": []
+    "sessions": [],
+    "github": null
   },
   {
     "key": "slug:archive-notes",
@@ -46,32 +37,23 @@
     "source": "backfill",
     "partial": false,
     "totals": {
-      "buckets": {
-        "freshInput": 1100,
-        "cacheWrite": 400,
-        "cacheRead": 9000,
-        "output": 2000
-      },
       "recordedDollars": null,
-      "durationSeconds": null
+      "durationSeconds": null,
+      "totalTokens": 12500
     },
     "phases": [
       {
         "kind": "plan",
         "source": "backfill",
-        "buckets": {
-          "freshInput": 1100,
-          "cacheWrite": 400,
-          "cacheRead": 9000,
-          "output": 2000
-        },
         "recordedDollars": null,
         "durationSeconds": null,
         "byModel": null,
-        "byAgentType": null
+        "byAgentType": null,
+        "totalTokens": 12500
       }
     ],
-    "sessions": []
+    "sessions": [],
+    "github": null
   },
   {
     "key": "SPEC-150",
@@ -83,34 +65,29 @@
     "source": "backfill",
     "partial": true,
     "totals": {
-      "buckets": {
-        "freshInput": 3000,
-        "cacheWrite": 1200,
-        "cacheRead": 40000,
-        "output": 6100
-      },
       "recordedDollars": null,
-      "durationSeconds": 900
+      "durationSeconds": 900,
+      "totalTokens": 50300
     },
     "phases": [
       {
         "kind": "spec",
         "source": "backfill",
-        "buckets": {
-          "freshInput": 3000,
-          "cacheWrite": 1200,
-          "cacheRead": 40000,
-          "output": 6100
-        },
         "recordedDollars": null,
         "durationSeconds": 900,
         "byModel": null,
-        "byAgentType": null
+        "byAgentType": null,
+        "totalTokens": 50300
       }
     ],
     "sessions": [
-      {"sessionId": "session-150-a", "kind": "spec", "logFound": true}
-    ]
+      {
+        "sessionId": "session-150-a",
+        "kind": "spec",
+        "logFound": true
+      }
+    ],
+    "github": null
   },
   {
     "key": "SPEC-201",
@@ -122,107 +99,65 @@
     "source": "native",
     "partial": false,
     "totals": {
-      "buckets": {
-        "freshInput": 12000,
-        "cacheWrite": 4000,
-        "cacheRead": 50000,
-        "output": 8000
-      },
       "recordedDollars": 3.42,
-      "durationSeconds": 2100
+      "durationSeconds": 2100,
+      "totalTokens": 74000
     },
     "phases": [
       {
         "kind": "spec",
         "source": "native",
         "audit": {
-          "buckets": {
-            "freshInput": 800,
-            "cacheWrite": 200,
-            "cacheRead": 2400,
-            "output": 360
-          },
           "dollars": 0.12,
           "elapsedSeconds": 42,
           "intensity": "standard",
-          "lenses": ["FG", "TST", "COV", "RT"]
-        },
-        "buckets": {
-          "freshInput": 2000,
-          "cacheWrite": 500,
-          "cacheRead": 6000,
-          "output": 900
+          "lenses": [
+            "FG",
+            "TST",
+            "COV",
+            "RT"
+          ],
+          "totalTokens": 3760
         },
         "recordedDollars": 0.41,
         "durationSeconds": 300,
         "byModel": {
-          "claude-opus-4-8": {
-            "freshInput": 2000,
-            "cacheWrite5m": 300,
-            "cacheWrite1h": 200,
-            "cacheRead": 6000,
-            "output": 900
-          }
+          "claude-opus-4-8": 9400
         },
         "byAgentType": {
-          "main": {
-            "freshInput": 2000,
-            "cacheWrite5m": 300,
-            "cacheWrite1h": 200,
-            "cacheRead": 6000,
-            "output": 900
-          }
-        }
+          "main": 9400
+        },
+        "totalTokens": 9400
       },
       {
         "kind": "execute",
         "source": "native",
-        "buckets": {
-          "freshInput": 10000,
-          "cacheWrite": 3500,
-          "cacheRead": 44000,
-          "output": 7100
-        },
         "recordedDollars": 3.01,
         "durationSeconds": 1800,
         "byModel": {
-          "claude-opus-4-8": {
-            "freshInput": 8000,
-            "cacheWrite5m": 2300,
-            "cacheWrite1h": 1200,
-            "cacheRead": 44000,
-            "output": 6100
-          },
-          "claude-sonnet-4-6": {
-            "freshInput": 2000,
-            "cacheWrite5m": 0,
-            "cacheWrite1h": 0,
-            "cacheRead": 0,
-            "output": 1000
-          }
+          "claude-opus-4-8": 61600,
+          "claude-sonnet-4-6": 3000
         },
         "byAgentType": {
-          "main": {
-            "freshInput": 7000,
-            "cacheWrite5m": 2300,
-            "cacheWrite1h": 1200,
-            "cacheRead": 44000,
-            "output": 5100
-          },
-          "general-purpose": {
-            "freshInput": 3000,
-            "cacheWrite5m": 0,
-            "cacheWrite1h": 0,
-            "cacheRead": 0,
-            "output": 2000
-          }
-        }
+          "main": 59600,
+          "general-purpose": 5000
+        },
+        "totalTokens": 64600
       }
     ],
     "sessions": [
-      {"sessionId": "session-201-a", "kind": "spec", "logFound": true},
-      {"sessionId": "session-201-b", "kind": "execute", "logFound": false}
-    ]
+      {
+        "sessionId": "session-201-a",
+        "kind": "spec",
+        "logFound": true
+      },
+      {
+        "sessionId": "session-201-b",
+        "kind": "execute",
+        "logFound": false
+      }
+    ],
+    "github": null
   },
   {
     "key": "PLAN-090",
@@ -234,62 +169,36 @@
     "source": "mixed",
     "partial": false,
     "totals": {
-      "buckets": {
-        "freshInput": 900,
-        "cacheWrite": 300,
-        "cacheRead": 5000,
-        "output": 1600
-      },
       "recordedDollars": 1.1,
-      "durationSeconds": 600
+      "durationSeconds": 600,
+      "totalTokens": 7800
     },
     "phases": [
       {
         "kind": "plan",
         "source": "backfill",
-        "buckets": {
-          "freshInput": 400,
-          "cacheWrite": 100,
-          "cacheRead": 1000,
-          "output": 500
-        },
         "recordedDollars": null,
         "durationSeconds": 200,
         "byModel": null,
-        "byAgentType": null
+        "byAgentType": null,
+        "totalTokens": 2000
       },
       {
         "kind": "execute",
         "source": "native",
-        "buckets": {
-          "freshInput": 500,
-          "cacheWrite": 200,
-          "cacheRead": 4000,
-          "output": 1100
-        },
         "recordedDollars": 1.1,
         "durationSeconds": 400,
         "byModel": {
-          "claude-sonnet-4-6": {
-            "freshInput": 500,
-            "cacheWrite5m": 200,
-            "cacheWrite1h": 0,
-            "cacheRead": 4000,
-            "output": 1100
-          }
+          "claude-sonnet-4-6": 5800
         },
         "byAgentType": {
-          "main": {
-            "freshInput": 500,
-            "cacheWrite5m": 200,
-            "cacheWrite1h": 0,
-            "cacheRead": 4000,
-            "output": 1100
-          }
-        }
+          "main": 5800
+        },
+        "totalTokens": 5800
       }
     ],
-    "sessions": []
+    "sessions": [],
+    "github": null
   },
   {
     "key": "SPEC-777",
@@ -301,16 +210,12 @@
     "source": "none",
     "partial": false,
     "totals": {
-      "buckets": {
-        "freshInput": 0,
-        "cacheWrite": 0,
-        "cacheRead": 0,
-        "output": 0
-      },
       "recordedDollars": null,
-      "durationSeconds": null
+      "durationSeconds": null,
+      "totalTokens": 0
     },
     "phases": [],
-    "sessions": []
+    "sessions": [],
+    "github": null
   }
 ]

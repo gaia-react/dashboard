@@ -9,12 +9,7 @@
   "kpis": {
     "activeDays": 4,
     "estimatedAdHocDollars": null,
-    "totalBuckets": {
-      "freshInput": 2000,
-      "cacheWrite": 500,
-      "cacheRead": 1500,
-      "output": 1000
-    }
+    "totalTokens": 5000
   },
   "modelTotals": [],
   "modelWeekly": [],
@@ -26,12 +21,7 @@
       "durationSeconds": 1800,
       "turnCount": 3,
       "models": ["claude-haiku-4"],
-      "buckets": {
-        "freshInput": 1000,
-        "cacheWrite": 300,
-        "cacheRead": 800,
-        "output": 500
-      },
+      "totalTokens": 2600,
       "gitBranch": null,
       "title": "First look around",
       "attribution": null,
@@ -44,12 +34,7 @@
       "durationSeconds": 900,
       "turnCount": 2,
       "models": ["claude-haiku-4"],
-      "buckets": {
-        "freshInput": 1000,
-        "cacheWrite": 200,
-        "cacheRead": 700,
-        "output": 500
-      },
+      "totalTokens": 2400,
       "gitBranch": null,
       "title": null,
       "attribution": null,

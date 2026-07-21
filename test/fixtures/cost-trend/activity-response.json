@@ -7,13 +7,11 @@
   },
   "kpis": {
     "activeDays": 5,
-    "estimatedAdHocDollars": {"lowerBound": false, "value": 25},
-    "totalBuckets": {
-      "cacheRead": 0,
-      "cacheWrite": 0,
-      "freshInput": 0,
-      "output": 0
-    }
+    "estimatedAdHocDollars": {
+      "lowerBound": false,
+      "value": 25
+    },
+    "totalTokens": 0
   },
   "heatmap": [],
   "modelTotals": [],
@@ -27,68 +25,101 @@
   "sessions": [
     {
       "attribution": null,
-      "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0},
-      "dollars": {"basis": "estimated", "lowerBound": false, "value": 5},
+      "dollars": {
+        "basis": "estimated",
+        "lowerBound": false,
+        "value": 5
+      },
       "durationSeconds": 600,
       "endedAt": "2026-06-02T09:00:00Z",
       "gitBranch": null,
-      "models": ["claude-opus-4-8"],
+      "models": [
+        "claude-opus-4-8"
+      ],
       "sessionId": "ad-hoc-1",
       "startedAt": "2026-06-02T08:50:00Z",
       "title": "Ad hoc exploration",
-      "turnCount": 4
+      "turnCount": 4,
+      "totalTokens": 0
     },
     {
       "attribution": null,
-      "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0},
-      "dollars": {"basis": "estimated", "lowerBound": false, "value": 8},
+      "dollars": {
+        "basis": "estimated",
+        "lowerBound": false,
+        "value": 8
+      },
       "durationSeconds": 600,
       "endedAt": "2026-06-16T09:00:00Z",
       "gitBranch": null,
-      "models": ["claude-opus-4-8"],
+      "models": [
+        "claude-opus-4-8"
+      ],
       "sessionId": "ad-hoc-2",
       "startedAt": "2026-06-16T08:50:00Z",
       "title": "Ad hoc debugging",
-      "turnCount": 6
+      "turnCount": 6,
+      "totalTokens": 0
     },
     {
       "attribution": null,
-      "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0},
-      "dollars": {"basis": "estimated", "lowerBound": false, "value": 12},
+      "dollars": {
+        "basis": "estimated",
+        "lowerBound": false,
+        "value": 12
+      },
       "durationSeconds": 600,
       "endedAt": "2026-06-24T09:00:00Z",
       "gitBranch": null,
-      "models": ["claude-opus-4-8"],
+      "models": [
+        "claude-opus-4-8"
+      ],
       "sessionId": "ad-hoc-3",
       "startedAt": "2026-06-24T08:50:00Z",
       "title": "Ad hoc cleanup",
-      "turnCount": 3
+      "turnCount": 3,
+      "totalTokens": 0
     },
     {
-      "attribution": {"entryType": "spec", "key": "SPEC-100"},
-      "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0},
-      "dollars": {"basis": "estimated", "lowerBound": false, "value": 999},
+      "attribution": {
+        "entryType": "spec",
+        "key": "SPEC-100"
+      },
+      "dollars": {
+        "basis": "estimated",
+        "lowerBound": false,
+        "value": 999
+      },
       "durationSeconds": 600,
       "endedAt": "2026-06-10T09:00:00Z",
       "gitBranch": null,
-      "models": ["claude-opus-4-8"],
+      "models": [
+        "claude-opus-4-8"
+      ],
       "sessionId": "attributed-1",
       "startedAt": "2026-06-10T08:50:00Z",
       "title": "Attributed work",
-      "turnCount": 5
+      "turnCount": 5,
+      "totalTokens": 0
     },
     {
       "attribution": null,
-      "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 0},
-      "dollars": {"basis": "recorded", "lowerBound": false, "value": 999},
+      "dollars": {
+        "basis": "recorded",
+        "lowerBound": false,
+        "value": 999
+      },
       "durationSeconds": 600,
       "endedAt": "2026-06-11T09:00:00Z",
       "gitBranch": null,
-      "models": ["claude-opus-4-8"],
+      "models": [
+        "claude-opus-4-8"
+      ],
       "sessionId": "recorded-ad-hoc",
       "startedAt": "2026-06-11T08:50:00Z",
       "title": "Somehow recorded ad hoc",
-      "turnCount": 2
+      "turnCount": 2,
+      "totalTokens": 0
     }
   ]
 }

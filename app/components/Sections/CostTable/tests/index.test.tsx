@@ -218,7 +218,7 @@ test('shows the entry total tokens on the phases heading line', () => {
 
   const detail = screen.getByTestId('cost-row-detail-SPEC-201');
 
-  // Buckets 12000 + 4000 + 50000 + 8000 = 74000 -> compact "74K".
+  // Fixture entry.totals.totalTokens is 74000 -> compact "74K".
   expect(within(detail).getByText('Total tokens: 74K')).toBeInTheDocument();
 });
 

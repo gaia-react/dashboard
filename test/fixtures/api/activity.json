@@ -6,40 +6,16 @@
     "activitySince": "2026-05-05T00:00:00Z"
   },
   "kpis": {
-    "totalBuckets": {
-      "freshInput": 1000,
-      "cacheWrite": 2000,
-      "cacheRead": 30000,
-      "output": 500
-    },
+    "totalTokens": 33500,
     "activeDays": 2,
     "estimatedAdHocDollars": {"value": 1.25, "lowerBound": false}
   },
   "heatmap": [
-    {
-      "date": "2026-07-04",
-      "buckets": {
-        "freshInput": 1000,
-        "cacheWrite": 2000,
-        "cacheRead": 30000,
-        "output": 500
-      },
-      "sessionCount": 2
-    }
+    {"date": "2026-07-04", "totalTokens": 33500, "sessionCount": 2}
   ],
-  "modelTotals": [
-    {
-      "model": "claude-opus-4-8",
-      "buckets": {
-        "freshInput": 1000,
-        "cacheWrite": 2000,
-        "cacheRead": 30000,
-        "output": 500
-      }
-    }
-  ],
+  "modelTotals": [{"model": "claude-opus-4-8", "totalTokens": 33500}],
   "modelWeekly": [
-    {"weekStart": "2026-06-29", "outputByModel": {"claude-opus-4-8": 500}}
+    {"weekStart": "2026-06-29", "tokensByModel": {"claude-opus-4-8": 33500}}
   ],
   "sessions": [
     {
@@ -49,12 +25,7 @@
       "endedAt": "2026-07-04T16:30:07Z",
       "durationSeconds": 1695,
       "models": ["claude-opus-4-8"],
-      "buckets": {
-        "freshInput": 1000,
-        "cacheWrite": 2000,
-        "cacheRead": 30000,
-        "output": 500
-      },
+      "totalTokens": 33500,
       "turnCount": 12,
       "gitBranch": "spec-023-cost-artifacts",
       "attribution": {"entryType": "spec", "key": "SPEC-023"},

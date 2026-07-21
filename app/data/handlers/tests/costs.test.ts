@@ -61,8 +61,9 @@ describe('getCosts on the mini-project composite fixture', () => {
     // 1 ledger plan + 1 pre-ledger slug plan; the ledger plan's legacy
     // `completed` status is NOT counted as merged (strict normalized vocab).
     expect(response.kpis.plans).toEqual({merged: 0, total: 2});
-    // 1.37 (SPEC-100 native) + 13.58 (legacy-plan backfill), recorded only.
-    expect(response.kpis.recordedDollars).toBeCloseTo(14.95, 10);
+    // 1.37 (SPEC-100 native) + 13.58 (legacy-plan backfill) + 0.75 (ad hoc
+    // review): every visible GAIA event folds into the KPI (Phase 8 v2).
+    expect(response.kpis.recordedDollars).toBeCloseTo(15.7, 10);
   });
 
   test('reads the rate table status and content-hash id', () => {
@@ -111,29 +112,37 @@ describe('getCosts on the mini-project composite fixture', () => {
       linesSkipped: 1,
       source: 'cost.jsonl',
     });
-    expect(response.parseHealth.unknownKinds).toEqual(['review']);
+    // 'review' is a known kind (W3 added it to KNOWN_KINDS, Phase 8 v2): it
+    // no longer counts as unknown.
+    expect(response.parseHealth.unknownKinds).toEqual([]);
     expect(response.parseHealth.unknownStatuses).toEqual([]);
   });
 
-  test('surfaces an ad-hoc review so recorded spend reconciles to the table', () => {
+  test('folds the ad-hoc review dollars into recorded spend, all GAIA events (Phase 8 v2)', () => {
     // The $0.75 ad-hoc code-review-audit row (null spec/plan) has no table
-    // entry. The OLD sum-every-terminal-row KPI counted it and read $15.70;
-    // the KPI now reconciles to exactly the visible entries ($14.95).
+    // entry, but its dollars now fold into "Recorded spend": every visible
+    // GAIA event reconciles into one figure, not just cost-table entries.
+    // The SPEC-032 carve-out existed only because these rows had nowhere to
+    // appear; command events (none in this fixture) fold in the same way.
     expect(response.adHocReviews).toHaveLength(1);
     expect(response.adHocReviews[0]).toMatchObject({
       recordedDollars: 0.75,
       reviewId: 'agent-miniadhoc1',
       sessionId: 'cdcdcdcd-1111-2222-3333-444444444444',
     });
+    expect(response.commandEvents).toEqual([]);
 
     const visibleEntrySpend = response.entries.reduce(
       (total, entry) => total + (entry.totals.recordedDollars ?? 0),
       0
     );
 
-    expect(response.kpis.recordedDollars).toBeCloseTo(14.95, 10);
-    expect(response.kpis.recordedDollars).toBeCloseTo(visibleEntrySpend, 10);
-    // The ad-hoc review's dollars are surfaced, never folded into the KPI.
+    expect(response.kpis.recordedDollars).toBeCloseTo(
+      visibleEntrySpend + 0.75,
+      10
+    );
+    expect(response.kpis.recordedDollars).toBeCloseTo(15.7, 10);
+    // Still not folded into the cost table itself: no row for the review.
     expect(response.entries.map((entry) => entry.key)).not.toContain(
       'agent-miniadhoc1'
     );
@@ -157,9 +166,12 @@ describe('getCosts on the empty-project fixture', () => {
     expect(() => costsResponseSchema.parse(response)).not.toThrow();
     expect(response.entries).toEqual([]);
     expect(response.coverage.costSince).toBeNull();
+    // recordedDollars is null, not 0: nothing anywhere has a recorded dollar
+    // figure on a fresh project, and a missing figure is never coerced to
+    // zero (app/data/aggregate/cost-entries.ts's recordedDollars doc comment).
     expect(response.kpis).toEqual({
       plans: {merged: 0, total: 0},
-      recordedDollars: 0,
+      recordedDollars: null,
       specs: {merged: 0, total: 0},
     });
   });

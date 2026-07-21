@@ -3,7 +3,6 @@ import {twMerge} from 'tailwind-merge';
 import {formatDayLabel} from '~/components/Charts/date-helpers';
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import EmptyState from '~/components/EmptyState';
-import {formatDuration} from '~/components/Sections/CostTable/format';
 import {
   busiestModel,
   longestSessions,
@@ -15,6 +14,7 @@ import {formatDollars} from '~/components/Sections/KpiRow/format-kpi';
 import {formatSessionDuration} from '~/components/Sections/SessionsList/format';
 import Skeleton, {shimmer} from '~/components/Skeleton';
 import {formatModelName} from '~/data/format/model-name';
+import {formatDuration} from '~/data/format/units';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 
 export type InsightsProps = {
@@ -66,10 +66,10 @@ const RankedList: FC<{children: ReactNode; label: string}> = ({
 );
 
 /**
- * SPEC feedback: an Insights section for the Activity tab — the most expensive
- * work, the longest sessions, and the busiest day/model/total-time, each read
- * off the already-fetched cost and activity slices. Presentational; the
- * reducers in insights.ts do the ranking.
+ * SPEC feedback: an Insights section for the Activity tab, covering the most
+ * expensive work, the longest sessions, and the busiest day/model/total-time,
+ * each read off the already-fetched cost and activity slices. Presentational;
+ * the reducers in insights.ts do the ranking.
  */
 const Insights: FC<InsightsProps> = ({activity, costs, locale}) => {
   const costly = topCostlyEntries(costs.entries);
@@ -101,7 +101,7 @@ const Insights: FC<InsightsProps> = ({activity, costs, locale}) => {
               label="Most active day"
               sub={
                 activeDay === null ? 'No activity yet' : (
-                  `${formatCompactNumber(activeDay.output, locale)} output · ${activeDay.sessionCount} sessions`
+                  `${formatCompactNumber(activeDay.totalTokens, locale)} tokens · ${activeDay.sessionCount} sessions`
                 )
               }
               value={
@@ -115,7 +115,7 @@ const Insights: FC<InsightsProps> = ({activity, costs, locale}) => {
               sub={
                 model === null ?
                   'No model activity yet'
-                : `${formatCompactNumber(model.output, locale)} output tokens`
+                : `${formatCompactNumber(model.totalTokens, locale)} tokens`
               }
               value={model === null ? '-' : formatModelName(model.model)}
             />

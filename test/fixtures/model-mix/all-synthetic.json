@@ -3,18 +3,18 @@
   "kpis": {
     "activeDays": 1,
     "estimatedAdHocDollars": null,
-    "totalBuckets": {"cacheRead": 999, "cacheWrite": 999, "freshInput": 999, "output": 999}
+    "totalTokens": 3996
   },
   "modelTotals": [
     {
       "model": "<synthetic>",
-      "buckets": {"cacheRead": 999, "cacheWrite": 999, "freshInput": 999, "output": 999}
+      "totalTokens": 3996
     }
   ],
   "modelWeekly": [
     {
       "weekStart": "2026-06-22",
-      "outputByModel": {"<synthetic>": 200}
+      "tokensByModel": {"<synthetic>": 400}
     }
   ],
   "parseHealth": {"counters": [], "notes": [], "unknownKinds": [], "unknownStatuses": []},

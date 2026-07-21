@@ -207,12 +207,13 @@ export const getCosts = async (
     discoveredDirectories,
   });
 
-  const {adHocReviews, costSince, entries, recordedDollars} = buildCostEntries({
-    costGroups: costRead.result.groups,
-    planLedgerEntries: planRead.result.entries,
-    resolveSessionLogFound: buildLogFoundResolver(join),
-    specLedgerEntries: specRead.result.entries,
-  });
+  const {adHocReviews, commandEvents, costSince, entries, recordedDollars} =
+    buildCostEntries({
+      costGroups: costRead.result.groups,
+      planLedgerEntries: planRead.result.entries,
+      resolveSessionLogFound: buildLogFoundResolver(join),
+      specLedgerEntries: specRead.result.entries,
+    });
 
   const slugPlanCount = entries.filter(
     (entry) => entry.entryType === 'plan-slug'
@@ -226,6 +227,7 @@ export const getCosts = async (
 
   return costsResponseSchema.parse({
     adHocReviews,
+    commandEvents,
     coverage: {costSince},
     entries,
     kpis: {

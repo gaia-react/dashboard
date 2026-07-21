@@ -4,12 +4,23 @@
     "name": "my-app",
     "root": "/Users/you/projects/my-app"
   },
-  "rateTable": {"id": null, "status": "missing"},
-  "coverage": {"costSince": "2026-07-01T00:00:00Z"},
+  "rateTable": {
+    "id": null,
+    "status": "missing"
+  },
+  "coverage": {
+    "costSince": "2026-07-01T00:00:00Z"
+  },
   "kpis": {
-    "plans": {"merged": 0, "total": 1},
+    "plans": {
+      "merged": 0,
+      "total": 1
+    },
     "recordedDollars": 0,
-    "specs": {"merged": 0, "total": 1}
+    "specs": {
+      "merged": 0,
+      "total": 1
+    }
   },
   "parseHealth": {
     "counters": [],
@@ -30,15 +41,11 @@
       "status": "draft",
       "title": "Not yet costed",
       "totals": {
-        "buckets": {
-          "cacheRead": 5000,
-          "cacheWrite": 100,
-          "freshInput": 200,
-          "output": 300
-        },
         "durationSeconds": null,
-        "recordedDollars": null
-      }
+        "recordedDollars": null,
+        "totalTokens": 5600
+      },
+      "github": null
     },
     {
       "entryType": "plan",
@@ -52,15 +59,11 @@
       "status": "draft",
       "title": "Also not yet costed",
       "totals": {
-        "buckets": {
-          "cacheRead": 0,
-          "cacheWrite": 0,
-          "freshInput": 0,
-          "output": 0
-        },
         "durationSeconds": null,
-        "recordedDollars": null
-      }
+        "recordedDollars": null,
+        "totalTokens": 0
+      },
+      "github": null
     }
   ]
 }

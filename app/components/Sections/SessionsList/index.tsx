@@ -18,7 +18,6 @@ import {
   sessionAnchorId,
   sessionDisplayTitle,
   totalPageCount,
-  totalTokenCount,
   uniqueModelNames,
   workTabHref,
 } from '~/components/Sections/SessionsList/format';
@@ -146,12 +145,7 @@ const SessionRow: FC<{
       <p className="text-fg-dim mt-0.5 flex flex-wrap gap-x-1 text-xs">
         <span>{formatSessionModels(session.models) || 'no model data'}</span>
         <span aria-hidden={true}>·</span>
-        <span>{formatSessionTokenCount(session.buckets.output)} output</span>
-        <span aria-hidden={true}>/</span>
-        <span>
-          {formatSessionTokenCount(totalTokenCount(session.buckets))} total
-          tokens
-        </span>
+        <span>{formatSessionTokenCount(session.totalTokens)} tokens</span>
       </p>
     </div>
     <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1.5">
@@ -396,7 +390,7 @@ export const SessionsListSkeleton: FC = () => (
               Jul 7, 2026, 3:00 PM · 42m 00s · main
             </p>
             <p className={twJoin('mt-0.5 text-xs', shimmer)}>
-              Claude Opus 4.8 · 8.0K output / 54.2K total tokens
+              Claude Opus 4.8 · 54.2K tokens
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1.5">

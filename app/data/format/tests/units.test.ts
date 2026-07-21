@@ -6,7 +6,7 @@ import {
   formatDuration,
   formatTokens,
   NO_DATA_LABEL,
-} from '~/components/Sections/CostTable/format';
+} from '~/data/format/units';
 
 describe('formatDollars', () => {
   test('formats USD with two decimals', () => {
@@ -51,5 +51,11 @@ describe('formatDateTime', () => {
     expect(formatDateTime('2026-06-10T09:00:00Z', 'en-US')).toMatch(
       /Jun 10, 2026/
     );
+  });
+});
+
+describe('NO_DATA_LABEL', () => {
+  test('is a plain dash, never an em dash', () => {
+    expect(NO_DATA_LABEL).toBe('-');
   });
 });

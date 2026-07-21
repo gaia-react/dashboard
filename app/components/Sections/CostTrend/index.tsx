@@ -4,13 +4,13 @@ import {formatWeekLabel, parseDayKey} from '~/components/Charts/date-helpers';
 import PeriodSpendBars from '~/components/Charts/PeriodSpendBars';
 import type {PeriodBarDatum} from '~/components/Charts/PeriodSpendBars';
 import EmptyState from '~/components/EmptyState';
-import {formatDollars} from '~/components/Sections/CostTable/format';
 import type {
   PeriodSpendBucket,
   SpendGranularity,
 } from '~/components/Sections/CostTrend/period-spend';
 import {buildPeriodSpend} from '~/components/Sections/CostTrend/period-spend';
 import Skeleton, {shimmer} from '~/components/Skeleton';
+import {formatDollars} from '~/data/format/units';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 
 export type CostTrendProps = {

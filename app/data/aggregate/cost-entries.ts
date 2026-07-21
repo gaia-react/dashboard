@@ -4,15 +4,14 @@ import type {NormalizedLedgerEntry} from '~/data/parse/ledgers';
 import type {
   AdHocReview,
   AdversarialAudit,
-  Buckets,
+  CommandEvent,
   CostEntry,
   LinkedSession,
-  ModelBuckets,
   PhaseRollup,
 } from '~/data/schemas/api';
 import type {
   CostAdversarialAudit,
-  CostBucketTotals,
+  CostRecord,
   CostSplitBuckets,
 } from '~/data/schemas/cost-record';
 
@@ -46,10 +45,16 @@ export type CostEntriesInput = {
 export type CostEntriesResult = {
   /**
    * Ad-hoc `code-review-audit` reviews (SPEC-032): null spec_id/plan_id, so no
-   * cost-table entry. Surfaced separately (never in `recordedDollars`) so their
-   * net-new recorded spend stays visible. Chronological by coverage timestamp.
+   * cost-table entry. Surfaced separately, chronological by coverage
+   * timestamp. Their dollars now fold into `recordedDollars` (see below).
    */
   adHocReviews: AdHocReview[];
+  /**
+   * `kind: "command"` events (GAIA SPEC-035 / Phase 8 v2): `gaia-debt`,
+   * `gaia-wiki`, and similar command tallies, the same standalone shape as
+   * `adHocReviews`. Chronological by coverage timestamp.
+   */
+  commandEvents: CommandEvent[];
   /**
    * Earliest cost coverage timestamp across every group (terminal row's
    * `started_at`, falling back to `ts`), for the section 6.1 disclosure.
@@ -58,12 +63,17 @@ export type CostEntriesResult = {
   /** Section 6.3 rows, chronological by `sortAt`. */
   entries: CostEntry[];
   /**
-   * Sum of recorded `dollars` over the visible cost-table entries (tiers 1+2
-   * only), so the "Recorded spend" KPI reconciles to exactly what the table
-   * shows. Ad-hoc reviews (surfaced separately) and any unattributed telemetry
-   * that has no row are deliberately excluded.
+   * Sum of recorded `dollars` across every visible GAIA event: cost-table
+   * entries, ad-hoc reviews, AND command events (Phase 8 v2). Previously this
+   * excluded ad-hoc reviews on purpose (SPEC-032): those rows had nowhere to
+   * appear in the UI, so counting their dollars would have produced a KPI the
+   * user could not reconcile against anything on screen. In v2 every event is
+   * visible in one list, so that premise is gone; do not restore the
+   * carve-out as a "bug fix". Null only when literally nothing anywhere has a
+   * recorded dollar figure, never coerced to zero: a missing figure is not the
+   * same as a zero one.
    */
-  recordedDollars: number;
+  recordedDollars: null | number;
 };
 
 /** Fallback `sortAt` for a ledger entry with no timestamp anywhere. */
@@ -77,38 +87,6 @@ const UNKNOWN_KIND_ORDER = 3;
 const kindOrder = (kind: string): number =>
   KIND_ORDER[kind] ?? UNKNOWN_KIND_ORDER;
 
-const emptyBuckets = (): Buckets => ({
-  cacheRead: 0,
-  cacheWrite: 0,
-  freshInput: 0,
-  output: 0,
-});
-
-/** Map one on-disk collapsed-cache-write bucket row to the camelCase boundary. */
-const bucketsFromTotals = (row: CostBucketTotals): Buckets => ({
-  cacheRead: row.cache_read,
-  cacheWrite: row.cache_write,
-  freshInput: row.fresh_input,
-  output: row.output,
-});
-
-const addBuckets = (into: Buckets, row: CostBucketTotals): void => {
-  into.cacheRead += row.cache_read;
-  into.cacheWrite += row.cache_write;
-  into.freshInput += row.fresh_input;
-  into.output += row.output;
-};
-
-const sumGroupBuckets = (groups: CostGroup[]): Buckets => {
-  const totals = emptyBuckets();
-
-  for (const group of groups) {
-    addBuckets(totals, group.terminalRow.buckets);
-  }
-
-  return totals;
-};
-
 /** Sum the present values; null when no group carries one at all. */
 const sumNullable = (values: (null | number | undefined)[]): null | number => {
   const present = values.filter((value) => typeof value === 'number');
@@ -120,53 +98,70 @@ const sumNullable = (values: (null | number | undefined)[]): null | number => {
   return present.reduce((total, value) => total + value, 0);
 };
 
-const addSplitBuckets = (into: ModelBuckets, split: CostSplitBuckets): void => {
-  into.cacheRead += split.cache_read;
-  into.cacheWrite1h += split.cache_write_1h;
-  into.cacheWrite5m += split.cache_write_5m;
-  into.freshInput += split.fresh_input;
-  into.output += split.output;
-};
+/** Sum each group's own `total` field: the row-level scalar the on-disk
+ * contract already carries alongside `buckets`. Preferred over re-summing the
+ * four buckets, since re-deriving it risks disagreeing with the source. */
+const sumRowTotals = (groups: CostGroup[]): number =>
+  groups.reduce((total, group) => total + group.terminalRow.total, 0);
 
-/** Merge per-model / per-agent-type maps across sessions by summing keys. */
-const mergeSplitBucketMaps = (
-  maps: Record<string, CostSplitBuckets>[]
-): Record<string, ModelBuckets> => {
-  const merged: Record<string, ModelBuckets> = {};
-
-  for (const map of maps) {
-    for (const [key, split] of Object.entries(map)) {
-      merged[key] ??= {
-        cacheRead: 0,
-        cacheWrite1h: 0,
-        cacheWrite5m: 0,
-        freshInput: 0,
-        output: 0,
-      };
-      addSplitBuckets(merged[key], split);
-    }
-  }
-
-  return merged;
+/**
+ * A bucket-shaped record permissive enough to accept either on-disk shape:
+ * the top-level collapsed totals (single `cache_write`) or the per-model /
+ * per-agent-type split totals (`cache_write_5m` + `cache_write_1h`).
+ * Not exported: only used to type `totalOf` below.
+ */
+type BucketFigures = {
+  cache_read: number;
+  cache_write?: number;
+  cache_write_1h?: number;
+  cache_write_5m?: number;
+  fresh_input: number;
+  output: number;
 };
 
 /**
+ * Collapse one bucket-shaped record to its scalar token total, used
+ * everywhere a bucket object previously flowed to the client response (the
+ * client now sees only scalars, SPEC section 8 / Phase 8 v2). Where the
+ * record still splits cache write by TTL (per-model / per-agent-type maps),
+ * the two halves collapse into one number first, exactly as the on-disk
+ * `by_model` / `by_agent_type` invariant already requires (SPEC section 4.1).
+ * Only used where no row-level `total` already exists to prefer instead (the
+ * audit drill-down, and per-model / per-agent-type breakdowns).
+ */
+const totalOf = (buckets: BucketFigures): number =>
+  buckets.cache_read +
+  (buckets.cache_write ??
+    (buckets.cache_write_1h ?? 0) + (buckets.cache_write_5m ?? 0)) +
+  buckets.fresh_input +
+  buckets.output;
+
+/**
  * A per-model/per-agent-type rollup is only honest when EVERY session in the
- * phase carries the map (a partial merge would not sum to the phase buckets),
+ * phase carries the map (a partial merge would not sum to the phase total),
  * so a pre-attribution row nulls the whole rollup. Backfill phases never have
- * one by design (SPEC section 4.1).
+ * one by design (SPEC section 4.1). Each key's split buckets collapse to a
+ * scalar token total via `totalOf`; a key repeated across sessions sums.
  */
 const mergedBreakdown = (
   groups: CostGroup[],
   read: (group: CostGroup) => Record<string, CostSplitBuckets> | undefined
-): null | Record<string, ModelBuckets> => {
+): null | Record<string, number> => {
   const maps = groups.map((group) => read(group));
 
   if (maps.includes(undefined)) {
     return null;
   }
 
-  return mergeSplitBucketMaps(maps as Record<string, CostSplitBuckets>[]);
+  const merged: Record<string, number> = {};
+
+  for (const map of maps as Record<string, CostSplitBuckets>[]) {
+    for (const [key, split] of Object.entries(map)) {
+      merged[key] = (merged[key] ?? 0) + totalOf(split);
+    }
+  }
+
+  return merged;
 };
 
 /**
@@ -203,14 +198,16 @@ const mergeAudit = (groups: CostGroup[]): AdversarialAudit | undefined => {
     return undefined;
   }
 
-  const buckets = emptyBuckets();
   const lenses = new Set<string>();
   const intensities = new Set<string>();
   let elapsedSeconds = 0;
+  let totalTokens = 0;
 
   for (const audit of audits) {
     if (audit.buckets) {
-      addBuckets(buckets, audit.buckets);
+      // The audit annotation carries no row-level `total` of its own, so this
+      // is the re-sum path `totalOf` exists for.
+      totalTokens += totalOf(audit.buckets);
     }
 
     for (const lens of audit.lenses ?? []) {
@@ -225,17 +222,17 @@ const mergeAudit = (groups: CostGroup[]): AdversarialAudit | undefined => {
   }
 
   return {
-    buckets,
     dollars: sumNullable(audits.map((audit) => audit.dollars)),
     elapsedSeconds,
     // One intensity across the merged audits keeps it; a mix (or none, e.g.
     // plan audits) reports null rather than picking a winner.
     intensity: intensities.size === 1 ? [...intensities][0] : null,
     lenses: [...lenses],
+    totalTokens,
   };
 };
 
-/** One rollup per (kind, source) pair, buckets summed across its sessions. */
+/** One rollup per (kind, source) pair, token totals summed across its sessions. */
 const buildPhases = (groups: CostGroup[]): PhaseRollup[] => {
   const pairs = new Map<string, CostGroup[]>();
 
@@ -254,7 +251,6 @@ const buildPhases = (groups: CostGroup[]): PhaseRollup[] => {
 
     return {
       ...(audit ? {audit} : {}),
-      buckets: sumGroupBuckets(pairGroups),
       byAgentType:
         isNative ?
           mergedBreakdown(
@@ -274,6 +270,7 @@ const buildPhases = (groups: CostGroup[]): PhaseRollup[] => {
         pairGroups.map((group) => group.terminalRow.dollars)
       ),
       source,
+      totalTokens: sumRowTotals(pairGroups),
     };
   });
 
@@ -357,13 +354,108 @@ const buildAdHocReviews = (groups: CostGroup[]): AdHocReview[] =>
     .map(
       (group): AdHocReview => ({
         at: canonicalizeTimestamp(groupCoverageAt(group)) ?? EPOCH,
-        buckets: bucketsFromTotals(group.terminalRow.buckets),
         durationSeconds: group.terminalRow.duration_seconds ?? null,
         recordedDollars: group.terminalRow.dollars ?? null,
         reviewId: group.terminalRow.review_id ?? null,
         sessionId: group.sessionId,
+        totalTokens: group.terminalRow.total,
       })
     )
+    .toSorted((a, b) => Date.parse(a.at) - Date.parse(b.at));
+
+type ArtifactLink = {number: number; repo: string; type: string};
+
+/** Narrow a raw (possibly loose-passthrough) github field to the client's
+ * exact artifact-link shape; undefined (no linked artifact) becomes null. */
+const toArtifactLink = (
+  github: undefined | {number: number; repo: string; type: string}
+): ArtifactLink | null =>
+  github ? {number: github.number, repo: github.repo, type: github.type} : null;
+
+/**
+ * An entry's github link, sourced from its execute-phase rows only (36 of
+ * them carry one in real data; spec/plan rows never do, README ground truth).
+ * Several execute rows across sessions can carry different links; take the
+ * most recent by coverage timestamp (the same field every chronological sort
+ * in this file already uses), so the newest linked artifact wins. Null when
+ * no execute row carries one.
+ */
+const entryGithub = (groups: CostGroup[]): ArtifactLink | null => {
+  const executeRowsWithGithub = groups.filter(
+    (group) =>
+      group.kind === 'execute' && group.terminalRow.github !== undefined
+  );
+
+  if (executeRowsWithGithub.length === 0) {
+    return null;
+  }
+
+  const mostRecent = executeRowsWithGithub.reduce((latest, candidate) => {
+    const latestAt = canonicalizeTimestamp(groupCoverageAt(latest)) ?? EPOCH;
+    const candidateAt =
+      canonicalizeTimestamp(groupCoverageAt(candidate)) ?? EPOCH;
+
+    return Date.parse(candidateAt) > Date.parse(latestAt) ? candidate : latest;
+  }, executeRowsWithGithub[0]);
+
+  return toArtifactLink(mostRecent.terminalRow.github);
+};
+
+const isCommandEvent = (group: CostGroup): boolean =>
+  group.terminalRow.kind === 'command';
+
+/**
+ * A command row always carries `command` in real data (README ground truth);
+ * this only guards its legally optional status (additive schema evolution,
+ * SPEC section 4.1). Fall back to the run id, still a meaningful label, and
+ * finally to a generic tag, so the row renders rather than being dropped.
+ */
+const commandLabel = (row: CostRecord): string =>
+  row.command ?? row.run_id ?? 'unknown command';
+
+/**
+ * Per-model / per-agent-type totals for a single row. Omitted (`undefined`)
+ * means "predates per-model attribution", which is NOT the same as an empty
+ * object; preserve that distinction rather than collapsing both to `{}` (the
+ * detail panel renders a different state for each).
+ */
+const totalsByKey = (
+  map: Record<string, CostSplitBuckets> | undefined
+): null | Record<string, number> => {
+  if (map === undefined) {
+    return null;
+  }
+
+  return Object.fromEntries(
+    Object.entries(map).map(([key, split]) => [key, totalOf(split)])
+  );
+};
+
+/**
+ * `kind: "command"` rows (GAIA SPEC-035 / Phase 8 v2): `gaia-debt`,
+ * `gaia-wiki`, and similar command tallies, standalone events with no
+ * spec/plan association, the same shape `buildAdHocReviews` already models.
+ * Mirrors it exactly: same coverage-timestamp field, same chronological sort.
+ */
+const buildCommandEvents = (groups: CostGroup[]): CommandEvent[] =>
+  groups
+    .filter(isCommandEvent)
+    .map((group): CommandEvent => {
+      const {sessionId, terminalRow} = group;
+
+      return {
+        at: canonicalizeTimestamp(groupCoverageAt(group)) ?? EPOCH,
+        byAgentType: totalsByKey(terminalRow.by_agent_type),
+        byModel: totalsByKey(terminalRow.by_model),
+        command: commandLabel(terminalRow),
+        durationSeconds: terminalRow.duration_seconds ?? null,
+        github: toArtifactLink(terminalRow.github),
+        recordedDollars: terminalRow.dollars ?? null,
+        runId: terminalRow.run_id ?? null,
+        sessionId,
+        totalTokens: terminalRow.total,
+      };
+    })
     .toSorted((a, b) => Date.parse(a.at) - Date.parse(b.at));
 
 type EntrySeed = {
@@ -381,6 +473,7 @@ const buildEntry = (
   resolveSessionLogFound: (sessionId: string) => boolean
 ): CostEntry => ({
   entryType: seed.entryType,
+  github: entryGithub(seed.groups),
   id: seed.id,
   key: seed.key,
   partial: seed.groups.some((group) => group.terminalRow.partial === true),
@@ -391,13 +484,13 @@ const buildEntry = (
   status: seed.status,
   title: seed.title,
   totals: {
-    buckets: sumGroupBuckets(seed.groups),
     durationSeconds: sumNullable(
       seed.groups.map((group) => group.terminalRow.duration_seconds)
     ),
     recordedDollars: sumNullable(
       seed.groups.map((group) => group.terminalRow.dollars)
     ),
+    totalTokens: sumRowTotals(seed.groups),
   },
 });
 
@@ -480,15 +573,21 @@ export const buildCostEntries = ({
   const entries = seeds
     .map((seed) => buildEntry(seed, resolveSessionLogFound))
     .toSorted((a, b) => Date.parse(a.sortAt) - Date.parse(b.sortAt));
+  const adHocReviews = buildAdHocReviews(costGroups);
+  const commandEvents = buildCommandEvents(costGroups);
 
   return {
-    adHocReviews: buildAdHocReviews(costGroups),
+    adHocReviews,
+    commandEvents,
     costSince: earliestCoverageAt(costGroups),
     entries,
-    // Sum the visible entries so "Recorded spend" reconciles to the cost table
-    // (attributed reviews already fold into their spec/plan entry). Ad-hoc
-    // reviews are surfaced above, not counted here.
-    recordedDollars:
-      sumNullable(entries.map((entry) => entry.totals.recordedDollars)) ?? 0,
+    // Every visible GAIA event reconciles into "Recorded spend" (Phase 8 v2):
+    // cost-table entries, ad-hoc reviews, and command events. Null only when
+    // NONE of them carry a recorded dollar figure, never coerced to zero.
+    recordedDollars: sumNullable([
+      ...entries.map((entry) => entry.totals.recordedDollars),
+      ...adHocReviews.map((review) => review.recordedDollars),
+      ...commandEvents.map((event) => event.recordedDollars),
+    ]),
   };
 };

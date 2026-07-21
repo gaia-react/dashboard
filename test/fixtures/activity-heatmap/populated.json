@@ -2,373 +2,188 @@
   "heatmap": [
     {
       "date": "2026-06-01",
-      "buckets": {
-        "cacheRead": 6200,
-        "cacheWrite": 1100,
-        "freshInput": 360,
-        "output": 2000
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 9660
     },
     {
       "date": "2026-06-02",
-      "buckets": {
-        "cacheRead": 8472,
-        "cacheWrite": 1503,
-        "freshInput": 492,
-        "output": 2733
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 13200
     },
     {
       "date": "2026-06-03",
-      "buckets": {
-        "cacheRead": 10745,
-        "cacheWrite": 1906,
-        "freshInput": 624,
-        "output": 3466
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 16741
     },
     {
       "date": "2026-06-04",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-05",
-      "buckets": {
-        "cacheRead": 15289,
-        "cacheWrite": 2713,
-        "freshInput": 888,
-        "output": 4932
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 23822
     },
     {
       "date": "2026-06-06",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-07",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-08",
-      "buckets": {
-        "cacheRead": 22106,
-        "cacheWrite": 3922,
-        "freshInput": 1284,
-        "output": 7131
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 34443
     },
     {
       "date": "2026-06-09",
-      "buckets": {
-        "cacheRead": 24378,
-        "cacheWrite": 4325,
-        "freshInput": 1416,
-        "output": 7864
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 37983
     },
     {
       "date": "2026-06-10",
-      "buckets": {
-        "cacheRead": 8051,
-        "cacheWrite": 1428,
-        "freshInput": 467,
-        "output": 2597
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 12543
     },
     {
       "date": "2026-06-11",
-      "buckets": {
-        "cacheRead": 10323,
-        "cacheWrite": 1832,
-        "freshInput": 599,
-        "output": 3330
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 16084
     },
     {
       "date": "2026-06-12",
-      "buckets": {
-        "cacheRead": 12595,
-        "cacheWrite": 2235,
-        "freshInput": 731,
-        "output": 4063
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 19624
     },
     {
       "date": "2026-06-13",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-14",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-15",
-      "buckets": {
-        "cacheRead": 19412,
-        "cacheWrite": 3444,
-        "freshInput": 1127,
-        "output": 6262
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 30245
     },
     {
       "date": "2026-06-16",
-      "buckets": {
-        "cacheRead": 21685,
-        "cacheWrite": 3847,
-        "freshInput": 1259,
-        "output": 6995
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 33786
     },
     {
       "date": "2026-06-17",
-      "buckets": {
-        "cacheRead": 23957,
-        "cacheWrite": 4250,
-        "freshInput": 1391,
-        "output": 7728
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 37326
     },
     {
       "date": "2026-06-18",
-      "buckets": {
-        "cacheRead": 7629,
-        "cacheWrite": 1354,
-        "freshInput": 443,
-        "output": 2461
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 11887
     },
     {
       "date": "2026-06-19",
-      "buckets": {
-        "cacheRead": 9901,
-        "cacheWrite": 1757,
-        "freshInput": 575,
-        "output": 3194
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 15427
     },
     {
       "date": "2026-06-20",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-21",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-22",
-      "buckets": {
-        "cacheRead": 16718,
-        "cacheWrite": 2966,
-        "freshInput": 971,
-        "output": 5393
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 26048
     },
     {
       "date": "2026-06-23",
-      "buckets": {
-        "cacheRead": 18991,
-        "cacheWrite": 3369,
-        "freshInput": 1103,
-        "output": 6126
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 29589
     },
     {
       "date": "2026-06-24",
-      "buckets": {
-        "cacheRead": 21263,
-        "cacheWrite": 3772,
-        "freshInput": 1235,
-        "output": 6859
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 33129
     },
     {
       "date": "2026-06-25",
-      "buckets": {
-        "cacheRead": 23535,
-        "cacheWrite": 4176,
-        "freshInput": 1367,
-        "output": 7592
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 36670
     },
     {
       "date": "2026-06-26",
-      "buckets": {
-        "cacheRead": 7208,
-        "cacheWrite": 1279,
-        "freshInput": 419,
-        "output": 2325
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 11231
     },
     {
       "date": "2026-06-27",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-28",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-29",
-      "buckets": {
-        "cacheRead": 14024,
-        "cacheWrite": 2488,
-        "freshInput": 814,
-        "output": 4524
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 21850
     },
     {
       "date": "2026-06-30",
-      "buckets": {
-        "cacheRead": 16297,
-        "cacheWrite": 2891,
-        "freshInput": 946,
-        "output": 5257
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 25391
     },
     {
       "date": "2026-07-01",
-      "buckets": {
-        "cacheRead": 18569,
-        "cacheWrite": 3295,
-        "freshInput": 1078,
-        "output": 5990
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 28932
     },
     {
       "date": "2026-07-02",
-      "buckets": {
-        "cacheRead": 20841,
-        "cacheWrite": 3698,
-        "freshInput": 1210,
-        "output": 6723
-      },
-      "sessionCount": 2
+      "sessionCount": 2,
+      "totalTokens": 32472
     },
     {
       "date": "2026-07-03",
-      "buckets": {
-        "cacheRead": 48000,
-        "cacheWrite": 6400,
-        "freshInput": 2200,
-        "output": 21000
-      },
-      "sessionCount": 5
+      "sessionCount": 5,
+      "totalTokens": 77600
     },
     {
       "date": "2026-07-04",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-07-05",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-07-06",
-      "buckets": {
-        "cacheRead": 11331,
-        "cacheWrite": 2010,
-        "freshInput": 658,
-        "output": 3655
-      },
-      "sessionCount": 3
+      "sessionCount": 3,
+      "totalTokens": 17654
     },
     {
       "date": "2026-07-07",
-      "buckets": {
-        "cacheRead": 13603,
-        "cacheWrite": 2413,
-        "freshInput": 790,
-        "output": 4388
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 21194
     }
   ],
   "kpis": {
@@ -377,28 +192,18 @@
       "lowerBound": false,
       "value": 18.42
     },
-    "totalBuckets": {
-      "cacheRead": 431123,
-      "cacheWrite": 74373,
-      "freshInput": 24447,
-      "output": 144588
-    }
+    "totalTokens": 674531
   },
   "modelTotals": [
     {
       "model": "claude-opus-4-8",
-      "buckets": {
-        "cacheRead": 431123,
-        "cacheWrite": 74373,
-        "freshInput": 24447,
-        "output": 144588
-      }
+      "totalTokens": 674531
     }
   ],
   "modelWeekly": [
     {
       "weekStart": "2026-06-29",
-      "outputByModel": {
+      "tokensByModel": {
         "claude-opus-4-8": 30200
       }
     }

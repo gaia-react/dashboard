@@ -2,11 +2,7 @@ import {canonicalizeTimestamp} from '~/data/aggregate/timestamp';
 import type {SessionScan, TokenBuckets} from '~/data/parse/session-scan';
 import type {RateTableLoad} from '~/data/pricing/rates';
 import {estimateDollars} from '~/data/pricing/rates';
-import type {
-  ActivityResponse,
-  Buckets,
-  SessionSummary,
-} from '~/data/schemas/api';
+import type {ActivityResponse, SessionSummary} from '~/data/schemas/api';
 
 /**
  * Activity aggregation (SPEC sections 6.4-6.6; PLAN D4): folds W3's
@@ -18,6 +14,13 @@ import type {
  * HOURLY buckets, so a 30/45-minute-offset zone (e.g. Asia/Kolkata,
  * Australia/Eucla) can misassign up to 45 minutes of activity at local day
  * boundaries; whole-hour-offset zones fold exactly.
+ *
+ * Granular token buckets never cross the API boundary (Phase 8 v2 redesign):
+ * every figure below is a `totalTokens` scalar (fresh input + cache write +
+ * cache read + output). Two of the mapped fields are metric changes, not
+ * renames: the heatmap cell and `modelWeekly[].tokensByModel` both switch
+ * from output tokens to total tokens, because users asked for total tokens,
+ * not model-work-performed specifically.
  */
 
 export type ActivityAggregation = {
@@ -34,7 +37,7 @@ export type ActivityAggregation = {
    * parseable timestamp, or the session span's raw timestamp was wholly
    * unparseable (the API summary requires a canonical span). Surfaced so the
    * handler can note them in parse health; their tokens still count in
-   * `kpis.totalBuckets` and `modelTotals`.
+   * `kpis.totalTokens` and `modelTotals`.
    */
   untimedSessionIds: string[];
 };
@@ -63,19 +66,9 @@ const MAX_MODEL_SERIES = 6;
 const OTHER_SERIES = 'other';
 const MILLISECONDS_PER_DAY = 86_400_000;
 
-const emptyBuckets = (): Buckets => ({
-  cacheRead: 0,
-  cacheWrite: 0,
-  freshInput: 0,
-  output: 0,
-});
-
-const addBuckets = (target: Buckets, source: TokenBuckets): void => {
-  target.cacheRead += source.cacheRead;
-  target.cacheWrite += source.cacheWrite;
-  target.freshInput += source.freshInput;
-  target.output += source.output;
-};
+/** Total tokens across all four buckets of one model's usage. */
+const totalOf = (buckets: TokenBuckets): number =>
+  buckets.cacheRead + buckets.cacheWrite + buckets.freshInput + buckets.output;
 
 /** Memoized per-timezone formatters; en-CA renders YYYY-MM-DD. */
 const dayFormatters = new Map<string, Intl.DateTimeFormat>();
@@ -111,9 +104,9 @@ const weekStartOf = (day: string): string => {
 };
 
 type DayFold = {
-  buckets: Buckets;
-  outputByModel: Map<string, number>;
   sessionIds: Set<string>;
+  tokensByModel: Map<string, number>;
+  totalTokens: number;
 };
 
 /** Fold hourly-UTC buckets into local days for the requested timezone. */
@@ -127,18 +120,20 @@ const foldIntoLocalDays = (
     for (const [hourKey, models] of Object.entries(scan.hourlyUtc)) {
       const day = localDayOf(hourKey, timeZone);
       const fold = days.get(day) ?? {
-        buckets: emptyBuckets(),
-        outputByModel: new Map<string, number>(),
         sessionIds: new Set<string>(),
+        tokensByModel: new Map<string, number>(),
+        totalTokens: 0,
       };
 
       fold.sessionIds.add(scan.sessionId);
 
       for (const [model, buckets] of Object.entries(models)) {
-        addBuckets(fold.buckets, buckets);
-        fold.outputByModel.set(
+        const total = totalOf(buckets);
+
+        fold.totalTokens += total;
+        fold.tokensByModel.set(
           model,
-          (fold.outputByModel.get(model) ?? 0) + buckets.output
+          (fold.tokensByModel.get(model) ?? 0) + total
         );
       }
 
@@ -149,27 +144,17 @@ const foldIntoLocalDays = (
   return days;
 };
 
-const sumByModel = (scans: SessionScan[]): Map<string, TokenBuckets> => {
-  const totals = new Map<string, TokenBuckets>();
+/**
+ * Total tokens per model, summed from each session's OWN totals
+ * (`scan.byModel`, already a whole-session aggregate) rather than re-derived
+ * from the hourly-UTC fold.
+ */
+const sumTotalTokensByModel = (scans: SessionScan[]): Map<string, number> => {
+  const totals = new Map<string, number>();
 
   for (const scan of scans) {
     for (const [model, buckets] of Object.entries(scan.byModel)) {
-      const total = totals.get(model) ?? {
-        cacheRead: 0,
-        cacheWrite: 0,
-        cacheWrite1h: 0,
-        cacheWrite5m: 0,
-        freshInput: 0,
-        output: 0,
-      };
-
-      total.cacheRead += buckets.cacheRead;
-      total.cacheWrite += buckets.cacheWrite;
-      total.cacheWrite1h += buckets.cacheWrite1h;
-      total.cacheWrite5m += buckets.cacheWrite5m;
-      total.freshInput += buckets.freshInput;
-      total.output += buckets.output;
-      totals.set(model, total);
+      totals.set(model, (totals.get(model) ?? 0) + totalOf(buckets));
     }
   }
 
@@ -178,12 +163,12 @@ const sumByModel = (scans: SessionScan[]): Map<string, TokenBuckets> => {
 
 /**
  * When more than MAX_MODEL_SERIES models exist, keep the top series by total
- * output and map the tail onto "other" (SPEC section 6.5; the chart layer
+ * tokens and map the tail onto "other" (SPEC section 6.5; the chart layer
  * also enforces this, but the data stays honest: "other" carries real
  * totals, so sums are preserved).
  */
 const buildSeriesMapper = (
-  totalsByModel: Map<string, TokenBuckets>
+  totalsByModel: Map<string, number>
 ): ((model: string) => string) => {
   if (totalsByModel.size <= MAX_MODEL_SERIES) {
     return (model) => model;
@@ -194,8 +179,8 @@ const buildSeriesMapper = (
   const entries = [...totalsByModel.entries()];
   const ranked = entries
     .toSorted(
-      ([modelA, bucketsA], [modelB, bucketsB]) =>
-        bucketsB.output - bucketsA.output || modelA.localeCompare(modelB)
+      ([modelA, totalA], [modelB, totalB]) =>
+        totalB - totalA || modelA.localeCompare(modelB)
     )
     .map(([model]) => model);
   const kept = new Set(ranked.slice(0, MAX_MODEL_SERIES));
@@ -204,21 +189,19 @@ const buildSeriesMapper = (
 };
 
 const buildModelTotals = (
-  totalsByModel: Map<string, TokenBuckets>,
+  totalsByModel: Map<string, number>,
   mapSeries: (model: string) => string
 ): ActivityResponse['modelTotals'] => {
-  const grouped = new Map<string, Buckets>();
+  const grouped = new Map<string, number>();
 
-  for (const [model, buckets] of totalsByModel) {
+  for (const [model, total] of totalsByModel) {
     const series = mapSeries(model);
-    const total = grouped.get(series) ?? emptyBuckets();
 
-    addBuckets(total, buckets);
-    grouped.set(series, total);
+    grouped.set(series, (grouped.get(series) ?? 0) + total);
   }
 
   return [...grouped.entries()]
-    .map(([model, buckets]) => ({buckets, model}))
+    .map(([model, totalTokens]) => ({model, totalTokens}))
     .toSorted((a, b) => {
       if (a.model === OTHER_SERIES) {
         return 1;
@@ -228,9 +211,7 @@ const buildModelTotals = (
         return -1;
       }
 
-      return (
-        b.buckets.output - a.buckets.output || a.model.localeCompare(b.model)
-      );
+      return b.totalTokens - a.totalTokens || a.model.localeCompare(b.model);
     });
 };
 
@@ -242,19 +223,19 @@ const buildModelWeekly = (
 
   for (const [day, fold] of days) {
     const weekStart = weekStartOf(day);
-    const outputByModel = weeks.get(weekStart) ?? {};
+    const tokensByModel = weeks.get(weekStart) ?? {};
 
-    for (const [model, output] of fold.outputByModel) {
+    for (const [model, total] of fold.tokensByModel) {
       const series = mapSeries(model);
 
-      outputByModel[series] = (outputByModel[series] ?? 0) + output;
+      tokensByModel[series] = (tokensByModel[series] ?? 0) + total;
     }
 
-    weeks.set(weekStart, outputByModel);
+    weeks.set(weekStart, tokensByModel);
   }
 
   return [...weeks.entries()]
-    .map(([weekStart, outputByModel]) => ({outputByModel, weekStart}))
+    .map(([weekStart, tokensByModel]) => ({tokensByModel, weekStart}))
     .toSorted((a, b) => a.weekStart.localeCompare(b.weekStart));
 };
 
@@ -307,33 +288,36 @@ const deriveSessionDollars = (
   };
 };
 
+/** Session-level total tokens, summed from the session's OWN per-model totals. */
+const sessionTotalTokens = (scan: SessionScan): number => {
+  let totalTokens = 0;
+
+  for (const buckets of Object.values(scan.byModel)) {
+    totalTokens += totalOf(buckets);
+  }
+
+  return totalTokens;
+};
+
 const toSessionSummary = (
   scan: SessionScan,
   options: AggregateActivityOptions,
   span: {endedAt: string; startedAt: string}
-): SessionSummary => {
-  const buckets = emptyBuckets();
-
-  for (const modelBuckets of Object.values(scan.byModel)) {
-    addBuckets(buckets, modelBuckets);
-  }
-
-  return {
-    attribution: (options.resolveAttribution ?? (() => null))(scan.sessionId),
-    buckets,
-    dollars: deriveSessionDollars(scan, options, span.endedAt),
-    durationSeconds: scan.durationSeconds ?? 0,
-    endedAt: span.endedAt,
-    gitBranch: scan.gitBranch ?? null,
-    models: scan.models,
-    sessionId: scan.sessionId,
-    startedAt: span.startedAt,
-    // W3's title fallback chain ends at the uuid; the API contract sends null
-    // there instead and lets the client render the uuid (PLAN section 3).
-    title: scan.title === scan.sessionId ? null : scan.title,
-    turnCount: scan.turnCount,
-  };
-};
+): SessionSummary => ({
+  attribution: (options.resolveAttribution ?? (() => null))(scan.sessionId),
+  dollars: deriveSessionDollars(scan, options, span.endedAt),
+  durationSeconds: scan.durationSeconds ?? 0,
+  endedAt: span.endedAt,
+  gitBranch: scan.gitBranch ?? null,
+  models: scan.models,
+  sessionId: scan.sessionId,
+  startedAt: span.startedAt,
+  // W3's title fallback chain ends at the uuid; the API contract sends null
+  // there instead and lets the client render the uuid (PLAN section 3).
+  title: scan.title === scan.sessionId ? null : scan.title,
+  totalTokens: sessionTotalTokens(scan),
+  turnCount: scan.turnCount,
+});
 
 const buildSessions = (
   options: AggregateActivityOptions
@@ -396,22 +380,22 @@ export const aggregateActivity = (
   options: AggregateActivityOptions
 ): ActivityAggregation => {
   const days = foldIntoLocalDays(options.scans, options.timeZone);
-  const totalsByModel = sumByModel(options.scans);
+  const totalsByModel = sumTotalTokensByModel(options.scans);
   const mapSeries = buildSeriesMapper(totalsByModel);
   const {sessions, untimedSessionIds} = buildSessions(options);
 
   const heatmap = [...days.entries()]
     .map(([date, fold]) => ({
-      buckets: fold.buckets,
       date,
       sessionCount: fold.sessionIds.size,
+      totalTokens: fold.totalTokens,
     }))
     .toSorted((a, b) => a.date.localeCompare(b.date));
 
-  const totalBuckets = emptyBuckets();
+  let totalTokens = 0;
 
-  for (const buckets of totalsByModel.values()) {
-    addBuckets(totalBuckets, buckets);
+  for (const total of totalsByModel.values()) {
+    totalTokens += total;
   }
 
   let activitySince: null | string = null;
@@ -437,7 +421,7 @@ export const aggregateActivity = (
         sessions,
         options.rateTable
       ),
-      totalBuckets,
+      totalTokens,
     },
     modelTotals: buildModelTotals(totalsByModel, mapSeries),
     modelWeekly: buildModelWeekly(days, mapSeries),

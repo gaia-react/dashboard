@@ -12,14 +12,13 @@ import type {
   SessionSummary,
 } from '~/data/schemas/api';
 
-const buckets = {cacheRead: 0, cacheWrite: 0, freshInput: 0, output: 0};
-
 const entry = (
   key: string,
   recordedDollars: null | number,
   durationSeconds: null | number
 ): CostEntry => ({
   entryType: 'spec',
+  github: null,
   id: key,
   key,
   partial: false,
@@ -29,12 +28,11 @@ const entry = (
   source: 'native',
   status: 'merged',
   title: `Title ${key}`,
-  totals: {buckets, durationSeconds, recordedDollars},
+  totals: {durationSeconds, recordedDollars, totalTokens: 0},
 });
 
 const session = (id: string, durationSeconds: number): SessionSummary => ({
   attribution: null,
-  buckets,
   dollars: null,
   durationSeconds,
   endedAt: '2026-06-01T01:00:00.000Z',
@@ -43,6 +41,7 @@ const session = (id: string, durationSeconds: number): SessionSummary => ({
   sessionId: id,
   startedAt: '2026-06-01T00:00:00.000Z',
   title: `Session ${id}`,
+  totalTokens: 0,
   turnCount: 1,
 });
 
@@ -75,37 +74,49 @@ describe('longestSessions', () => {
 });
 
 describe('mostActiveDay', () => {
-  test('returns the day with the most output tokens', () => {
+  test('returns the day with the most total tokens', () => {
     const heatmap: ActivityResponse['heatmap'] = [
-      {buckets: {...buckets, output: 100}, date: '2026-06-01', sessionCount: 2},
-      {buckets: {...buckets, output: 900}, date: '2026-06-02', sessionCount: 5},
+      {date: '2026-06-01', sessionCount: 2, totalTokens: 100},
+      {date: '2026-06-02', sessionCount: 5, totalTokens: 900},
     ];
 
     expect(mostActiveDay(heatmap)).toEqual({
       date: '2026-06-02',
-      output: 900,
       sessionCount: 5,
+      totalTokens: 900,
     });
   });
 
-  test('returns null when no day has output', () => {
+  // Phase 8 v2: the metric is total tokens, not output. A day with more
+  // output but fewer total tokens must lose to the day with more total
+  // tokens, proving the ranking basis actually moved.
+  test('a day with more output but fewer total tokens loses to the day with more total tokens', () => {
+    const heatmap: ActivityResponse['heatmap'] = [
+      {date: '2026-06-01', sessionCount: 2, totalTokens: 950},
+      {date: '2026-06-02', sessionCount: 5, totalTokens: 900},
+    ];
+
+    expect(mostActiveDay(heatmap)?.date).toBe('2026-06-01');
+  });
+
+  test('returns null when no day has any tokens', () => {
     expect(
-      mostActiveDay([{buckets, date: '2026-06-01', sessionCount: 0}])
+      mostActiveDay([{date: '2026-06-01', sessionCount: 0, totalTokens: 0}])
     ).toBeNull();
   });
 });
 
 describe('busiestModel', () => {
-  test('picks the real model with the most output, skipping <synthetic>', () => {
+  test('picks the real model with the most total tokens, skipping <synthetic>', () => {
     const modelTotals: ActivityResponse['modelTotals'] = [
-      {buckets: {...buckets, output: 999}, model: '<synthetic>'},
-      {buckets: {...buckets, output: 500}, model: 'claude-opus-4-8'},
-      {buckets: {...buckets, output: 800}, model: 'claude-sonnet-5'},
+      {model: '<synthetic>', totalTokens: 999},
+      {model: 'claude-opus-4-8', totalTokens: 500},
+      {model: 'claude-sonnet-5', totalTokens: 800},
     ];
 
     expect(busiestModel(modelTotals)).toEqual({
       model: 'claude-sonnet-5',
-      output: 800,
+      totalTokens: 800,
     });
   });
 

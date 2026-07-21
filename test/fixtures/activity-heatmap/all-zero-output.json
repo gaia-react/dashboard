@@ -2,103 +2,53 @@
   "heatmap": [
     {
       "date": "2026-06-20",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-21",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-22",
-      "buckets": {
-        "cacheRead": 1500,
-        "cacheWrite": 900,
-        "freshInput": 400,
-        "output": 0
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-23",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-24",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-25",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-26",
-      "buckets": {
-        "cacheRead": 1500,
-        "cacheWrite": 900,
-        "freshInput": 400,
-        "output": 0
-      },
-      "sessionCount": 1
+      "sessionCount": 1,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-27",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-28",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     },
     {
       "date": "2026-06-29",
-      "buckets": {
-        "cacheRead": 0,
-        "cacheWrite": 0,
-        "freshInput": 0,
-        "output": 0
-      },
-      "sessionCount": 0
+      "sessionCount": 0,
+      "totalTokens": 0
     }
   ],
   "kpis": {
@@ -107,28 +57,18 @@
       "lowerBound": true,
       "value": 0
     },
-    "totalBuckets": {
-      "cacheRead": 3000,
-      "cacheWrite": 1800,
-      "freshInput": 800,
-      "output": 0
-    }
+    "totalTokens": 0
   },
   "modelTotals": [
     {
       "model": "claude-opus-4-8",
-      "buckets": {
-        "cacheRead": 3000,
-        "cacheWrite": 1800,
-        "freshInput": 800,
-        "output": 0
-      }
+      "totalTokens": 0
     }
   ],
   "modelWeekly": [
     {
       "weekStart": "2026-06-15",
-      "outputByModel": {
+      "tokensByModel": {
         "claude-opus-4-8": 0
       }
     }

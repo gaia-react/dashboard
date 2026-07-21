@@ -30,25 +30,24 @@ test('escapeSeriesKey only rewrites the literal kit-reserved "other" key', () =>
   expect(escapeSeriesKey('claude-opus-4-8')).toBe('claude-opus-4-8');
 });
 
-test('buildModelTotalsData excludes <synthetic> and carries humanized labels + bucket detail', () => {
-  const data = buildModelTotalsData(populated.modelTotals, 'en-US');
+test('buildModelTotalsData excludes <synthetic>, carries humanized labels, and reports total tokens', () => {
+  const data = buildModelTotalsData(populated.modelTotals);
 
   expect(data).toHaveLength(3);
   expect(data.some((datum) => datum.label === '<synthetic>')).toBe(false);
 
   const opus = data.find((datum) => datum.label === 'Claude Opus 4.8');
 
-  expect(opus?.value).toBe(50_000);
-  expect(opus?.tooltip?.title).toBe('Claude Opus 4.8');
-  expect(opus?.tooltip?.rows).toEqual([
-    {label: 'output', value: '50K'},
-    {label: 'cache read', value: '900K'},
-    {label: 'cache write', value: '40K'},
-    {label: 'fresh input', value: '12K'},
-  ]);
+  // Phase 8 v2: the bar value is the model's TOTAL tokens (1,002,000 in the
+  // fixture), not its output tokens alone (50,000). Asserting the full total
+  // proves the metric actually moved, not just the field name.
+  expect(opus?.value).toBe(1_002_000);
+  // No hover detail: the bucket split it used to carry is gone from the
+  // client contract.
+  expect(opus?.tooltip).toBeUndefined();
 });
 
-test('buildModelWeeklyData excludes <synthetic> from every week', () => {
+test('buildModelWeeklyData excludes <synthetic> from every week and reads total tokens', () => {
   const {weeklyData} = buildModelWeeklyData(populated.modelWeekly);
 
   for (const week of weeklyData) {
@@ -56,11 +55,14 @@ test('buildModelWeeklyData excludes <synthetic> from every week', () => {
   }
 
   expect(weeklyData).toHaveLength(2);
+  // Phase 8 v2: these are total-token values (45,000 / 24,000 / 5,500), not
+  // the old output-only values (20,000 / 11,000 / 2,500) the same week used
+  // to carry, proving the basis moved from output to total.
   expect(weeklyData[0]).toEqual({
     values: {
-      'claude-haiku-4-5': 2500,
-      'claude-opus-4-8': 20_000,
-      'claude-sonnet-4-5': 11_000,
+      'claude-haiku-4-5': 5500,
+      'claude-opus-4-8': 45_000,
+      'claude-sonnet-4-5': 24_000,
     },
     week: '2026-06-22',
   });

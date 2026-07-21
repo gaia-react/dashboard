@@ -5,11 +5,11 @@ import type {AdHocReview} from '~/data/schemas/api';
 
 const review = (overrides: Partial<AdHocReview> = {}): AdHocReview => ({
   at: '2026-07-05T14:00:00.000Z',
-  buckets: {cacheRead: 8, cacheWrite: 4, freshInput: 2, output: 3},
   durationSeconds: 120,
   recordedDollars: 0.75,
   reviewId: 'agent-adhoc0001',
   sessionId: 'ssssssss-1111-2222-3333-444444444444',
+  totalTokens: 17,
   ...overrides,
 });
 

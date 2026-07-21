@@ -38,9 +38,11 @@ test('renders the section chrome, totals bars, and weekly stacks from fixture da
     screen.getByRole('heading', {name: 'Which models do the work'})
   ).toBeInTheDocument();
 
-  // Totals bars: one row per real model, <synthetic> excluded.
+  // Totals bars: one row per real model, <synthetic> excluded. The value is
+  // the model's TOTAL tokens (1M), not output tokens alone (50K in the same
+  // fixture), proving the bar reads the new metric.
   expect(
-    screen.getByRole('graphics-symbol', {name: 'Claude Opus 4.8: 50K'})
+    screen.getByRole('graphics-symbol', {name: 'Claude Opus 4.8: 1M'})
   ).toBeInTheDocument();
   expect(
     screen.getByTestId('horizontal-bar-Claude Haiku 4.5')
@@ -56,26 +58,6 @@ test('renders the section chrome, totals bars, and weekly stacks from fixture da
   ).toBeInTheDocument();
 });
 
-test('hovering a model total bar shows the full bucket split, not just output', () => {
-  render(
-    <ModelMix
-      locale="en-US"
-      modelTotals={populated.modelTotals}
-      modelWeekly={populated.modelWeekly}
-    />
-  );
-
-  fireEvent.mouseEnter(
-    screen.getByRole('graphics-symbol', {name: 'Claude Opus 4.8: 50K'})
-  );
-  const tooltip = screen.getByRole('tooltip');
-
-  expect(tooltip).toHaveTextContent('Claude Opus 4.8');
-  expect(tooltip).toHaveTextContent('cache read');
-  expect(tooltip).toHaveTextContent('cache write');
-  expect(tooltip).toHaveTextContent('fresh input');
-});
-
 test('subagent-traffic models (e.g. a lighter model used for subagent work) are included, not filtered out', () => {
   render(
     <ModelMix
@@ -86,7 +68,7 @@ test('subagent-traffic models (e.g. a lighter model used for subagent work) are 
   );
 
   expect(
-    screen.getByRole('graphics-symbol', {name: 'Claude Haiku 4.5: 6K'})
+    screen.getByRole('graphics-symbol', {name: 'Claude Haiku 4.5: 104K'})
   ).toBeInTheDocument();
 });
 

@@ -1,6 +1,6 @@
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import {formatModelName} from '~/data/format/model-name';
-import type {Buckets, SessionSummary} from '~/data/schemas/api';
+import type {SessionSummary} from '~/data/schemas/api';
 import {sortAlphabetically} from '~/data/sort';
 
 export {costEntryAnchorId} from '~/components/Sections/anchor-ids';
@@ -108,9 +108,6 @@ export const paginateSessions = (
 /** Always at least one page, even for an empty (filtered) result. */
 export const totalPageCount = (sessionCount: number): number =>
   Math.max(1, Math.ceil(sessionCount / SESSIONS_PAGE_SIZE));
-
-export const totalTokenCount = (buckets: Buckets): number =>
-  buckets.freshInput + buckets.cacheWrite + buckets.cacheRead + buckets.output;
 
 /** Title fallback chain (SPEC section 6.6): the server already resolves
  * ai-title / truncated last-prompt into `title`; the client's only

@@ -66,8 +66,10 @@ describe('buildCostParseHealth', () => {
       linesSkipped: 0,
       source: 'plans/ledger.json',
     });
-    // Unknown cost kind plus out-of-vocabulary ledger statuses, verbatim.
-    expect(slice.unknownKinds).toEqual(['review']);
+    // 'review' was promoted to a known kind (Phase 8 v2, W3); the fixture
+    // carries no other unrecognized kind, so unknownKinds is empty. Only the
+    // out-of-vocabulary ledger statuses remain, verbatim.
+    expect(slice.unknownKinds).toEqual([]);
     expect(slice.unknownStatuses).toEqual(['superseded', 'paused']);
   });
 

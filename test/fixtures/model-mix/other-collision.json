@@ -3,23 +3,23 @@
   "kpis": {
     "activeDays": 1,
     "estimatedAdHocDollars": null,
-    "totalBuckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 3600}
+    "totalTokens": 3600
   },
   "modelTotals": [
-    {"model": "alpha", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 800}},
-    {"model": "bravo", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 700}},
-    {"model": "charlie", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 600}},
-    {"model": "other", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 500}},
-    {"model": "delta", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 400}},
-    {"model": "echo", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 300}},
-    {"model": "foxtrot", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 200}},
-    {"model": "golf", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 50}},
-    {"model": "hotel", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 50}}
+    {"model": "alpha", "totalTokens": 800},
+    {"model": "bravo", "totalTokens": 700},
+    {"model": "charlie", "totalTokens": 600},
+    {"model": "other", "totalTokens": 500},
+    {"model": "delta", "totalTokens": 400},
+    {"model": "echo", "totalTokens": 300},
+    {"model": "foxtrot", "totalTokens": 200},
+    {"model": "golf", "totalTokens": 50},
+    {"model": "hotel", "totalTokens": 50}
   ],
   "modelWeekly": [
     {
       "weekStart": "2026-06-07",
-      "outputByModel": {
+      "tokensByModel": {
         "alpha": 800,
         "bravo": 700,
         "charlie": 600,

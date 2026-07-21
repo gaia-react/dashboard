@@ -29,8 +29,8 @@ export const captionClassName = 'text-fg-mute text-sm';
  * Screen-reader-only fallback table (accessibility rule: keyboard/AT users
  * must reach the same information sighted mouse users get from the chart's
  * hover tooltip). The kit's per-cell `aria-label` carries only the date and
- * the primary output-token metric; this list carries every bucket plus the
- * session count for every day, without depending on a kit change.
+ * the primary total-tokens metric; this list matches the hover tooltip
+ * exactly: total tokens plus the session count for every day.
  */
 const HeatmapAccessibleSummary: FC<{
   heatmap: ActivityResponse['heatmap'];
@@ -40,10 +40,7 @@ const HeatmapAccessibleSummary: FC<{
     {heatmap.map((day) => (
       <li key={day.date}>
         {formatDayLabel(day.date, locale)}:{' '}
-        {formatCompactNumber(day.buckets.output, locale)} output tokens,{' '}
-        {formatCompactNumber(day.buckets.freshInput, locale)} fresh input,{' '}
-        {formatCompactNumber(day.buckets.cacheWrite, locale)} cache write,{' '}
-        {formatCompactNumber(day.buckets.cacheRead, locale)} cache read,{' '}
+        {formatCompactNumber(day.totalTokens, locale)} total tokens,{' '}
         {day.sessionCount} {day.sessionCount === 1 ? 'session' : 'sessions'}.
       </li>
     ))}
@@ -58,20 +55,8 @@ const toHeatmapDay = (
   tooltip: {
     rows: [
       {
-        label: 'Output',
-        value: formatCompactNumber(day.buckets.output, locale),
-      },
-      {
-        label: 'Fresh input',
-        value: formatCompactNumber(day.buckets.freshInput, locale),
-      },
-      {
-        label: 'Cache write',
-        value: formatCompactNumber(day.buckets.cacheWrite, locale),
-      },
-      {
-        label: 'Cache read',
-        value: formatCompactNumber(day.buckets.cacheRead, locale),
+        label: 'Total tokens',
+        value: formatCompactNumber(day.totalTokens, locale),
       },
       {
         label: day.sessionCount === 1 ? 'Session' : 'Sessions',
@@ -80,15 +65,15 @@ const toHeatmapDay = (
     ],
     title: formatDayLabel(day.date, locale),
   },
-  value: day.buckets.output,
+  value: day.totalTokens,
 });
 
 /**
  * SPEC 6.4: GitHub-style calendar over the full session-log history. Wraps
  * the W8 CalendarHeatmap kit; owns the section chrome and maps
- * ActivityResponse.heatmap into the kit's props. Primary metric is output
- * tokens (model work performed); the tooltip surfaces every bucket plus the
- * day's session count.
+ * ActivityResponse.heatmap into the kit's props. Primary metric is total
+ * tokens (all activity, Phase 8 v2); the tooltip surfaces total tokens plus
+ * the day's session count.
  *
  * All-zero (or empty) heatmap data collapses the kit's own legend into
  * duplicate "over 0" labels (a known kit limitation this section does not
@@ -96,31 +81,31 @@ const toHeatmapDay = (
  * chart.
  */
 const ActivityHeatmap: FC<ActivityHeatmapProps> = ({heatmap, locale}) => {
-  const hasOutputActivity = heatmap.some((day) => day.buckets.output > 0);
+  const hasActivity = heatmap.some((day) => day.totalTokens > 0);
 
   return (
     <div className={sectionChromeClassName}>
       <header>
         <p className={eyebrowClassName}>Activity</p>
-        <h2 className={headingClassName}>Daily output tokens</h2>
+        <h2 className={headingClassName}>Daily total tokens</h2>
         <p className={captionClassName}>
           Full session-log history, one cell per local day. This history often
           reaches back further than recorded cost data, that is expected, not a
           gap.
         </p>
       </header>
-      {hasOutputActivity ?
+      {hasActivity ?
         <>
           <CalendarHeatmap
             data={heatmap.map((day) => toHeatmapDay(day, locale))}
-            label="Daily output tokens"
+            label="Daily total tokens"
             locale={locale}
-            valueLabel="output tokens"
+            valueLabel="total tokens"
           />
           <HeatmapAccessibleSummary heatmap={heatmap} locale={locale} />
         </>
       : <EmptyState
-          description="No output tokens recorded for any session-log day yet. Once GAIA sees model work, this calendar fills in from the earliest session forward."
+          description="No tokens recorded for any session-log day yet. Once GAIA sees model work, this calendar fills in from the earliest session forward."
           title="No activity recorded yet"
         />
       }
@@ -145,9 +130,7 @@ export const ActivityHeatmapSkeleton: FC = () => (
   >
     <header>
       <p className={twMerge(eyebrowClassName, shimmer)}>Activity</p>
-      <h2 className={twMerge(headingClassName, shimmer)}>
-        Daily output tokens
-      </h2>
+      <h2 className={twMerge(headingClassName, shimmer)}>Daily total tokens</h2>
       <p className={twMerge(captionClassName, shimmer)}>
         Full session-log history, one cell per local day. This history often
         reaches back further than recorded cost data, that is expected, not a

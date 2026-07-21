@@ -12,36 +12,16 @@ import {z} from 'zod';
  * All timestamps are UTC ISO-8601 strings (trailing `Z`); the client renders
  * local time (SPEC section 5). Day-valued fields (`heatmap[].date`,
  * `modelWeekly[].weekStart`) are `YYYY-MM-DD` in the requested timezone.
+ *
+ * Granular token buckets (`fresh_input` / `cache_write` / `cache_read` /
+ * `output`) do not appear anywhere in this file. Users asked for dollars,
+ * elapsed time, and total tokens, and nothing else (Phase 8 v2 redesign); a
+ * scalar `totalTokens` replaces every client-facing bucket breakdown, and
+ * per-model / per-agent-type maps carry a token scalar rather than a bucket
+ * breakdown per key. Bucket math stays server-side, where it is load-bearing
+ * (`app/data/pricing/rates.ts` prices each bucket at a different rate) and in
+ * `app/data/schemas/cost-record.ts`, which still parses the on-disk shape.
  */
-
-/**
- * Token buckets in GAIA's vocabulary, cache write collapsed to one number.
- * Maps the parsers' `fresh_input` / `cache_write` / `cache_read` / `output`.
- * Not exported: only used to compose the schemas below in this file. The
- * inferred `Buckets` type (exported at the bottom) is the public contract
- * piece other modules actually import.
- */
-const bucketsSchema = z.object({
-  cacheRead: z.number(),
-  cacheWrite: z.number(),
-  freshInput: z.number(),
-  output: z.number(),
-});
-
-/**
- * Per-model / per-agent-type buckets: cache write split by TTL, mirroring the
- * cost ledger's `by_model` / `by_agent_type` value shape (`cache_write_5m` /
- * `cache_write_1h`), camelCased. Collapsing the split reproduces `Buckets`.
- * Not exported: same reasoning as `bucketsSchema` above, the `ModelBuckets`
- * type is the public piece.
- */
-const modelBucketsSchema = z.object({
-  cacheRead: z.number(),
-  cacheWrite1h: z.number(),
-  cacheWrite5m: z.number(),
-  freshInput: z.number(),
-  output: z.number(),
-});
 
 /**
  * Skip/unparseable counters for one input source (SPEC section 6.8), e.g.
@@ -96,44 +76,59 @@ const linkedSessionSchema = z.object({
 });
 
 /**
- * GAIA SPEC-032 adversarial-audit drill-down carried onto a spec/plan phase
- * (buckets camelCased, cache-write collapsed like `Buckets`). A strict subset
- * of the enclosing phase, so it renders as detail and is NEVER summed into any
- * phase / entry / grand total. `intensity` is null on plan audits (SPEC-only).
+ * A GitHub PR or issue link (command rows and execute-phase rows). `type` is
+ * `"pr"` or `"issue"` today; an unrecognized value renders verbatim rather
+ * than throwing.
+ * Not exported: only used to compose the schemas below in this file.
+ */
+const artifactLinkSchema = z.object({
+  number: z.number(),
+  repo: z.string(),
+  type: z.string(),
+});
+
+/**
+ * GAIA SPEC-032 adversarial-audit drill-down carried onto a spec/plan phase.
+ * A strict subset of the enclosing phase, so it renders as detail and is
+ * NEVER summed into any phase / entry / grand total. `intensity` is null on
+ * plan audits (SPEC-only).
  * Not exported: only used to build `phaseRollupSchema` below. The inferred
  * `AdversarialAudit` type is the public contract piece.
  */
 const adversarialAuditSchema = z.object({
-  buckets: bucketsSchema,
   dollars: z.number().nullable(),
   elapsedSeconds: z.number(),
   intensity: z.string().nullable(),
   lenses: z.array(z.string()),
+  totalTokens: z.number(),
 });
 
 /**
  * Per-phase detail for an expanded cost-table row (SPEC section 6.3).
- * `byModel` / `byAgentType` are null on backfill and pre-attribution rows.
- * `audit` is present only on the spec/plan phases that carried a SPEC-032
- * adversarial-audit annotation (most rows omit it).
+ * `byModel` / `byAgentType` are per-model / per-agent-type total-token maps,
+ * null on backfill and pre-attribution rows. `audit` is present only on the
+ * spec/plan phases that carried a SPEC-032 adversarial-audit annotation (most
+ * rows omit it).
  * Not exported: only used to build `costEntrySchema` below. The inferred
  * `PhaseRollup` type is the public contract piece.
  */
 const phaseRollupSchema = z.object({
   audit: adversarialAuditSchema.optional(),
-  buckets: bucketsSchema,
-  byAgentType: z.record(z.string(), modelBucketsSchema).nullable(),
-  byModel: z.record(z.string(), modelBucketsSchema).nullable(),
+  byAgentType: z.record(z.string(), z.number()).nullable(),
+  byModel: z.record(z.string(), z.number()).nullable(),
   durationSeconds: z.number().nullable(),
   /** 'spec' | 'plan' | 'execute', unknown kinds pass through verbatim. */
   kind: z.string(),
   recordedDollars: z.number().nullable(),
   source: z.literal(['backfill', 'native']),
+  totalTokens: z.number(),
 });
 
 /** One row of the specs & plans cost table (SPEC section 6.3). */
 export const costEntrySchema = z.object({
   entryType: z.literal(['plan', 'plan-slug', 'spec']),
+  /** Sourced from the entry's execute-phase rows. Null if none carried one. */
+  github: artifactLinkSchema.nullable(),
   /** Null for slug rows (pre-ledger archived plans). */
   id: z.string().nullable(),
   /** "SPEC-023" | "PLAN-001" | "slug:plan". */
@@ -149,27 +144,51 @@ export const costEntrySchema = z.object({
   /** Intent / subject / slug. */
   title: z.string(),
   totals: z.object({
-    buckets: bucketsSchema,
     durationSeconds: z.number().nullable(),
     recordedDollars: z.number().nullable(),
+    totalTokens: z.number(),
   }),
 });
 
 /**
  * One ad-hoc code-review row (GAIA SPEC-032): a `code-review-audit` review with
  * no spec/plan association, so it has no cost-table entry. Surfaced on its own
- * (never folded into the `recordedDollars` KPI, which is spec & plan work) so
- * its net-new recorded spend stays visible instead of silently inflating a KPI.
+ * so its net-new recorded spend stays visible as its own event, in ADDITION to
+ * folding into `kpis.recordedDollars` alongside every other GAIA event (Phase
+ * 8 v2; see the doc comment on that field below). Do not read "surfaced on
+ * its own" as "excluded from the KPI" -- that carve-out is gone.
  */
 export const adHocReviewSchema = z.object({
   /** Coverage timestamp (`started_at`, else `ts`). */
   at: z.iso.datetime(),
-  buckets: bucketsSchema,
   durationSeconds: z.number().nullable(),
   recordedDollars: z.number().nullable(),
   /** Producer `review_id` (one row per run); null if the row omitted it. */
   reviewId: z.string().nullable(),
   sessionId: z.string(),
+  totalTokens: z.number(),
+});
+
+/**
+ * One `kind: "command"` row (GAIA SPEC-035 / Phase 8): a `gaia-debt`,
+ * `gaia-wiki`, and similar command tally with no spec/plan association, the
+ * same shape of standalone event `adHocReviewSchema` already models. An
+ * unrecognized future `command` still parses; the client degrades its icon
+ * and tone, never its render.
+ */
+export const commandEventSchema = z.object({
+  /** `started_at`, else `ts`, canonicalized. */
+  at: z.iso.datetime(),
+  byAgentType: z.record(z.string(), z.number()).nullable(),
+  byModel: z.record(z.string(), z.number()).nullable(),
+  command: z.string(),
+  durationSeconds: z.number().nullable(),
+  github: artifactLinkSchema.nullable(),
+  recordedDollars: z.number().nullable(),
+  /** Producer `run_id` (one row per run); null if the row omitted it. */
+  runId: z.string().nullable(),
+  sessionId: z.string(),
+  totalTokens: z.number(),
 });
 
 /** `GET /api/costs` (PLAN section 3). */
@@ -180,6 +199,12 @@ export const costsResponseSchema = z.object({
    * `.default([])` lets pre-SPEC-032 response fixtures omit the field.
    */
   adHocReviews: z.array(adHocReviewSchema).default([]),
+  /**
+   * `kind: "command"` events (SPEC-035): recorded spend with no spec/plan row.
+   * `.default([])` lets older response fixtures omit the field, mirroring
+   * `adHocReviews`.
+   */
+  commandEvents: z.array(commandEventSchema).default([]),
   /** Earliest cost row ts, for the section 6.1 coverage disclosure. */
   coverage: z.object({costSince: z.iso.datetime().nullable()}),
   /** Section 6.3 rows, chronological. */
@@ -188,8 +213,13 @@ export const costsResponseSchema = z.object({
     /** `merged` counts ledger plans with a normalized `merged` status; slug
      * (pre-ledger) plans have no status and count only toward `total`. */
     plans: z.object({merged: z.number(), total: z.number()}),
-    /** Tiers 1+2 only, never mixed with estimates (SPEC section 5 rule 3). */
-    recordedDollars: z.number(),
+    /**
+     * Every GAIA event: entries, ad-hoc reviews, and command events. Null
+     * only when NONE of them carry a recorded dollar figure (a fresh project
+     * with no cost data at all); never coerced to zero
+     * (`app/data/aggregate/cost-entries.ts`'s `recordedDollars` doc comment).
+     */
+    recordedDollars: z.number().nullable(),
     specs: z.object({merged: z.number(), total: z.number()}),
   }),
   /** Cost-side counters. */
@@ -214,7 +244,6 @@ export const sessionSummarySchema = z.object({
       key: z.string(),
     })
     .nullable(),
-  buckets: bucketsSchema,
   /**
    * Null when the session is unpriceable (rate table unusable and no recorded
    * row). Recorded and estimated figures never sum (SPEC section 5 rule 3).
@@ -234,6 +263,7 @@ export const sessionSummarySchema = z.object({
   startedAt: z.iso.datetime(),
   /** ai-title, else truncated lastPrompt, else null (client shows the uuid). */
   title: z.string().nullable(),
+  totalTokens: z.number(),
   turnCount: z.number(),
 });
 
@@ -242,9 +272,9 @@ export const activityResponseSchema = z.object({
   /** One cell per local-tz day (requested tz), full session-log history. */
   heatmap: z.array(
     z.object({
-      buckets: bucketsSchema,
       date: z.iso.date(),
       sessionCount: z.number(),
+      totalTokens: z.number(),
     })
   ),
   kpis: z.object({
@@ -255,12 +285,12 @@ export const activityResponseSchema = z.object({
       .object({lowerBound: z.boolean(), value: z.number()})
       .nullable(),
     /** All activity, token-denominated. */
-    totalBuckets: bucketsSchema,
+    totalTokens: z.number(),
   }),
-  modelTotals: z.array(z.object({buckets: bucketsSchema, model: z.string()})),
+  modelTotals: z.array(z.object({model: z.string(), totalTokens: z.number()})),
   modelWeekly: z.array(
     z.object({
-      outputByModel: z.record(z.string(), z.number()),
+      tokensByModel: z.record(z.string(), z.number()),
       weekStart: z.iso.date(),
     })
   ),
@@ -289,15 +319,13 @@ export type AdversarialAudit = z.infer<typeof adversarialAuditSchema>;
 
 export type ApiError = z.infer<typeof apiErrorSchema>;
 
-export type Buckets = z.infer<typeof bucketsSchema>;
+export type CommandEvent = z.infer<typeof commandEventSchema>;
 
 export type CostEntry = z.infer<typeof costEntrySchema>;
 
 export type CostsResponse = z.infer<typeof costsResponseSchema>;
 
 export type LinkedSession = z.infer<typeof linkedSessionSchema>;
-
-export type ModelBuckets = z.infer<typeof modelBucketsSchema>;
 
 export type ParseHealthCounter = z.infer<typeof parseHealthCounterSchema>;
 

@@ -28,7 +28,7 @@ test('renders the section chrome and one cell per fixture day', () => {
   render(<ActivityHeatmap heatmap={populated.heatmap} locale="en-US" />);
 
   expect(
-    screen.getByRole('heading', {name: 'Daily output tokens'})
+    screen.getByRole('heading', {name: 'Daily total tokens'})
   ).toBeInTheDocument();
   expect(screen.getByText('Activity')).toBeInTheDocument();
   expect(screen.getAllByRole('graphics-symbol')).toHaveLength(
@@ -36,7 +36,7 @@ test('renders the section chrome and one cell per fixture day', () => {
   );
 });
 
-test('the hover tooltip shows every bucket and the session count, not just output', () => {
+test('the hover tooltip shows total tokens and the session count, not just output', () => {
   render(<ActivityHeatmap heatmap={populated.heatmap} locale="en-US" />);
 
   const peakDay = populated.heatmap.find((day) => day.date === '2026-07-03');
@@ -44,23 +44,23 @@ test('the hover tooltip shows every bucket and the session count, not just outpu
   expect(peakDay?.date).toBe('2026-07-03');
   const peakSessionCount = peakDay?.sessionCount ?? -1;
 
+  // Phase 8 v2: the cell value is total tokens (77,600 -> "78K" in this
+  // fixture), not output tokens alone (21,000 -> "21K"), proving the primary
+  // metric actually moved, not just the label.
   const peakCell = screen.getByRole('graphics-symbol', {
-    name: 'Jul 3, 2026: 21K output tokens',
+    name: 'Jul 3, 2026: 78K total tokens',
   });
 
   fireEvent.mouseEnter(peakCell);
   const tooltip = screen.getByRole('tooltip');
 
   expect(tooltip).toHaveTextContent('Jul 3, 2026');
-  expect(tooltip).toHaveTextContent('Output');
-  expect(tooltip).toHaveTextContent('Fresh input');
-  expect(tooltip).toHaveTextContent('Cache write');
-  expect(tooltip).toHaveTextContent('Cache read');
+  expect(tooltip).toHaveTextContent('Total tokens');
   expect(tooltip).toHaveTextContent('Sessions');
   expect(tooltip).toHaveTextContent(String(peakSessionCount));
 });
 
-test('a screen-reader-only summary carries every bucket and the session count per day, not just output', () => {
+test('a screen-reader-only summary matches the hover tooltip: total tokens and the session count per day', () => {
   render(<ActivityHeatmap heatmap={populated.heatmap} locale="en-US" />);
 
   const peakDay = populated.heatmap.find((day) => day.date === '2026-07-03');
@@ -73,10 +73,7 @@ test('a screen-reader-only summary carries every bucket and the session count pe
 
   const summary = screen.getByText(/Jul 3, 2026:/);
 
-  expect(summary).toHaveTextContent('output tokens');
-  expect(summary).toHaveTextContent('fresh input');
-  expect(summary).toHaveTextContent('cache write');
-  expect(summary).toHaveTextContent('cache read');
+  expect(summary).toHaveTextContent('78K total tokens');
   expect(summary).toHaveTextContent(
     `${peakDay?.sessionCount} ${peakDay?.sessionCount === 1 ? 'session' : 'sessions'}`
   );
@@ -101,7 +98,7 @@ test('a fully empty heatmap renders an intentional empty state, not a blank char
   expect(screen.queryByText(/^over /)).not.toBeInTheDocument();
 });
 
-test('all-zero output days render the same intentional empty state, sidestepping the kit legend bug', () => {
+test('all-zero total-token days render the same intentional empty state, sidestepping the kit legend bug', () => {
   render(<ActivityHeatmap heatmap={allZeroOutput.heatmap} locale="en-US" />);
 
   expect(screen.getByText('No activity recorded yet')).toBeInTheDocument();
@@ -113,7 +110,7 @@ test('the skeleton mirrors the section chrome and is hidden from assistive tech'
   render(<ActivityHeatmapSkeleton />);
 
   expect(screen.getByText('Activity')).toBeInTheDocument();
-  expect(screen.getByText('Daily output tokens')).toBeInTheDocument();
+  expect(screen.getByText('Daily total tokens')).toBeInTheDocument();
   expect(screen.getByTestId('activity-heatmap-skeleton')).toHaveAttribute(
     'aria-hidden',
     'true'

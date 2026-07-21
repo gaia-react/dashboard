@@ -7,6 +7,10 @@ const fixturePath = fileURLToPath(
   new URL('../../../../test/fixtures/cost-jsonl/cost.jsonl', import.meta.url)
 );
 
+const commandFixturePath = fileURLToPath(
+  new URL('../../../../test/fixtures/cost-ledger/cost.jsonl', import.meta.url)
+);
+
 const findGroup = (
   groups: CostGroup[],
   predicate: (group: CostGroup) => boolean
@@ -115,7 +119,7 @@ describe('parseCostLedger', () => {
     expect(executePhase.terminalRow.duration_seconds).toBeNull();
   });
 
-  test('keeps an unknown kind verbatim and surfaces it in parse health', async () => {
+  test('keeps a known kind row with unknown fields verbatim, without flagging it unknown', async () => {
     const {groups, health} = await parseCostLedger(fixturePath);
 
     const reviewGroup = findGroup(groups, (group) => group.kind === 'review');
@@ -123,7 +127,10 @@ describe('parseCostLedger', () => {
     expect(reviewGroup.attribution).toEqual({id: 'SPEC-102', type: 'spec'});
     // Unknown fields ride through the schema and the parser untouched.
     expect(reviewGroup.terminalRow).toMatchObject({future_field: 'keep-me'});
-    expect(health.unknownKinds).toEqual(['review']);
+    // review is a known kind (KNOWN_KINDS); this fixture carries no
+    // genuinely unknown kind, so unknownKinds is empty here. The
+    // command-ledger fixture below covers the genuine-unknown-kind case.
+    expect(health.unknownKinds).toEqual([]);
   });
 
   test('rejects an unsupported schema_version row and counts it in health', async () => {
@@ -203,5 +210,110 @@ describe('parseCostLedger', () => {
     expect(adHocReview.terminalRow.source).toBe('code-review-audit');
     expect(adHocReview.terminalRow.review_id).toBe('agent-adhoc0001');
     expect(adHocReview.terminalRow.dollars).toBe(0.75);
+  });
+});
+
+describe('parseCostLedger: command rows (SPEC-032 gaia-* commands)', () => {
+  test('command and review are known kinds; a genuine unknown kind still surfaces', async () => {
+    const {health} = await parseCostLedger(commandFixturePath);
+
+    expect(health.unknownKinds).toEqual(['triage']);
+  });
+
+  test('a command row is not dropped and produces its own group', async () => {
+    const {groups} = await parseCostLedger(commandFixturePath);
+
+    const commandGroup = findGroup(
+      groups,
+      (group) =>
+        group.kind === 'command' &&
+        group.sessionId === 'cmd00001-1111-2222-3333-444444444444'
+    );
+
+    // No spec_id/plan_id on a command row: legal degraded attribution.
+    expect(commandGroup.attribution).toEqual({type: 'unattributed'});
+    expect(commandGroup.terminalRow.command).toBe('gaia-debt');
+  });
+
+  test('the github field survives parsing on the pr shape', async () => {
+    const {groups} = await parseCostLedger(commandFixturePath);
+
+    const commandGroup = findGroup(
+      groups,
+      (group) =>
+        group.kind === 'command' &&
+        group.sessionId === 'cmd00001-1111-2222-3333-444444444444'
+    );
+
+    expect(commandGroup.terminalRow.github).toEqual({
+      number: 769,
+      repo: 'gaia-react/gaia',
+      type: 'pr',
+    });
+  });
+
+  test('the github field survives parsing on the issue shape (gaia-forensics)', async () => {
+    const {groups} = await parseCostLedger(commandFixturePath);
+
+    const commandGroup = findGroup(
+      groups,
+      (group) =>
+        group.kind === 'command' &&
+        group.sessionId === 'cmd00002-1111-2222-3333-444444444444'
+    );
+
+    expect(commandGroup.terminalRow.command).toBe('gaia-forensics');
+    expect(commandGroup.terminalRow.github).toEqual({
+      number: 42,
+      repo: 'gaia-react/gaia',
+      type: 'issue',
+    });
+  });
+
+  test('a command row with no github key parses with github absent', async () => {
+    const {groups} = await parseCostLedger(commandFixturePath);
+
+    const commandGroup = findGroup(
+      groups,
+      (group) =>
+        group.kind === 'command' &&
+        group.sessionId === 'cmd00003-1111-2222-3333-444444444444'
+    );
+
+    expect(commandGroup.terminalRow.github).toBeUndefined();
+  });
+
+  test('a command row with no run_id still produces a group (base key fallback)', async () => {
+    const {groups} = await parseCostLedger(commandFixturePath);
+
+    const noRunIdGroups = groups.filter(
+      (group) =>
+        group.kind === 'command' &&
+        group.sessionId === 'cmd00004-1111-2222-3333-444444444444'
+    );
+
+    expect(noRunIdGroups).toHaveLength(1);
+    expect(noRunIdGroups[0].terminalRow.run_id).toBeUndefined();
+  });
+
+  test('two command rows sharing a session but different run_id produce two groups', async () => {
+    const {groups} = await parseCostLedger(commandFixturePath);
+
+    const sameSessionGroups = groups.filter(
+      (group) =>
+        group.kind === 'command' &&
+        group.sessionId === 'cmd00005-1111-2222-3333-444444444444'
+    );
+
+    expect(sameSessionGroups).toHaveLength(2);
+    expect(sameSessionGroups.every((group) => group.rowCount === 1)).toBe(true);
+    expect(
+      sameSessionGroups
+        .map((group) => group.terminalRow.run_id)
+        .toSorted((a, b) => (a ?? '').localeCompare(b ?? ''))
+    ).toEqual([
+      'gaia-wiki-20260718T100000Z-aaaa',
+      'gaia-wiki-20260718T110000Z-bbbb',
+    ]);
   });
 });

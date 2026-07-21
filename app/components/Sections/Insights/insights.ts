@@ -58,30 +58,43 @@ export const longestSessions = (
       title: session.title ?? session.sessionId,
     }));
 
-export type ActiveDay = {date: string; output: number; sessionCount: number};
+export type ActiveDay = {
+  date: string;
+  sessionCount: number;
+  totalTokens: number;
+};
 
-/** The single day with the most output tokens, or null if no day had any. */
+/**
+ * The single day with the most total tokens, or null if no day had any.
+ * Phase 8 v2: this was the day with the most OUTPUT tokens; the metric moved
+ * to total tokens (all four buckets), so a day that led on output but not on
+ * total may no longer win here. That is the intended new basis, not a bug.
+ */
 export const mostActiveDay = (
   heatmap: ActivityResponse['heatmap']
 ): ActiveDay | null =>
   heatmap.reduce<ActiveDay | null>(
     (best, day) =>
       (
-        day.buckets.output > 0 &&
-        (best === null || day.buckets.output > best.output)
+        day.totalTokens > 0 &&
+        (best === null || day.totalTokens > best.totalTokens)
       ) ?
         {
           date: day.date,
-          output: day.buckets.output,
           sessionCount: day.sessionCount,
+          totalTokens: day.totalTokens,
         }
       : best,
     null
   );
 
-export type BusiestModel = {model: string; output: number};
+export type BusiestModel = {model: string; totalTokens: number};
 
-/** The real model (never `<synthetic>`) with the most output tokens. */
+/**
+ * The real model (never `<synthetic>`) with the most total tokens.
+ * Phase 8 v2: this was the model with the most OUTPUT tokens; the metric
+ * moved to total tokens, so the winner may differ from the output-based one.
+ */
 export const busiestModel = (
   modelTotals: ActivityResponse['modelTotals']
 ): BusiestModel | null =>
@@ -89,10 +102,10 @@ export const busiestModel = (
     (best, entry) =>
       (
         entry.model !== SYNTHETIC_MODEL &&
-        entry.buckets.output > 0 &&
-        (best === null || entry.buckets.output > best.output)
+        entry.totalTokens > 0 &&
+        (best === null || entry.totalTokens > best.totalTokens)
       ) ?
-        {model: entry.model, output: entry.buckets.output}
+        {model: entry.model, totalTokens: entry.totalTokens}
       : best,
     null
   );

@@ -167,7 +167,7 @@ test('activity: leads with active days and total tokens, plus spend', () => {
   ).toBeInTheDocument();
 });
 
-test('the total-tokens tile is a closed-by-default disclosure with the bucket split', () => {
+test('the total-tokens tile is a plain number, no bucket-split disclosure', () => {
   render(
     <KpiRow
       activity={activityPopulated}
@@ -177,16 +177,12 @@ test('the total-tokens tile is a closed-by-default disclosure with the bucket sp
   );
 
   const tokensTile = screen.getByRole('group', {name: 'Total tokens'});
-  // <details> carries an implicit "group" role; scoping within the tile
-  // finds it without reaching for raw DOM traversal.
-  const disclosure = within(tokensTile).getByRole('group');
 
-  expect(disclosure).not.toHaveAttribute('open');
   expect(tokensTile).toHaveTextContent('14M');
-  expect(tokensTile).toHaveTextContent(/fresh input/i);
-  expect(tokensTile).toHaveTextContent(/cache read/i);
-  expect(tokensTile).toHaveTextContent(/cache write/i);
-  expect(tokensTile).toHaveTextContent(/output/i);
+  // No nested disclosure: a <details> would itself expose an implicit
+  // "group" role, so the tile containing only itself (no descendant group)
+  // proves the bucket-split expander is gone, not merely closed.
+  expect(within(tokensTile).queryAllByRole('group')).toHaveLength(0);
 });
 
 test('empty: recorded and estimated tiles read as intentional, not broken', () => {
