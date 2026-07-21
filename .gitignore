@@ -8,3 +8,9 @@ coverage
 
 # Local build-orchestration scaffolding; kept out of git by design.
 tasks/
+
+# impeccable machine-local state: a transient hook cache keyed by absolute
+# paths and session ids, plus per-machine consent. The design sidecar and the
+# live-mode config are real artifacts and stay tracked.
+.impeccable/hook.cache.json
+.impeccable/config.local.json

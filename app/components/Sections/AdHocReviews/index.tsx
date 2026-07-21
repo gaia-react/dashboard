@@ -29,7 +29,7 @@ const sectionChromeClass =
   'border-border bg-bg-elev flex flex-col gap-4 rounded-md border p-6';
 const eyebrowClass =
   'text-accent-soft font-mono text-xs tracking-[0.2em] uppercase';
-const headingClass = 'font-display text-fg text-2xl font-light';
+const headingClass = 'text-fg text-title font-medium';
 const captionClass = 'text-fg-mute text-sm';
 
 const headerCellClass =
@@ -107,7 +107,7 @@ const AdHocReviews: FC<AdHocReviewsProps> = ({onViewSession, reviews}) => {
             its own rather than in spec &amp; plan recorded spend.
           </p>
         </div>
-        <p className="text-fg font-display text-2xl font-light tabular-nums">
+        <p className="text-fg text-metric-sm font-mono tabular-nums">
           {total === null ? formatDollarsCell(total) : formatDollars(total)}
         </p>
       </header>

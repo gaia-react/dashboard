@@ -1,8 +1,15 @@
 /**
- * Chart palette (SPEC section 7): brand tokens in fixed series order, tokens
- * only, no hex literals. Colors are expressed as Tailwind utility classes so
- * SVG marks and legend swatches stay theme-consistent (CSS variables do not
- * substitute inside SVG presentation attributes).
+ * Chart palette (DESIGN-SPEC section 2.6): brand tokens in fixed series
+ * order, tokens only, no hex literals. Colors are expressed as Tailwind
+ * utility classes so SVG marks and legend swatches stay theme-consistent
+ * (CSS variables do not substitute inside SVG presentation attributes).
+ *
+ * `info` and `moss` are appended at slots 7 and 8, after the existing six,
+ * rather than inserted after the three base brand hues. Measured: inserting
+ * drops the worst all-pairs CVD separation to deltaE 2.9 at five concurrent
+ * series (moss against secondary); appending holds 5.4 through six series
+ * and repaints no existing chart. Slots 1 through 6 keep their order and
+ * their hues.
  */
 
 export const SERIES_FILL_CLASSES = [
@@ -12,6 +19,8 @@ export const SERIES_FILL_CLASSES = [
   'fill-accent-soft',
   'fill-secondary-soft',
   'fill-warn-soft',
+  'fill-info',
+  'fill-moss',
 ];
 
 export const SERIES_SWATCH_CLASSES = [
@@ -21,10 +30,12 @@ export const SERIES_SWATCH_CLASSES = [
   'bg-accent-soft',
   'bg-secondary-soft',
   'bg-warn-soft',
+  'bg-info',
+  'bg-moss',
 ];
 
-/** SPEC section 7: past ~6 concurrent series the chart is overloaded. */
-export const MAX_CONCURRENT_SERIES = 6;
+/** DESIGN-SPEC section 2.6: past ~8 concurrent series the chart is overloaded. */
+export const MAX_CONCURRENT_SERIES = 8;
 
 export const OTHER_SERIES_KEY = 'other';
 
@@ -66,9 +77,9 @@ export type GroupedSeries = {
 };
 
 /**
- * Orders series by grand total (descending, ties alphabetical) and, past the
- * concurrent-series limit, folds the tail into a single "other" series so a
- * chart never needs more hues than the palette provides.
+ * Orders series by grand total (descending, ties alphabetical) and, past ~8
+ * concurrent series, folds the tail into a single "other" series so a chart
+ * never needs more hues than the palette provides.
  */
 export const groupTailSeries = (
   rows: Record<string, number>[],

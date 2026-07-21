@@ -1,0 +1,1004 @@
+/**
+ * CLI helper: deterministic accept/discard of variant sessions.
+ *
+ * Usage:
+ *   node live-accept.mjs --id SESSION_ID --discard
+ *   node live-accept.mjs --id SESSION_ID --variant N
+ *
+ * For discard: removes the entire variant wrapper and restores the original.
+ * For accept: replaces the wrapper with the chosen variant's content. If the
+ * session had a colocated <style> block, it's preserved with carbonize markers
+ * for a background agent to integrate into the project's CSS.
+ *
+ * Output: JSON to stdout.
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import {isGeneratedFile} from './lib/is-generated.mjs';
+import {
+  readBuffer as readManualEditsBuffer,
+  writeBuffer as writeManualEditsBuffer,
+} from './live/manual-edits-buffer.mjs';
+import {
+  applyDeferredSvelteComponentAccepts,
+  findSvelteComponentManifest,
+  inlineSvelteComponentAccept,
+  removeSvelteComponentSession,
+} from './live/svelte-component.mjs';
+
+const EXTENSIONS = ['.html', '.jsx', '.tsx', '.vue', '.svelte', '.astro'];
+
+// ---------------------------------------------------------------------------
+// CLI
+// ---------------------------------------------------------------------------
+
+export const acceptCli = async () => {
+  const args = process.argv.slice(2);
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`Usage: node live-accept.mjs [options]
+
+Deterministic accept/discard for live variant sessions.
+
+Modes:
+  --discard          Remove variants, restore original
+  --variant N        Accept variant N, discard the rest
+
+Required:
+  --id SESSION_ID    Session ID of the variant wrapper
+
+Options:
+  --page-url URL     Current browser page URL; scopes staged copy-edit cleanup
+  --defer-source-write
+                     Deprecated compatibility flag. Svelte component accepts
+                     now write the real source immediately.
+
+Output (JSON):
+  { handled, file, carbonize }`);
+    process.exit(0);
+  }
+
+  const id = argumentValue(args, '--id');
+  const variantNumber = argumentValue(args, '--variant');
+  const paramValuesRaw = argumentValue(args, '--param-values');
+  const pageUrl = argumentValue(args, '--page-url');
+  const isDiscard = args.includes('--discard');
+
+  if (!id) {
+    console.error('Missing --id');
+    process.exit(1);
+  }
+
+  if (!isDiscard && !variantNumber) {
+    console.error('Need --discard or --variant N');
+    process.exit(1);
+  }
+
+  let paramValues = null;
+
+  if (paramValuesRaw) {
+    try {
+      paramValues = JSON.parse(paramValuesRaw);
+    } catch {
+      paramValues = null;
+    } // malformed blob: skip the comment rather than failing the accept
+  }
+
+  // Find the file containing this session's markers
+  const found = findSessionFile(id, process.cwd());
+  const svelteComponentManifest =
+    found ? null : findSvelteComponentManifest(id, process.cwd());
+
+  if (!found && !svelteComponentManifest) {
+    console.log(
+      JSON.stringify({
+        error: `Session markers not found for id: ${id}`,
+        handled: false,
+      })
+    );
+    process.exit(0);
+  }
+
+  if (svelteComponentManifest) {
+    if (isDiscard) {
+      removeSvelteComponentSession(id, process.cwd());
+      console.log(
+        JSON.stringify({
+          carbonize: false,
+          componentDir: svelteComponentManifest.componentDir,
+          file: svelteComponentManifest.sourceFile,
+          handled: true,
+          previewMode: 'svelte-component',
+        })
+      );
+
+      return;
+    }
+
+    let result;
+
+    try {
+      result = inlineSvelteComponentAccept(
+        svelteComponentManifest,
+        variantNumber,
+        paramValues,
+        process.cwd()
+      );
+    } catch (error) {
+      result = {
+        componentDir: svelteComponentManifest.componentDir,
+        error: error.message,
+        file: svelteComponentManifest.sourceFile,
+        handled: false,
+        previewMode: 'svelte-component',
+        sourceFile: svelteComponentManifest.sourceFile,
+      };
+    }
+
+    if (result.carbonize) {
+      result.todo = `REQUIRED before next poll: carbonize cleanup in ${
+        result.file
+      }. See reference/live.md "Required after accept".`;
+    }
+    console.log(JSON.stringify({handled: result.handled !== false, ...result}));
+
+    return;
+  }
+
+  const {content, file: targetFile, lines} = found;
+  const relFile = path.relative(process.cwd(), targetFile);
+  const previewBlock = findMarkerBlock(id, lines);
+  const sourceShadowPreview =
+    previewBlock ? readSourceShadowPreviewMeta(content, id) : null;
+
+  if (sourceShadowPreview) {
+    console.log(
+      JSON.stringify({
+        error: 'source_shadow_preview_deprecated',
+        handled: false,
+        hint: 'Svelte live mode now uses svelte-component injection. Re-wrap the element and regenerate variants.',
+      })
+    );
+    process.exit(0);
+  }
+
+  if (isGeneratedFile(targetFile, {cwd: process.cwd()})) {
+    console.log(
+      JSON.stringify({
+        file: relFile,
+        handled: false,
+        hint: 'Session is in a generated file. Persist the accepted variant in source; do not rely on this script.',
+        mode: 'fallback',
+      })
+    );
+    process.exit(0);
+  }
+
+  if (isDiscard) {
+    const result = handleDiscard(id, lines, targetFile);
+    console.log(
+      JSON.stringify({
+        carbonize: false,
+        file: relFile,
+        handled: true,
+        ...result,
+      })
+    );
+  } else {
+    const result = handleAccept(
+      id,
+      variantNumber,
+      lines,
+      targetFile,
+      paramValues
+    );
+    const acceptedOriginalText = result.acceptedOriginalText || '';
+    delete result.acceptedOriginalText;
+
+    // Single-line attention-grabber when cleanup is required. The full
+    // five-step checklist lives in reference/live.md (loaded once per
+    // session); repeating it per-event would waste tokens.
+    if (result.carbonize) {
+      result.todo = `REQUIRED before next poll: carbonize cleanup in ${
+        relFile
+      }. See reference/live.md "Required after accept".`;
+    }
+
+    // Scrub stash entries whose text appeared inside the just-replaced
+    // original wrap block. The accept embodies those manual edits (wrap was
+    // buffer-aware), so only those scoped ops are redundant.
+    if (result.handled !== false) {
+      try {
+        scrubManualEditsAgainstOriginalBlock(
+          acceptedOriginalText,
+          process.cwd(),
+          pageUrl
+        );
+      } catch {
+        // Non-fatal; the buffer stays as-is and the user can discard later.
+      }
+    }
+    console.log(JSON.stringify({file: relFile, handled: true, ...result}));
+  }
+};
+
+const argumentValue = (args, flag) => {
+  const index = args.indexOf(flag);
+
+  return index !== -1 && index + 1 < args.length ? args[index + 1] : null;
+};
+
+/**
+ * Build carbonize stitch-in lines. JSX targets occupy a single child slot
+ * (ternary branch, return value, etc.) — the same constraint as live-wrap.
+ * When isJsx, tuck markers + <style> + variant wrapper inside one outer
+ * <div data-impeccable-carbonize> so the slot keeps a single root node.
+ */
+const buildCarbonizeReplacement = ({
+  commentSyntax,
+  cssContent,
+  id,
+  indent,
+  isJsx,
+  paramValues,
+  restored,
+  variantNum,
+}) => {
+  const lines = [];
+
+  if (!cssContent) {
+    lines.push(...restored);
+
+    return lines;
+  }
+
+  const variantStyleAttribute =
+    isJsx ? "style={{ display: 'contents' }}" : 'style="display: contents"';
+
+  const pushCarbonizeBody = (bodyIndent) => {
+    const bodyRestored = reindentContent(restored, indent, `${bodyIndent}  `);
+    lines.push(
+      `${bodyIndent + commentSyntax.open} impeccable-carbonize-start ${id} ${
+        commentSyntax.close
+      }`,
+      `${bodyIndent}<style data-impeccable-css="${id}">${isJsx ? '{`' : ''}`
+    );
+
+    for (const cssLine of cssContent) {
+      lines.push(bodyIndent + cssLine.trimStart());
+    }
+    lines.push(bodyIndent + (isJsx ? '`}</style>' : '</style>'));
+
+    if (paramValues && Object.keys(paramValues).length > 0) {
+      lines.push(
+        `${bodyIndent + commentSyntax.open} impeccable-param-values ${id}: ${JSON.stringify(paramValues)} ${commentSyntax.close}`
+      );
+    }
+    lines.push(
+      `${bodyIndent + commentSyntax.open} impeccable-carbonize-end ${id} ${
+        commentSyntax.close
+      }`,
+      `${bodyIndent}<div data-impeccable-variant="${variantNum}" ${variantStyleAttribute}>`,
+      ...bodyRestored,
+      `${bodyIndent}</div>`
+    );
+  };
+
+  if (isJsx) {
+    const wrapperStyle = 'style={{ display: "contents" }}';
+    lines.push(
+      `${indent}<div data-impeccable-carbonize="${id}" ${wrapperStyle}>`
+    );
+    pushCarbonizeBody(`${indent}  `);
+    lines.push(`${indent}</div>`);
+  } else {
+    pushCarbonizeBody(indent);
+  }
+
+  return lines;
+};
+
+const decodeHtmlAttribute = (value) =>
+  String(value || '')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
+
+/**
+ * De-indent content that was indented by live-wrap.mjs.
+ * The wrap script adds `indent + '    '` (4 extra spaces) to each line.
+ * We restore to just `indent` level.
+ */
+const deindentContent = (contentLines, baseIndent) => {
+  // Find the minimum indentation in the content to determine how much was added
+  let minIndent = Infinity;
+
+  for (const line of contentLines) {
+    if (line.trim() === '') continue;
+    const leadingSpaces = line.match(/^(\s*)/)[1].length;
+    minIndent = Math.min(minIndent, leadingSpaces);
+  }
+  if (minIndent === Infinity) minIndent = 0;
+
+  // Strip the extra indentation and re-add base indent
+  return contentLines.map((line) => {
+    if (line.trim() === '') return '';
+
+    return baseIndent + line.slice(minIndent);
+  });
+};
+
+const detectCommentSyntax = (filePath) => {
+  const extension = path.extname(filePath).toLowerCase();
+
+  if (extension === '.jsx' || extension === '.tsx') {
+    return {close: '*/}', open: '{/*'};
+  }
+
+  return {close: '-->', open: '<!--'};
+};
+
+const escapeRegExp = (value) =>
+  String(value).replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+
+// ---------------------------------------------------------------------------
+// Discard
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute the line range to REPLACE (vs. just the marker range to extract
+ * from). For JSX/TSX wrappers, live-wrap places the marker comments INSIDE
+ * the `<div data-impeccable-variants="ID">` outer wrapper so the picked
+ * element's JSX slot keeps a single child — a Fragment `<></>` would have
+ * solved the multi-sibling case but failed inside `asChild` / cloneElement
+ * parents with "Invalid prop supplied to React.Fragment".
+ *
+ * That means the marker block is enclosed by the wrapper `<div>` opener
+ * (with `data-impeccable-variants="ID"`) and its matching `</div>`. We
+ * walk back to the opener and forward to the closer so accept/discard
+ * remove the entire scaffold, not just the inner markers.
+ *
+ * Marker lines themselves stay where they were so extractOriginal /
+ * extractVariant / extractCss continue to walk the same range.
+ */
+const expandReplaceRange = (block, lines, isJsx) => {
+  if (!isJsx) return {end: block.end, start: block.start};
+
+  let {end, start} = block;
+
+  // Walk back for the wrapper `<div data-impeccable-variants="..."` opener.
+  // The attr may sit on a continuation line of a multi-line opening tag, so
+  // also walk to the line that actually contains `<div`.
+  for (let index = start - 1; index >= 0; index--) {
+    if (isVariantEndMarkerLine(lines[index], block.id)) break;
+
+    if (hasVariantWrapperAttribute(lines[index], block.id)) {
+      let opener = index;
+
+      while (
+        opener > 0 &&
+        !/<div\b/.test(lines[opener]) &&
+        !isVariantEndMarkerLine(lines[opener], block.id)
+      ) {
+        opener--;
+      }
+      if (/<div\b/.test(lines[opener])) start = opener;
+      break;
+    }
+  }
+
+  // Walk forward to the matching `</div>` by div-depth tracking from the
+  // wrapper opener. Operate on JOINED text instead of per-line: a
+  // multi-line self-closing JSX `<div\n  className="spacer"\n/>` would
+  // fool per-line regex tracking (the `<div` line matches openRe but the
+  // `/>` line never matches selfCloseRe since it needs `<div` on the same
+  // line). That left depth permanently over-counted and the wrapper's
+  // outer `</div>` orphaned after accept/discard. Single regex with
+  // `[^>]*?` (which spans newlines in JS) handles either form correctly.
+  const joined = lines.slice(start).join('\n');
+  // Match either `<div … />` (self-close, group 1 is `/`), `<div … >`
+  // (open, group 1 is empty), or `</div>`.
+  const tagRe = /<div\b[^>]*?(\/?)>|<\/div\s*>/g;
+  let depth = 0;
+  let m;
+
+  while ((m = tagRe.exec(joined)) !== null) {
+    const isClose = m[0].startsWith('</');
+    const isSelfClose = !isClose && m[1] === '/';
+    if (isClose) depth--;
+    else if (!isSelfClose) depth++;
+
+    if (depth <= 0) {
+      // m.index is offset within `joined`; convert back to a file line.
+      const linesBefore =
+        joined.slice(0, m.index + m[0].length).split('\n').length - 1;
+      const candidateEnd = start + linesBefore;
+
+      if (candidateEnd >= end) {
+        end = candidateEnd;
+        break;
+      }
+    }
+  }
+
+  return {end, start};
+};
+
+// ---------------------------------------------------------------------------
+// Accept
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract the colocated <style> block content (between the style tags).
+ * Returns an array of CSS lines, or null if no style block found.
+ *
+ * Handles three shapes of `<style data-impeccable-css="ID" ...>`:
+ *   1. Self-closing: `<style ... />` — no body; return null (nothing to carbonize).
+ *   2. Same-line open+close: `<style>...</style>` — return the inner content.
+ *   3. Multi-line: `<style>` on one line, `</style>` on a later line — return
+ *      the lines between them.
+ */
+const extractCss = (lines, block, id) => {
+  const styleAttribute = `data-impeccable-css="${id}"`;
+  let inStyle = false;
+  const content = [];
+
+  for (let index = block.start; index <= block.end; index++) {
+    const line = lines[index];
+
+    if (!inStyle && line.includes(styleAttribute)) {
+      // Self-closing: nothing to carbonize.
+      if (/<style\b[^>]*\/\s*>/.test(line)) return null;
+      // Same-line open + close: extract inner text.
+      const sameLine = line.match(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/);
+
+      if (sameLine) {
+        const inner = stripJsxTemplateWrap(sameLine[1]);
+
+        return inner.length > 0 ? inner.split('\n') : null;
+      }
+      inStyle = true;
+      continue; // skip the <style> opening tag
+    }
+
+    if (inStyle) {
+      // Detect </style> anywhere on the line — JSX template-literal closes
+      // (`}</style>`) put the close mid-line, and we don't want to absorb the
+      // template-literal punctuation as CSS content.
+      const closeIndex = line.indexOf('</style>');
+      if (closeIndex !== -1) break;
+      content.push(line);
+    }
+  }
+
+  if (content.length === 0) return null;
+
+  return stripJsxTemplateLines(content);
+};
+
+/**
+ * Find the inner content of `<TAG ...attrMatch...>…</TAG>` inside `text`,
+ * handling nested same-tag elements via depth counting. `attrMatch` is a
+ * regex source fragment that must appear inside the opener tag.
+ * Returns the inner string (may be empty), or null if not found.
+ */
+const extractInnerByAttribute = (text, attributeMatch) => {
+  const openerRe = new RegExp(
+    `${String.raw`<([A-Za-z][A-Za-z0-9]*)\b[^>]*` + attributeMatch}[^>]*>`
+  );
+  const openMatch = text.match(openerRe);
+  if (!openMatch) return null;
+
+  const tagName = openMatch[1];
+  const innerStart = openMatch.index + openMatch[0].length;
+
+  // Match any opener or closer of this tag name after innerStart.
+  // (Does not match self-closing <TAG … />, which doesn't contribute to depth.)
+  const tagRe = new RegExp(String.raw`<(?:/)?${tagName}\b[^>]*>`, 'g');
+  tagRe.lastIndex = innerStart;
+
+  let depth = 1;
+  let m;
+
+  while ((m = tagRe.exec(text))) {
+    const isClose = m[0].startsWith('</');
+    const isSelfClose = !isClose && /\/\s*>$/.test(m[0]);
+
+    if (isClose) {
+      depth--;
+      if (depth === 0) return text.slice(innerStart, m.index);
+    } else if (!isSelfClose) {
+      depth++;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Extract the original element content from within the variant wrapper.
+ * Returns an array of lines.
+ */
+const extractOriginal = (lines, block) => {
+  const text = stripStyleAndJoin(lines, block);
+  const inner = extractInnerByAttribute(
+    text,
+    'data-impeccable-variant="original"'
+  );
+  if (inner === null) return [];
+
+  return inner.split('\n');
+};
+
+/**
+ * Extract a specific variant's inner content (stripping the wrapper div).
+ * Returns an array of lines, or null if not found.
+ */
+const extractVariant = (lines, block, variantNumber) => {
+  const text = stripStyleAndJoin(lines, block);
+  const inner = extractInnerByAttribute(
+    text,
+    `data-impeccable-variant="${variantNumber}"`
+  );
+  if (inner === null) return null;
+  const result = inner.split('\n');
+  // Collapse a lone empty leading/trailing line (common after string splice).
+  while (result.length > 1 && result[0].trim() === '') result.shift();
+  while (result.length > 1 && result.at(-1).trim() === '') result.pop();
+
+  return result.length > 0 ? result : null;
+};
+
+/**
+ * Find the start/end marker lines for a session.
+ * Returns { start, end } (0-indexed line numbers) or null.
+ */
+const findMarkerBlock = (id, lines) => {
+  let start = -1;
+  let end = -1;
+  const startPattern = `impeccable-variants-start ${id}`;
+  const endPattern = `impeccable-variants-end ${id}`;
+
+  for (const [index, line] of lines.entries()) {
+    if (start === -1 && line.includes(startPattern)) start = index;
+
+    if (line.includes(endPattern)) {
+      end = index;
+      break;
+    }
+  }
+
+  return start !== -1 && end !== -1 ? {end, id, start} : null;
+};
+
+const findSessionFile = (id, cwd) => {
+  const marker = `impeccable-variants-start ${id}`;
+  const searchDirectories = [
+    'src',
+    'app',
+    'pages',
+    'components',
+    'public',
+    'views',
+    'templates',
+    '.',
+  ];
+  const seen = new Set();
+
+  for (const dir of searchDirectories) {
+    const absDir = path.join(cwd, dir);
+    if (!fs.existsSync(absDir)) continue;
+    const result = searchDir(absDir, marker, seen, 0);
+
+    if (result) {
+      const content = fs.readFileSync(result, 'utf-8');
+
+      return {content, file: result, lines: content.split('\n')};
+    }
+  }
+
+  return null;
+};
+
+// ---------------------------------------------------------------------------
+// Parsing helpers
+// ---------------------------------------------------------------------------
+
+const handleAccept = (id, variantNumber, lines, targetFile, paramValues) => {
+  const block = findMarkerBlock(id, lines);
+  if (!block) return {error: 'Markers not found', handled: false};
+
+  const commentSyntax = detectCommentSyntax(targetFile);
+  const isJsx = commentSyntax.open === '{/*';
+  // Anchor indent on the line we're replacing FROM (the outer wrapper),
+  // not on `block.start` — for JSX that's the marker comment 2 spaces
+  // deeper than the original element. See handleDiscard for the full
+  // rationale.
+  const replaceRange = expandReplaceRange(block, lines, isJsx);
+  const indent = lines[replaceRange.start].match(/^(\s*)/)[1];
+
+  // Extract the chosen variant's inner content
+  const variantContent = extractVariant(lines, block, variantNumber);
+  if (!variantContent)
+    return {error: `Variant ${variantNumber} not found`, handled: false};
+  const originalContent = extractOriginal(lines, block);
+
+  // Extract CSS block if present
+  const cssContent = extractCss(lines, block, id);
+
+  // Check if carbonizing is needed:
+  // - CSS block exists, OR
+  // - variant HTML contains helper classes/attributes that need cleanup
+  const variantText = variantContent.join('\n');
+  const hasHelperAttributes = variantText.includes('data-impeccable-variant');
+  const needsCarbonize = !!(cssContent || hasHelperAttributes);
+
+  const restored = deindentContent(variantContent, indent);
+  const replacement = buildCarbonizeReplacement({
+    commentSyntax,
+    cssContent,
+    id,
+    indent,
+    isJsx,
+    paramValues,
+    restored,
+    variantNum: variantNumber,
+  });
+
+  const newLines = [
+    ...lines.slice(0, replaceRange.start),
+    ...replacement,
+    ...lines.slice(replaceRange.end + 1),
+  ];
+  fs.writeFileSync(targetFile, newLines.join('\n'), 'utf-8');
+
+  return {
+    acceptedOriginalText: originalContent.join('\n'),
+    carbonize: needsCarbonize,
+  };
+};
+
+const handleDiscard = (id, lines, targetFile) => {
+  const block = findMarkerBlock(id, lines);
+  if (!block) return {error: 'Markers not found', handled: false};
+
+  const original = extractOriginal(lines, block);
+  const isJsx = detectCommentSyntax(targetFile).open === '{/*';
+  const replaceRange = expandReplaceRange(block, lines, isJsx);
+
+  // Restore at the line we're actually replacing FROM, not the marker line.
+  // For JSX wrappers the marker comments live INSIDE the outer `<div>`, so
+  // `block.start` sits 2 spaces deeper than the original element. Using that
+  // as the deindent base would push the restored content 2 spaces too far
+  // right on every JSX/TSX session. `replaceRange.start` is the outer wrapper
+  // line, which is at the original element's indent for both HTML and JSX.
+  const indent = lines[replaceRange.start].match(/^(\s*)/)[1];
+  const restored = deindentContent(original, indent);
+
+  const newLines = [
+    ...lines.slice(0, replaceRange.start),
+    ...restored,
+    ...lines.slice(replaceRange.end + 1),
+  ];
+  fs.writeFileSync(targetFile, newLines.join('\n'), 'utf-8');
+
+  return {};
+};
+
+const hasVariantWrapperAttribute = (line, id) => {
+  const escaped = escapeRegExp(id);
+
+  return new RegExp(
+    String.raw`data-impeccable-variants\s*=\s*(?:"${escaped}"|'${escaped}'|\{["']${escaped}["']\})`
+  ).test(line);
+};
+
+const isVariantEndMarkerLine = (line, id) =>
+  new RegExp(
+    String.raw`impeccable-variants-end\s+` +
+      escapeRegExp(id) +
+      String.raw`(?:\s|--|\*/|$)`
+  ).test(line);
+
+const manualEditOpAppearsInBlock = (op, originalBlock) => {
+  const candidates = [op?.newText, op?.originalText].filter(
+    (text) => typeof text === 'string' && text.length > 0
+  );
+
+  return candidates.some((text) =>
+    originalBlockHasExactManualText(originalBlock, text)
+  );
+};
+
+const manualEditTextSegments = (source) =>
+  String(source || '')
+    .replaceAll(/<[^>]*>/g, '\n')
+    .replaceAll(/\{\/\*[\s\S]*?\*\/\}/g, '\n')
+    .replaceAll(/<!--[\s\S]*?-->/g, '\n')
+    .split(/\n+/)
+    .map(normalizeManualEditText)
+    .filter(Boolean);
+
+const normalizeManualEditText = (text) =>
+  String(text || '')
+    .replaceAll(/\s+/g, ' ')
+    .trim();
+
+const originalBlockHasExactManualText = (originalBlock, text) => {
+  const needle = normalizeManualEditText(text);
+  if (!needle) return false;
+
+  return manualEditTextSegments(originalBlock).includes(needle);
+};
+
+const readHtmlAttribute = (tag, name) => {
+  const match = String(tag || '').match(
+    new RegExp(
+      String.raw`\s` + escapeRegExp(name) + String.raw`\s*=\s*(["'])(.*?)\1`
+    )
+  );
+  if (!match) return null;
+
+  return decodeHtmlAttribute(match[2]);
+};
+
+const readSourceShadowPreviewMeta = (content, id) => {
+  const escaped = escapeRegExp(id);
+  const wrapperRe = new RegExp(
+    String.raw`<[^>]+data-impeccable-variants=(["'])${escaped}\1[^>]*>`
+  );
+  const match = String(content || '').match(wrapperRe);
+  if (!match) return null;
+  const tag = match[0];
+  if (readHtmlAttribute(tag, 'data-impeccable-preview') !== 'source-shadow')
+    return null;
+  const sourceFile = readHtmlAttribute(tag, 'data-impeccable-source-file');
+  const sourceStartLine = Number(
+    readHtmlAttribute(tag, 'data-impeccable-source-start')
+  );
+  const sourceEndLine = Number(
+    readHtmlAttribute(tag, 'data-impeccable-source-end')
+  );
+  if (
+    !sourceFile ||
+    !Number.isFinite(sourceStartLine) ||
+    !Number.isFinite(sourceEndLine)
+  )
+    return null;
+
+  return {sourceEndLine, sourceFile, sourceStartLine};
+};
+
+const reindentContent = (contentLines, fromIndent, toIndent) =>
+  contentLines.map((line) => {
+    if (line.trim() === '') return '';
+    if (line.startsWith(fromIndent))
+      return toIndent + line.slice(fromIndent.length);
+
+    return toIndent + line.trimStart();
+  });
+
+// Compatibility export for older tests/callers. The unsafe file-wide scrub was
+// removed; callers must pass accepted original-block text for scoped cleanup.
+const scrubManualEditsAgainstFile = (
+  _targetFile,
+  cwd = process.cwd(),
+  originalBlockText = '',
+  pageUrl = null
+) => scrubManualEditsAgainstOriginalBlock(originalBlockText, cwd, pageUrl);
+
+/**
+ * After a variant accept rewrites one wrapper, drop only buffer ops whose
+ * text appeared inside that wrapper's original block. The previous file-wide
+ * scrub dropped unrelated staged edits from other components/files whenever
+ * their originalText wasn't present in the just-accepted file.
+ *
+ * Match both originalText and newText because live-wrap rewrites the original
+ * preview block to reflect pending manual edits before variants are generated.
+ */
+const scrubManualEditsAgainstOriginalBlock = (
+  originalBlockText,
+  cwd = process.cwd(),
+  pageUrl = null
+) => {
+  const originalBlock = String(originalBlockText || '');
+  if (!originalBlock) return;
+  if (!pageUrl) return;
+  const buffer = readManualEditsBuffer(cwd);
+  if (buffer.entries.length === 0) return;
+  let mutated = false;
+
+  for (const entry of buffer.entries) {
+    if (entry.pageUrl !== pageUrl) continue;
+    const before = entry.ops.length;
+    entry.ops = entry.ops.filter(
+      (op) => !manualEditOpAppearsInBlock(op, originalBlock)
+    );
+    if (entry.ops.length !== before) mutated = true;
+  }
+  buffer.entries = buffer.entries.filter((entry) => entry.ops.length > 0);
+  if (mutated) writeManualEditsBuffer(cwd, buffer);
+};
+
+const searchDir = (dir, query, seen, depth) => {
+  if (depth > 5) return null;
+  let realDir;
+
+  try {
+    realDir = fs.realpathSync(dir);
+  } catch {
+    return null;
+  }
+  if (seen.has(realDir)) return null;
+  seen.add(realDir);
+
+  let entries;
+
+  try {
+    entries = fs.readdirSync(dir, {withFileTypes: true});
+  } catch {
+    return null;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    if (!EXTENSIONS.includes(path.extname(entry.name).toLowerCase())) continue;
+    const filePath = path.join(dir, entry.name);
+
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      if (content.includes(query)) return filePath;
+    } catch {
+      /* skip */
+    }
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (['.git', 'build', 'dist', 'node_modules'].includes(entry.name))
+      continue;
+    const result = searchDir(
+      path.join(dir, entry.name),
+      query,
+      seen,
+      depth + 1
+    );
+    if (result) return result;
+  }
+
+  return null;
+};
+
+// ---------------------------------------------------------------------------
+// File search (find the file containing session markers)
+// ---------------------------------------------------------------------------
+
+/**
+ * Strip a JSX template-literal wrap (`{` … `}`) from CSS extracted out of a
+ * `<style>` element in a JSX/TSX file. The agent may write the wrap with
+ * `{` and `}` directly attached to the `<style>` tags, on their own lines,
+ * or attached to the first/last CSS lines — all three are JSX-legal.
+ *
+ * Stripping is required because handleAccept re-wraps the CSS itself when
+ * carbonizing. Without this, two consecutive accepts (or a previously-
+ * accepted variants block being carbonized) would produce nested
+ * `{` `{` … `}` `}`, which oxc rejects with "Expected `}` but found `@`".
+ */
+const stripJsxTemplateLines = (content) => {
+  const out = [...content];
+
+  // Drop any leading blank lines so we don't miss a `{` line buried below
+  // them; same for trailing.
+  while (out.length > 0 && out[0].trim() === '') out.shift();
+  while (out.length > 0 && out.at(-1).trim() === '') out.pop();
+  if (out.length === 0) return null;
+
+  // Leading `{`: own line, or attached to the first CSS line.
+  const firstTrim = out[0].trimStart();
+
+  if (firstTrim === '{`') {
+    out.shift();
+  } else if (firstTrim.startsWith('{`')) {
+    const index = out[0].indexOf('{`');
+    out[0] = out[0].slice(0, index) + out[0].slice(index + 2);
+    if (out[0].trim() === '') out.shift();
+  }
+  if (out.length === 0) return null;
+
+  // Trailing `` ` `` `}`: own line, or attached to the last CSS line.
+  const lastIndex = out.length - 1;
+  const lastTrim = out[lastIndex].trimEnd();
+
+  if (lastTrim === '`}') {
+    out.pop();
+  } else if (lastTrim.endsWith('`}')) {
+    const text = out[lastIndex];
+    const index = text.lastIndexOf('`}');
+    out[lastIndex] = text.slice(0, index) + text.slice(index + 2);
+    if (out[lastIndex].trim() === '') out.pop();
+  }
+
+  return out.length > 0 ? out : null;
+};
+
+const stripJsxTemplateWrap = (text) => {
+  const lines = text.split('\n');
+  const stripped = stripJsxTemplateLines(lines);
+
+  return stripped ? stripped.join('\n') : '';
+};
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Join wrapper lines into a single string with `<style>` elements removed so
+ * marker matching and div-depth tracking aren't confused by:
+ *   - CSS `@scope ([data-impeccable-variant="N"])` strings that look like the
+ *     HTML marker we're searching for
+ *   - JSX self-closing `<style ... />` (no separate `</style>` to close on)
+ *   - Same-line `<style>…</style>` blocks
+ *   - Multi-line `<style>\n…\n</style>` blocks
+ */
+const stripStyleAndJoin = (lines, block) => {
+  const out = [];
+  let inStyle = false;
+
+  for (let index = block.start; index <= block.end; index++) {
+    let line = lines[index];
+
+    if (inStyle) {
+      // In multi-line style body; drop everything until we see </style>.
+      const closeIndex = line.search(/<\/style\s*>/);
+
+      if (closeIndex !== -1) {
+        inStyle = false;
+        out.push(line.slice(closeIndex).replace(/<\/style\s*>/, ''));
+      }
+      // else: skip line entirely
+    } else {
+      // Strip any complete <style> elements on this line (self-closed or
+      // same-line-closed), including their body content.
+      line = line
+        .replaceAll(/<style\b[^>]*>[\s\S]*?<\/style\s*>/g, '')
+        .replaceAll(/<style\b[^>]*\/\s*>/g, '');
+
+      // If a <style> opener remains (multi-line body starts here), strip from
+      // the opener to end-of-line and flip into skip mode.
+      const openerIndex = line.search(/<style\b/);
+
+      if (openerIndex !== -1) {
+        line = line.slice(0, openerIndex);
+        inStyle = true;
+      }
+      out.push(line);
+    }
+  }
+
+  return out.join('\n');
+};
+
+// Auto-execute when run directly
+const _running = process.argv[1];
+
+if (
+  _running?.endsWith('live-accept.mjs') ||
+  _running?.endsWith('live-accept.mjs/')
+) {
+  acceptCli();
+}
+
+export {
+  applyDeferredSvelteComponentAccepts,
+  deindentContent,
+  detectCommentSyntax,
+  extractCss,
+  extractOriginal,
+  extractVariant,
+  findMarkerBlock,
+  scrubManualEditsAgainstFile,
+  scrubManualEditsAgainstOriginalBlock,
+};

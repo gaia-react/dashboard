@@ -13,7 +13,8 @@
     {"model": "delta", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 400}},
     {"model": "echo", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 300}},
     {"model": "foxtrot", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 200}},
-    {"model": "golf", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 100}}
+    {"model": "golf", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 50}},
+    {"model": "hotel", "buckets": {"cacheRead": 0, "cacheWrite": 0, "freshInput": 0, "output": 50}}
   ],
   "modelWeekly": [
     {
@@ -26,7 +27,8 @@
         "delta": 400,
         "echo": 300,
         "foxtrot": 200,
-        "golf": 100
+        "golf": 50,
+        "hotel": 50
       }
     }
   ],

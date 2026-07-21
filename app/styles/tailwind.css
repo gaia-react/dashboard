@@ -1,13 +1,32 @@
 @import 'tailwindcss';
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
-  --font-display: 'Fraunces', georgia, serif;
   --font-sans: ui-sans-serif, system-ui, sans-serif;
   --font-mono:
     ui-monospace, sfmono-regular, menlo, monaco, consolas, 'Liberation Mono',
     'Courier New', monospace;
+
+  /* Semantic type scale (DESIGN.md section 3). Tailwind v4 pairs a size with
+     its line height and letter spacing via the --text-{name}--{property}
+     suffix, so text-metric ships all three in one utility. Components use
+     these instead of hand-tuned arbitrary values. */
+  --text-metric: 2.25rem;
+  --text-metric--line-height: 1.05;
+  --text-metric--letter-spacing: -0.02em;
+
+  --text-metric-sm: 1.5rem;
+  --text-metric-sm--line-height: 1.1;
+  --text-metric-sm--letter-spacing: -0.01em;
+
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.25;
+  --text-title--letter-spacing: -0.01em;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.5;
+
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.2;
 
   --color-bg: #141413;
   --color-bg-elev: #1f1e1d;
@@ -30,6 +49,18 @@
   --color-warn-2: #b88a3f;
   --color-warn-soft: #ecc781;
 
+  /* info and moss are CATEGORICAL ONLY: they exist because nine event types
+     need nine tones and three hues cannot carry nine. moss is never a success
+     state, so ../studio/branding/DESIGN.md's no-success-green rule still
+     holds; info is never a link, a system banner, or an info callout. */
+  --color-info: #6183ad;
+  --color-info-2: #4a688c;
+  --color-info-soft: #9db6d6;
+
+  --color-moss: #7a9463;
+  --color-moss-2: #5f764c;
+  --color-moss-soft: #a8bf94;
+
   --color-border: #3d3d3a;
   --color-border-soft: #2e2e2b;
 
@@ -49,22 +80,23 @@
 @layer base {
   html {
     @apply antialiased;
+
+    /* Renders native <select> popups, <option> rows, <optgroup> headers, and
+       scrollbars dark. Without it the filter and sort controls flash a white
+       OS popup on a dark console. */
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-bg text-fg font-sans;
+    @apply bg-bg text-fg text-body font-sans;
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-display font-light;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-  }
+  /* No h1/h2/h3 element selector: headings take their size and weight from the
+     component that renders them (text-title font-medium), never from an
+     element rule. */
 
   a {
-    @apply text-accent hover:text-accent-2 no-underline hover:underline;
+    @apply text-accent hover:text-accent-soft no-underline hover:underline;
   }
 
   /* Tailwind v4 Preflight sets button { cursor: default }; every enabled

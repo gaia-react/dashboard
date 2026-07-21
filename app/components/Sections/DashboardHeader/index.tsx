@@ -20,9 +20,9 @@ const eyebrowClass =
   'text-fg-mute font-mono text-xs tracking-[0.2em] uppercase';
 const titleButtonClass =
   'flex items-center gap-4 rounded-sm focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2';
-/** Prominent, legible per-project label (feedback): the display font used
- * elsewhere for section headings, sized down for the header's compact row. */
-const projectNameClass = 'font-display text-fg text-right text-xl font-light';
+/** Prominent, legible per-project label (feedback): the title step used
+ * elsewhere for section headings, right-aligned in the header's compact row. */
+const projectNameClass = 'text-fg text-right text-title font-medium';
 /**
  * The project path is shown in full, never truncated: a truncated path or
  * scan line hides the very thing it is meant to identify. Longer values wrap

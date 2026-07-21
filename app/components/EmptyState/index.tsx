@@ -8,7 +8,7 @@ export const emptyStateClasses = {
   container:
     'border-border-soft bg-bg-elev rounded-md border border-dashed p-8 text-center',
   description: 'text-fg-mute mt-2 text-sm',
-  title: 'text-fg-dim font-display text-lg font-light',
+  title: 'text-fg-dim text-title font-medium',
 };
 
 type Props = {

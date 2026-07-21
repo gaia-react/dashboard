@@ -29,13 +29,14 @@ export const sectionChromeClassName =
 export const eyebrowClassName =
   'text-secondary-soft font-mono text-xs tracking-[0.2em] uppercase';
 
-export const headingClassName = 'font-display text-fg text-2xl font-light';
+export const headingClassName = 'text-fg text-title font-medium';
 const captionClassName = 'text-fg-mute text-sm';
 const statTileClassName =
   'bg-bg-elev-2 border-border-soft flex flex-col gap-1 rounded-md border p-4';
 const statLabelClassName =
   'text-fg-mute font-mono text-[0.65rem] tracking-[0.15em] uppercase';
-const statValueClassName = 'font-display text-fg truncate text-xl font-light';
+const statValueClassName =
+  'text-fg truncate font-mono text-metric-sm tabular-nums';
 const statSubtextClassName = 'text-fg-mute text-xs';
 const listLabelClassName =
   'text-fg-mute font-mono text-[0.65rem] tracking-[0.15em] uppercase';

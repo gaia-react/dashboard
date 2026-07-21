@@ -28,7 +28,7 @@ export const sectionChromeClassName =
 export const eyebrowClassName =
   'text-accent-soft font-mono text-xs tracking-[0.2em] uppercase';
 
-export const headingClassName = 'font-display text-fg text-2xl font-light';
+export const headingClassName = 'text-fg text-title font-medium';
 
 export const captionClassName = 'text-fg-mute text-sm';
 

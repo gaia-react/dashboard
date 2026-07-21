@@ -1,0 +1,569 @@
+{
+  "components": [
+    {
+      "css": ".ds-event-card { display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left; background: var(--color-bg-elev, #1f1e1d); color: var(--color-fg, #faf9f5); border: 1px solid var(--color-border, #3d3d3a); border-radius: 6px; padding: 12px 16px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.9375rem; cursor: pointer; transition: background-color 150ms, border-color 150ms; } .ds-event-card:hover { background: var(--color-bg-elev-2, #262624); } .ds-event-card:focus-visible { outline: 2px solid var(--color-accent, #d97757); outline-offset: 2px; } .ds-event-card[aria-current='true'] { background: var(--color-bg-elev-2, #262624); border-color: var(--color-accent, #d97757); } .ds-event-card__top { display: flex; align-items: center; gap: 8px; } .ds-event-card__icon { color: var(--color-accent, #d97757); flex: none; } .ds-event-card__chip { background: var(--color-bg-elev-2, #262624); color: var(--color-accent-soft, #efa58e); font-size: 0.8125rem; font-weight: 500; line-height: 1.2; border-radius: 4px; padding: 2px 8px; } .ds-event-card__id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; color: var(--color-fg-dim, #b0aea5); font-size: 0.8125rem; } .ds-event-card__title { color: var(--color-fg, #faf9f5); } .ds-event-card__meta { display: flex; gap: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 0.8125rem; color: var(--color-fg-dim, #b0aea5); } @media (prefers-reduced-motion: reduce) { .ds-event-card { transition: none; } }",
+      "description": "The selectable unit of the Work event list. Icon and chip carry the event tone; selected takes a full tone border, never a side stripe.",
+      "html": "<button class=\"ds-event-card\" aria-current=\"true\" type=\"button\"><span class=\"ds-event-card__top\"><svg class=\"ds-event-card__icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"/><path d=\"M14 2v4a2 2 0 0 0 2 2h4\"/><path d=\"M8 13h8\"/><path d=\"M8 17h5\"/></svg><span class=\"ds-event-card__chip\">Spec</span><span class=\"ds-event-card__id\">SPEC-032</span></span><span class=\"ds-event-card__title\">Audit cost tracking and drill-down</span><span class=\"ds-event-card__meta\"><span>2026-07-14</span><span>$14.35</span><span>28m 15s</span><span>merged</span></span></button>",
+      "kind": "card",
+      "name": "Event Card",
+      "refersTo": "event-card"
+    },
+    {
+      "css": ".ds-metric-strip { display: flex; gap: 32px; background: var(--color-bg-elev, #1f1e1d); border-bottom: 1px solid var(--color-border-soft, #2e2e2b); padding: 24px; font-family: ui-sans-serif, system-ui, sans-serif; } .ds-metric { display: flex; flex-direction: column; gap: 4px; } .ds-metric__label { font-size: 0.8125rem; font-weight: 500; line-height: 1.2; color: var(--color-fg-dim, #b0aea5); } .ds-metric__value { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 2.25rem; line-height: 1.05; letter-spacing: -0.02em; color: var(--color-fg, #faf9f5); } .ds-metric__value--none { color: var(--color-fg-mute, #87867f); }",
+      "description": "The detail panel headline: exactly the three figures users asked for. A null value renders as a dash in Stone, never as zero.",
+      "html": "<div class=\"ds-metric-strip\"><div class=\"ds-metric\"><span class=\"ds-metric__label\">Cost</span><span class=\"ds-metric__value\">$14.35</span></div><div class=\"ds-metric\"><span class=\"ds-metric__label\">Elapsed</span><span class=\"ds-metric__value\">28m 15s</span></div><div class=\"ds-metric\"><span class=\"ds-metric__label\">Total tokens</span><span class=\"ds-metric__value\">14.3M</span></div></div>",
+      "kind": "custom",
+      "name": "Metric Strip",
+      "refersTo": "metric-block"
+    },
+    {
+      "css": ".ds-select { appearance: none; background-color: var(--color-bg-elev, #1f1e1d); background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b0aea5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 8px center; color: var(--color-fg, #faf9f5); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.2; border: 1px solid var(--color-border, #3d3d3a); border-radius: 4px; padding: 6px 32px 6px 12px; cursor: pointer; transition: border-color 150ms; } .ds-select:hover { border-color: var(--color-fg-mute, #87867f); } .ds-select:focus-visible { outline: 2px solid var(--color-accent, #d97757); outline-offset: 2px; } .ds-select:disabled { color: var(--color-fg-mute, #87867f); cursor: default; } @media (prefers-reduced-motion: reduce) { .ds-select { transition: none; } }",
+      "description": "Filter and sort controls. Native select with optgroup; a custom popover is prohibited here because native already carries the keyboard and screen-reader behavior.",
+      "html": "<select class=\"ds-select\" aria-label=\"Filter events\"><option>All Events</option><optgroup label=\"Work\"><option>Spec</option><option>Plan</option><option>Debt</option></optgroup><optgroup label=\"Maintenance\"><option>Audit</option><option>Fitness</option><option>Forensics</option><option>Harden</option><option>Wiki</option><option>Review</option></optgroup></select>",
+      "kind": "input",
+      "name": "Filter Select",
+      "refersTo": "select-control"
+    },
+    {
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--color-fg-dim, #b0aea5); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.2; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; transition: background-color 150ms, color 150ms; } .ds-btn-ghost:hover { background: var(--color-bg-elev-2, #262624); color: var(--color-fg, #faf9f5); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--color-accent, #d97757); outline-offset: 2px; } .ds-btn-ghost:active { background: var(--color-bg-elev, #1f1e1d); } .ds-btn-ghost:disabled { color: var(--color-fg-mute, #87867f); cursor: default; background: transparent; } @media (prefers-reduced-motion: reduce) { .ds-btn-ghost { transition: none; } }",
+      "description": "The default button of this interface. Most chrome is navigation and selection, not action, so ghost is the norm and filled primary is rare.",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\"/><path d=\"M8 16H3v5\"/></svg>Refresh</button>",
+      "kind": "button",
+      "name": "Ghost Button",
+      "refersTo": "button-ghost"
+    },
+    {
+      "css": ".ds-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--color-border, #3d3d3a); } .ds-tab { background: transparent; color: var(--color-fg-dim, #b0aea5); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.2; border: none; border-bottom: 2px solid transparent; padding: 10px 12px; margin-bottom: -1px; cursor: pointer; transition: color 150ms, border-color 150ms; } .ds-tab:hover { color: var(--color-fg, #faf9f5); } .ds-tab:focus-visible { outline: 2px solid var(--color-accent, #d97757); outline-offset: -2px; } .ds-tab[aria-selected='true'] { color: var(--color-fg, #faf9f5); border-bottom-color: var(--color-accent, #d97757); } @media (prefers-reduced-motion: reduce) { .ds-tab { transition: none; } }",
+      "description": "Section navigation, consolidated into the single sticky top bar so vertical space goes to data rather than chrome.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab\" role=\"tab\" aria-selected=\"true\" type=\"button\">Work</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\" type=\"button\">Insights</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\" type=\"button\">Sessions</button></div>",
+      "kind": "nav",
+      "name": "Tab Strip",
+      "refersTo": "button-ghost"
+    },
+    {
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--color-bg-elev-2, #262624); color: var(--color-info-soft, #9db6d6); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.2; border-radius: 4px; padding: 2px 8px; } .ds-chip svg { color: var(--color-info-soft, #9db6d6); }",
+      "description": "Read-only event type marker. Icon plus label plus tone, so meaning survives greyscale. Never clickable; an actionable version would be a button.",
+      "html": "<span class=\"ds-chip\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/></svg>Harden</span>",
+      "kind": "chip",
+      "name": "Type Chip",
+      "refersTo": "type-chip"
+    }
+  ],
+  "extensions": {
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      }
+    ],
+    "colorMeta": {
+      "bg": {
+        "canonical": "oklch(19.1% 0.002 106.6)",
+        "displayName": "Warm Charcoal",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#242423",
+          "#40403f",
+          "#5e5e5c",
+          "#7d7d7c",
+          "#9e9e9d",
+          "#c4c4c3",
+          "#ebebea"
+        ]
+      },
+      "bg-elev": {
+        "canonical": "oklch(23.6% 0.002 67.7)",
+        "displayName": "Raised Charcoal",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#252423",
+          "#413f3e",
+          "#5e5d5c",
+          "#7e7d7c",
+          "#9f9e9d",
+          "#c5c4c2",
+          "#ecebe9"
+        ]
+      },
+      "bg-elev-2": {
+        "canonical": "oklch(26.8% 0.004 106.6)",
+        "displayName": "Top Charcoal",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#242422",
+          "#40403e",
+          "#5e5e5b",
+          "#7d7d7b",
+          "#9e9e9c",
+          "#c4c4c2",
+          "#ebebe9"
+        ]
+      },
+      "bg-tint": {
+        "canonical": "oklch(22.3% 0.007 229.2)",
+        "displayName": "Slate Tint",
+        "role": "neutral",
+        "tonalRamp": [
+          "#080c0e",
+          "#212527",
+          "#3c4043",
+          "#5a5e61",
+          "#797e81",
+          "#9a9fa2",
+          "#c0c5c8",
+          "#e6ecef"
+        ]
+      },
+      "fg": {
+        "canonical": "oklch(98.2% 0.005 95.1)",
+        "displayName": "Bone",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252421",
+          "#40403d",
+          "#5e5e5a",
+          "#7e7d7a",
+          "#9f9e9b",
+          "#c5c4c0",
+          "#ecebe7"
+        ]
+      },
+      "fg-dim": {
+        "canonical": "oklch(75.0% 0.013 96.5)",
+        "displayName": "Warm Ash",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0d0b06",
+          "#26241d",
+          "#424038",
+          "#605e56",
+          "#7f7d75",
+          "#a09f96",
+          "#c6c4bb",
+          "#edebe2"
+        ]
+      },
+      "fg-mute": {
+        "canonical": "oklch(61.9% 0.010 100.1)",
+        "displayName": "Stone",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0c0b07",
+          "#25241f",
+          "#41403a",
+          "#5f5e57",
+          "#7e7d77",
+          "#a09f97",
+          "#c5c4bd",
+          "#edebe4"
+        ]
+      },
+      "accent": {
+        "canonical": "oklch(67.2% 0.131 38.8)",
+        "displayName": "Burnt Orange",
+        "role": "primary",
+        "tonalRamp": [
+          "#2f0000",
+          "#520000",
+          "#751a00",
+          "#983d1d",
+          "#bd5e3f",
+          "#e2805f",
+          "#ffa584",
+          "#ffccaa"
+        ]
+      },
+      "accent-2": {
+        "canonical": "oklch(61.7% 0.138 39.0)",
+        "displayName": "Burnt Orange Deep",
+        "role": "primary",
+        "tonalRamp": [
+          "#310000",
+          "#540000",
+          "#771600",
+          "#9b3a16",
+          "#c05c3a",
+          "#e57e5b",
+          "#ffa380",
+          "#ffcaa6"
+        ]
+      },
+      "accent-soft": {
+        "canonical": "oklch(78.8% 0.094 38.0)",
+        "displayName": "Burnt Orange Light",
+        "role": "primary",
+        "tonalRamp": [
+          "#270000",
+          "#470a00",
+          "#682a17",
+          "#8a4935",
+          "#ad6953",
+          "#d18a73",
+          "#faaf98",
+          "#ffd6be"
+        ]
+      },
+      "secondary": {
+        "canonical": "oklch(60.0% 0.051 195.9)",
+        "displayName": "Slate Teal",
+        "role": "secondary",
+        "tonalRamp": [
+          "#001112",
+          "#002b2c",
+          "#184848",
+          "#386767",
+          "#588787",
+          "#79a9a9",
+          "#9ecfcf",
+          "#c4f6f6"
+        ]
+      },
+      "secondary-2": {
+        "canonical": "oklch(50.1% 0.046 195.8)",
+        "displayName": "Slate Teal Deep",
+        "role": "secondary",
+        "tonalRamp": [
+          "#001011",
+          "#002b2b",
+          "#1e4748",
+          "#3d6666",
+          "#5c8686",
+          "#7da8a8",
+          "#a2cece",
+          "#c9f5f5"
+        ]
+      },
+      "secondary-soft": {
+        "canonical": "oklch(74.2% 0.041 196.3)",
+        "displayName": "Slate Teal Light",
+        "role": "secondary",
+        "tonalRamp": [
+          "#001011",
+          "#042a2b",
+          "#234747",
+          "#416565",
+          "#618585",
+          "#81a7a7",
+          "#a6cdcd",
+          "#cdf4f4"
+        ]
+      },
+      "warn": {
+        "canonical": "oklch(76.1% 0.114 78.2)",
+        "displayName": "Amber",
+        "role": "secondary",
+        "tonalRamp": [
+          "#220000",
+          "#401700",
+          "#5f3500",
+          "#805300",
+          "#a2741a",
+          "#c59543",
+          "#edbb6a",
+          "#ffe291"
+        ]
+      },
+      "warn-2": {
+        "canonical": "oklch(66.3% 0.108 77.2)",
+        "displayName": "Amber Deep",
+        "role": "secondary",
+        "tonalRamp": [
+          "#210000",
+          "#3f1800",
+          "#5e3500",
+          "#7f5400",
+          "#a17426",
+          "#c4954b",
+          "#ebbb71",
+          "#ffe297"
+        ]
+      },
+      "warn-soft": {
+        "canonical": "oklch(84.6% 0.098 82.6)",
+        "displayName": "Amber Light",
+        "role": "secondary",
+        "tonalRamp": [
+          "#1d0200",
+          "#3a1c00",
+          "#583900",
+          "#785703",
+          "#9a7731",
+          "#bc9953",
+          "#e3bf79",
+          "#ffe69f"
+        ]
+      },
+      "info": {
+        "canonical": "oklch(60.1% 0.075 254.1)",
+        "displayName": "Muted Blue",
+        "role": "tertiary",
+        "tonalRamp": [
+          "#000829",
+          "#042447",
+          "#214166",
+          "#3f5f87",
+          "#5e80a9",
+          "#7ea1cd",
+          "#a3c7f5",
+          "#c9efff"
+        ]
+      },
+      "info-2": {
+        "canonical": "oklch(50.9% 0.068 253.5)",
+        "displayName": "Muted Blue Deep",
+        "role": "tertiary",
+        "tonalRamp": [
+          "#000926",
+          "#082444",
+          "#254163",
+          "#426083",
+          "#6180a5",
+          "#81a1c8",
+          "#a6c7f0",
+          "#ccefff"
+        ]
+      },
+      "info-soft": {
+        "canonical": "oklch(76.8% 0.054 254.7)",
+        "displayName": "Muted Blue Light",
+        "role": "tertiary",
+        "tonalRamp": [
+          "#000a21",
+          "#11253d",
+          "#2c415c",
+          "#495f7c",
+          "#687f9d",
+          "#88a1c0",
+          "#adc7e7",
+          "#d4eeff"
+        ]
+      },
+      "moss": {
+        "canonical": "oklch(63.4% 0.076 131.0)",
+        "displayName": "Moss",
+        "role": "tertiary",
+        "tonalRamp": [
+          "#011000",
+          "#162b00",
+          "#314819",
+          "#4e6638",
+          "#6d8756",
+          "#8ea977",
+          "#b3cf9b",
+          "#daf6c1"
+        ]
+      },
+      "moss-2": {
+        "canonical": "oklch(53.6% 0.068 131.7)",
+        "displayName": "Moss Deep",
+        "role": "tertiary",
+        "tonalRamp": [
+          "#021000",
+          "#172a02",
+          "#32471f",
+          "#4f663d",
+          "#6e865b",
+          "#8fa87b",
+          "#b4cea0",
+          "#dbf5c6"
+        ]
+      },
+      "moss-soft": {
+        "canonical": "oklch(77.6% 0.064 130.7)",
+        "displayName": "Moss Light",
+        "role": "tertiary",
+        "tonalRamp": [
+          "#031000",
+          "#192a04",
+          "#344721",
+          "#51653e",
+          "#70855d",
+          "#91a77d",
+          "#b6cda2",
+          "#dcf5c8"
+        ]
+      },
+      "border": {
+        "canonical": "oklch(35.9% 0.005 106.7)",
+        "displayName": "Iron",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0b0b09",
+          "#242421",
+          "#40403d",
+          "#5e5e5b",
+          "#7d7d7a",
+          "#9f9f9b",
+          "#c4c4c1",
+          "#ebebe8"
+        ]
+      },
+      "border-soft": {
+        "canonical": "oklch(30.0% 0.005 106.7)",
+        "displayName": "Charcoal Rule",
+        "role": "neutral",
+        "tonalRamp": [
+          "#0b0b09",
+          "#242421",
+          "#40403d",
+          "#5e5e5a",
+          "#7d7d7a",
+          "#9f9f9b",
+          "#c4c4c0",
+          "#ebebe7"
+        ]
+      }
+    },
+    "motion": [
+      {
+        "name": "duration-state",
+        "purpose": "Default for every hover, selection, and state transition. The whole system lives in the 150-250ms band.",
+        "value": "150ms"
+      },
+      {
+        "name": "duration-panel",
+        "purpose": "Upper bound, for the detail panel swapping content on selection change.",
+        "value": "250ms"
+      },
+      {
+        "name": "ease-standard",
+        "purpose": "Default easing. No bounce, no elastic, no spring.",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)"
+      },
+      {
+        "name": "reduced-motion",
+        "purpose": "Mandatory alternative on every transition. Not optional.",
+        "value": "transition: none"
+      }
+    ],
+    "shadows": [],
+    "typographyMeta": {
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text, card titles, table cells. Prose caps at 65-75ch; data may run wider."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Every label, chip, select, badge, axis, caption. Sentence case, never uppercase, never tracked."
+      },
+      "metric": {
+        "displayName": "Metric",
+        "purpose": "The one number a surface exists to report. At most three per surface. Mono, tabular."
+      },
+      "metric-sm": {
+        "displayName": "Metric Small",
+        "purpose": "Card-level numbers and the detail panel metric strip. Mono, tabular."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section and panel headings, and the selected event name."
+      }
+    }
+  },
+  "generatedAt": "2026-07-21T00:00:00.000Z",
+  "narrative": {
+    "donts": [
+      "Don't put a tiny uppercase letter-spaced eyebrow above a section. This is the prohibition with the most existing violations in this codebase; they get removed, not preserved.",
+      "Don't use border-left or border-right above 1px as a colored accent stripe. Prohibited on cards, list items, callouts, and alerts without exception.",
+      "Don't nest a card inside a card. Compose flat sections separated by border-soft rules instead.",
+      "Don't add a shadow, gradient, glass blur, or lift transform anywhere.",
+      "Don't look like the GAIA marketing site: no Fraunces, no font-display, no editorial hero pacing on a data surface.",
+      "Don't look like a generic admin template: no Inter, no blue accents, no gray-* utilities, no invented semantic aliases like bg-body.",
+      "Don't look like an observability chart-wall: no uniform grid of same-sized panels. Every surface states which answer is the primary one.",
+      "Don't fill a card or a resting surface with a saturated hue, and never color an inactive or disabled state.",
+      "Don't write a hex literal in a component. Tokens only, opacity modifiers allowed.",
+      "Don't introduce a light theme, a dark: variant, or a theme toggle. There is one surface.",
+      "Don't show bucket-level token vocabulary (fresh input, cache write, cache read) anywhere in the UI.",
+      "Don't reinvent a standard control. Native select, native button, real links, real focus order.",
+      "Don't load a webfont. The dashboard must render correctly with the network off."
+    ],
+    "dos": [
+      "Do use the full browser width. Horizontal padding px-4 sm:px-6 xl:px-10, capped only at 2xl:max-w-[140rem] 2xl:mx-auto.",
+      "Do set every comparable figure in mono with tabular-nums.",
+      "Do write labels in plain sentence case at 0.8125rem.",
+      "Do give the selected event card a full 1px border in its own tone plus bg-elev-2.",
+      "Do pair every hue with an icon and a text label.",
+      "Do use the -soft variant for body-size colored text on any elevated surface.",
+      "Do keep transitions in the 150-250ms band and give every one a motion-reduce alternative.",
+      "Do ship all seven states for every interactive component: default, hover, focus, active, disabled, loading, error.",
+      "Do use skeletons for loading, shaped like the content they replace.",
+      "Do write empty states that teach what would fill them.",
+      "Do render a missing value as a missing value. A null cost is a dash, never $0, and it sorts last rather than as zero."
+    ],
+    "keyCharacteristics": [
+      "Full-bleed dark field, capped only at the very largest viewports.",
+      "One type family (system sans) plus one mono, used for numerals only.",
+      "Numerals are the largest thing on any surface.",
+      "Tonal layering, zero shadows, zero gradients, zero glass.",
+      "Color is categorical data; every colored thing also has an icon and a text label.",
+      "Motion reports state changes and does nothing else."
+    ],
+    "northStar": "The Mission Console",
+    "overview": "A wide, dark operations surface. On the left, the roster of everything that has happened on this project; on the right, the one thing you selected, rendered large enough to read across a desk. The console fills the browser edge to edge because the data is the point and margins are not; it is calm because an operator glancing at it needs to find one figure, not admire a composition.\n\nThe system is flat in the sense that matters: nothing casts a shadow, nothing is made of glass, nothing pretends to float. Depth is communicated by tone (a three-step neutral ramp from the page field up to interactive objects) and by space (padding generous enough that a region reads as a region without needing chrome around it). Color is a data encoding, never a finish: nine event types carry nine hues, warm for Work and cool for Maintenance, and each hue appears only on an icon, a small chip, and the selected card's border. A hue never fills a surface and never marks an inactive state.\n\nThis system explicitly rejects three things. It is not the GAIA marketing site: no display serif, no editorial hero pacing, no brand-first composition. It is not a generic admin template: no Inter, no blue accents, no gray-800 cards, no default component-library look. And it is not an observability chart-wall: no uniform grid of same-sized panels where everything is equally important. Every surface has one primary answer and a hierarchy that says which one it is.",
+    "rules": [
+      {
+        "body": "The event scale is exactly nine tones and they are fixed: Spec accent, Plan accent-soft, Debt warn, Audit secondary, Harden info, Fitness moss, Wiki secondary-soft, Forensics warn-soft, Review fg-mute. Warm hues are Work, cool hues are Maintenance, so the grouping is legible before the label is read. An unrecognized event type degrades to fg-mute and a generic icon; it never invents a tenth tone.",
+        "name": "The Categorical Nine Rule",
+        "section": "colors"
+      },
+      {
+        "body": "Base hues clear AA body contrast on the page field but not on raised surfaces: on bg-elev, info measures 4.25:1 and secondary 4.32:1, both under 4.5. Therefore body-size colored text on any elevated surface uses the -soft variant. Base hues are for icons, borders, chips, and text at 18px or above. The -2 variants are borders and hover states only.",
+        "name": "The Soft-On-Elevated Rule",
+        "section": "colors"
+      },
+      {
+        "body": "An event hue colors an icon, a chip, a border, or a chart mark. It never fills a card background, never fills a button, and never appears on an inactive or disabled state.",
+        "name": "The No-Fill Rule",
+        "section": "colors"
+      },
+      {
+        "body": "Every color-coded element carries a redundant non-color signal: an icon and a text label at minimum. The interface must survive greyscale, color blindness, and a screenshot.",
+        "name": "The Color-Is-Never-Alone Rule",
+        "section": "colors"
+      },
+      {
+        "body": "The tiny uppercase letter-spaced label above a section is prohibited. It is the single most saturated AI tell in interface generation, and this codebase currently has it above nearly every block. Labels are plain sentence case at the Label step. At most one deliberate uppercase treatment may exist per surface.",
+        "name": "The No-Eyebrow Rule",
+        "section": "typography"
+      },
+      {
+        "body": "Any figure a user might compare against another figure (dollars, durations, token counts, dates, counts, percentages) is set in mono with tabular-nums. Prose numbers inside a sentence stay in the sans.",
+        "name": "The Numerals-Are-Mono Rule",
+        "section": "typography"
+      },
+      {
+        "body": "Adjacent text steps sit at a 1.15-1.2 ratio. The jump from Body to Title (1.33) and from Metric small to Metric (1.5) are deliberate: those are heading and display roles, not text roles.",
+        "name": "The Two-Step Rule",
+        "section": "typography"
+      },
+      {
+        "body": "Surfaces are flat at rest and flat in every state. A state change moves a surface up the tonal ramp or changes a border color; it never adds a shadow, a lift, a scale transform, or a glow. If it looks like a 2014 app, a shadow got in.",
+        "name": "The Flat-Forever Rule",
+        "section": "elevation"
+      },
+      {
+        "body": "A card inside a card is always wrong. The event list is a legitimate card list because each card is a discrete selectable object. The detail panel is not a grid of cards: it is one surface divided by rules.",
+        "name": "The No-Nested-Cards Rule",
+        "section": "elevation"
+      }
+    ]
+  },
+  "schemaVersion": 2,
+  "title": "Design System: GAIA Dashboard"
+}

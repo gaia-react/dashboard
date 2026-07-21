@@ -7,9 +7,10 @@
       "gamma": 50,
       "delta": 25,
       "echo": 20,
-      "foxtrot": 30,
+      "foxtrot": 25,
       "golf": 0,
-      "hotel": 0
+      "hotel": 0,
+      "india": 5
     }
   },
   {
@@ -22,7 +23,8 @@
       "echo": 10,
       "foxtrot": 0,
       "golf": 20,
-      "hotel": 0
+      "hotel": 0,
+      "india": 0
     }
   },
   {
@@ -35,7 +37,8 @@
       "echo": 10,
       "foxtrot": 0,
       "golf": 0,
-      "hotel": 10
+      "hotel": 10,
+      "india": 0
     }
   },
   {
@@ -48,7 +51,8 @@
       "echo": 10,
       "foxtrot": 0,
       "golf": 0,
-      "hotel": 0
+      "hotel": 0,
+      "india": 0
     }
   }
 ]

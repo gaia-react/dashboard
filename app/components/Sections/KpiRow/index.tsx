@@ -21,7 +21,7 @@ const gridClass = 'grid grid-cols-2 gap-4 lg:grid-cols-4';
 const tileClass =
   'bg-bg-elev border-border-soft flex flex-col gap-1 rounded-md border p-4';
 const labelClass = 'text-fg-mute font-mono text-xs tracking-[0.2em] uppercase';
-const valueClass = 'font-display text-2xl font-light text-fg';
+const valueClass = 'text-title font-medium text-fg';
 const sublabelClass = 'text-fg-mute text-xs';
 const noteClass = 'text-warn-soft text-xs';
 

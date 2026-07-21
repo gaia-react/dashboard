@@ -11,7 +11,7 @@ const sectionChromeClassName =
   'border-warn-2 bg-bg-elev flex flex-col gap-4 rounded-md border p-6';
 const eyebrowClassName =
   'text-warn-soft font-mono text-xs tracking-[0.2em] uppercase';
-const headingClassName = 'font-display text-fg text-2xl font-light';
+const headingClassName = 'text-fg text-title font-medium';
 const groupLabelClassName =
   'text-fg-mute font-mono text-[0.65rem] tracking-[0.15em] uppercase';
 const badgeClassName =

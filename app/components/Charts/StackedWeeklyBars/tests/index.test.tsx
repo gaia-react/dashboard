@@ -19,13 +19,14 @@ const renderChart = (): void => {
   render(<StackedWeeklyBars data={weeklyStacks} locale="en-US" />);
 };
 
-test('past six series the tail folds into an "Other" legend entry', () => {
+test('past eight series the tail folds into an "Other" legend entry', () => {
   renderChart();
 
-  // 8 fixture series collapse to 5 named + Other.
-  expect(screen.getAllByRole('listitem')).toHaveLength(6);
+  // 9 fixture series collapse to 7 named + Other.
+  expect(screen.getAllByRole('listitem')).toHaveLength(8);
   expect(screen.getByText('Other')).toBeInTheDocument();
-  expect(screen.queryByText('foxtrot')).not.toBeInTheDocument();
+  expect(screen.queryByText('hotel')).not.toBeInTheDocument();
+  expect(screen.queryByText('india')).not.toBeInTheDocument();
 });
 
 test('renders one week band per datum with stacked, gapped segments', () => {
@@ -36,8 +37,8 @@ test('renders one week band per datum with stacked, gapped segments', () => {
     screen.getByRole('graphics-symbol', {name: 'Week of Jun 7: 300 total'})
   ).toBeInTheDocument();
 
-  // Zero-value series render no segment: weeks carry 6, 6, 6, and 5 marks.
-  expect(screen.getAllByTestId(/^stack-segment-/u)).toHaveLength(23);
+  // Zero-value series render no segment: weeks carry 7, 6, 6, and 5 marks.
+  expect(screen.getAllByTestId(/^stack-segment-/u)).toHaveLength(24);
 
   // Colors follow the palette order by series total, "other" wears a neutral.
   expect(screen.getByTestId('stack-segment-2026-06-07-alpha')).toHaveClass(

@@ -116,7 +116,7 @@ test('a dataset where every model is <synthetic> in every week renders the empty
   expect(screen.queryByRole('graphics-symbol')).not.toBeInTheDocument();
 });
 
-test('more than six models fold the tail into an "Other" legend entry, palette in series order', () => {
+test('more than eight models fold the tail into an "Other" legend entry, palette in series order', () => {
   render(
     <ModelMix
       locale="en-US"
@@ -125,15 +125,15 @@ test('more than six models fold the tail into an "Other" legend entry, palette i
     />
   );
 
-  // 8 fixture series collapse to 5 named + Other (scoped to the weekly
+  // 9 fixture series collapse to 7 named + Other (scoped to the weekly
   // chart's legend: the totals bars intentionally still list every model,
   // since HorizontalBars has no tail-folding concept, only a color-series
   // chart does).
   const legend = screen.getByRole('list');
 
-  expect(within(legend).getAllByRole('listitem')).toHaveLength(6);
+  expect(within(legend).getAllByRole('listitem')).toHaveLength(8);
   expect(within(legend).getByText('Other')).toBeInTheDocument();
-  expect(within(legend).queryByText('foxtrot')).not.toBeInTheDocument();
+  expect(within(legend).queryByText('hotel')).not.toBeInTheDocument();
 
   // Series colors follow the palette order by descending total.
   expect(screen.getByTestId('stack-segment-2026-06-07-alpha')).toHaveClass(
@@ -151,7 +151,7 @@ test('a real model literally named "other" does not collide with the kit\'s synt
   );
 
   // The real "other" model (500) survives as its own kept, colored series,
-  // distinct from the synthetic tail's "Other" (echo+foxtrot+golf = 600).
+  // distinct from the synthetic tail's "Other" (golf+hotel = 100).
   // Scoped to the weekly chart's legend: "other" also appears as a totals
   // bar row label (HorizontalBars has no tail-folding concept).
   const legend = screen.getByRole('list');
@@ -175,7 +175,7 @@ test('a real model literally named "other" does not collide with the kit\'s synt
   const tooltip = screen.getByRole('tooltip');
 
   expect(tooltip).toHaveTextContent('500');
-  expect(tooltip).toHaveTextContent('600');
+  expect(tooltip).toHaveTextContent('100');
 });
 
 test('the skeleton mirrors the section chrome and is hidden from assistive tech', () => {

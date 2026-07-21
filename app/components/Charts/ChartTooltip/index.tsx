@@ -26,7 +26,7 @@ type Props = TooltipContent & {
  */
 const ChartTooltip: FC<Props> = ({rows, title, x, y}) => (
   <div
-    className="border-border bg-bg-elev-2 pointer-events-none absolute z-10 min-w-28 rounded-md border px-2.5 py-2 text-xs shadow-lg"
+    className="border-border bg-bg-elev-2 pointer-events-none absolute z-10 min-w-28 rounded-md border px-2.5 py-2 text-xs"
     role="tooltip"
     style={{
       left: x,
