@@ -28,7 +28,8 @@ import {useQueryParams} from '~/hooks/useQueryParams';
 
 export type SessionsListProps = {
   /** Navigates to the Work tab, targeting one cost entry: the attribution
-   * badge's jump-link, symmetric to CostTable's "View in sessions" (feedback). */
+   * badge's jump-link, symmetric to the Work event detail panel's "View in
+   * sessions" link (feedback). */
   onViewEntry?: (key: string, table: 'plans' | 'specs') => void;
   /** `ActivityResponse.sessions`, reverse-chronological (the API's order). */
   sessions: SessionSummary[];
@@ -37,8 +38,7 @@ export type SessionsListProps = {
 export const sectionChromeClassName =
   'border-border bg-bg-elev flex flex-col gap-4 rounded-md border p-6';
 
-export const eyebrowClassName =
-  'text-accent-soft font-mono text-xs tracking-[0.2em] uppercase';
+export const eyebrowClassName = 'text-label text-fg-dim';
 
 export const headingClassName = 'text-fg text-title font-medium';
 
@@ -48,8 +48,11 @@ const selectClassName =
   'border-border bg-bg-elev-2 text-fg focus-visible:outline-accent rounded-sm border px-2 py-1 text-xs focus-visible:outline-2 focus-visible:outline-offset-2';
 const pageButtonClassName =
   'border-border text-fg-dim hover:border-accent-2 hover:text-fg focus-visible:outline-accent rounded-sm border px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-fg-dim focus-visible:outline-2 focus-visible:outline-offset-2';
+// rounded-full -> rounded-sm (DESIGN-SPEC 9.4: a genuine toggle chip is the
+// only rounded-full exception, and this attribution badge is not one), and
+// the letter-spaced all-caps eyebrow treatment dropped (DESIGN-SPEC 9.1).
 const badgeClassName =
-  'rounded-full border px-2 py-0.5 font-mono text-[0.625rem] tracking-wide uppercase';
+  'rounded-sm border px-2 py-0.5 font-mono text-[0.625rem]';
 const attributedBadgeClassName = twJoin(
   badgeClassName,
   'border-secondary-2 text-secondary-soft hover:border-secondary hover:bg-secondary/10 focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2'
@@ -58,8 +61,7 @@ const adHocBadgeClassName = twJoin(
   badgeClassName,
   'border-border text-fg-mute'
 );
-const dollarsCaptionClassName =
-  'text-fg-mute font-mono text-[0.625rem] tracking-wide uppercase';
+const dollarsCaptionClassName = 'text-fg-mute font-mono text-[0.625rem]';
 
 const SessionAttributionBadge: FC<{
   attribution: SessionSummary['attribution'];

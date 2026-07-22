@@ -18,8 +18,7 @@ export type ActivityHeatmapProps = {
 export const sectionChromeClassName =
   'border-border bg-bg-elev flex flex-col gap-4 rounded-md border p-6';
 
-export const eyebrowClassName =
-  'text-accent-soft font-mono text-xs tracking-[0.2em] uppercase';
+export const eyebrowClassName = 'text-label text-fg-dim';
 
 export const headingClassName = 'text-fg text-title font-medium';
 

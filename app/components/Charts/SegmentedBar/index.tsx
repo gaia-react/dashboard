@@ -1,11 +1,20 @@
 import type {FC} from 'react';
 import {useState} from 'react';
 import {twJoin} from 'tailwind-merge';
+import ChartEmpty from '~/components/ChartEmpty';
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import type {PhaseAmount} from '~/components/Charts/segment-shares';
 import {segmentShares} from '~/components/Charts/segment-shares';
+import {colorTransition, opacityTransition} from '~/styles/class-names';
 
 export type SegmentedBarProps = {
+  /**
+   * The measure noun named in the null-phase footnote ("{phase} phase
+   * recorded no {emptyMeasureLabel}"). Defaults to "cost"; a caller plotting
+   * a different measure (e.g. elapsed time) on this same component must pass
+   * its own noun, or the footnote reports the wrong measure.
+   */
+  emptyMeasureLabel?: string;
   emptyReason?: string;
   emptyTitle?: string;
   formatValue?: (value: number) => string;
@@ -40,11 +49,6 @@ const PHASES: PhaseConfig[] = [
   {fillClassName: 'bg-accent-soft', key: 'execute', label: 'Execute'},
 ];
 
-const opacityTransition =
-  'transition-opacity duration-150 ease-out motion-reduce:transition-none';
-const colorTransition =
-  'transition-colors duration-150 ease-out motion-reduce:transition-none';
-
 /**
  * Phase composition bar (DESIGN-SPEC 6.4): spec, then plan, then execute, as
  * proportional segments of one horizontal bar, for one measure at a time
@@ -54,6 +58,7 @@ const colorTransition =
  * direct-labeled in the legend, so the bar itself carries no tooltip.
  */
 const SegmentedBar: FC<SegmentedBarProps> = ({
+  emptyMeasureLabel = 'cost',
   emptyReason = 'This entry has no recorded phases. Cost and elapsed time are reported at the entry level only.',
   emptyTitle = 'No phase breakdown',
   formatValue = formatCompactNumber,
@@ -70,12 +75,7 @@ const SegmentedBar: FC<SegmentedBarProps> = ({
   const configByKey = new Map(PHASES.map((phase) => [phase.key, phase]));
 
   if (segments.length === 0) {
-    return (
-      <div className="flex min-h-24 flex-col justify-center gap-1">
-        <p className="text-label text-fg-dim">{emptyTitle}</p>
-        <p className="text-label text-fg-mute max-w-prose">{emptyReason}</p>
-      </div>
-    );
+    return <ChartEmpty reason={emptyReason} title={emptyTitle} />;
   }
 
   const clearHover = (): void => setHoveredKey(undefined);
@@ -150,7 +150,7 @@ const SegmentedBar: FC<SegmentedBarProps> = ({
           {nullKeys
             .map(
               (key) =>
-                `${configByKey.get(key as PhaseKey)?.label} phase recorded no cost`
+                `${configByKey.get(key as PhaseKey)?.label} phase recorded no ${emptyMeasureLabel}`
             )
             .join('. ')}
         </p>

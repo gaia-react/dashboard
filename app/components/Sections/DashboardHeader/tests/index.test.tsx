@@ -3,7 +3,7 @@ import {afterEach, expect, test, vi} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import DashboardHeader, {
-  DashboardHeaderSkeleton,
+  TopBarSkeleton,
 } from '~/components/Sections/DashboardHeader';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 import {activityResponseSchema, costsResponseSchema} from '~/data/schemas/api';
@@ -18,123 +18,160 @@ const readFixture = (name: string): unknown =>
     )
   );
 
-// Parsing through the real response schema is the fixture's honesty check:
-// a malformed fixture fails here with a clear Zod error, not a cryptic
+// Parsing through the real response schema is the fixture's honesty check: a
+// malformed fixture fails here with a clear Zod error, not a cryptic
 // component-rendering failure below.
 const costsPopulated: CostsResponse = costsResponseSchema.parse(
   readFixture('costs-populated.json')
 );
-const costsEmpty: CostsResponse = costsResponseSchema.parse(
-  readFixture('costs-empty.json')
-);
 const activityPopulated: ActivityResponse = activityResponseSchema.parse(
   readFixture('activity-populated.json')
-);
-const activityEmpty: ActivityResponse = activityResponseSchema.parse(
-  readFixture('activity-empty.json')
 );
 
 afterEach(() => {
   window.history.replaceState(null, '', '/');
 });
 
-test('renders the wordmark, project name, project identity, freshness line, and a working refresh button', () => {
-  const refresh = vi.fn();
-
+test('renders the wordmark, project name, project root, freshness line, tabs, and refresh', () => {
   render(
     <DashboardHeader
+      activeTab="work"
       activity={activityPopulated}
       costs={costsPopulated}
-      refresh={refresh}
+      isRefreshing={false}
+      onSelectTab={vi.fn()}
+      refresh={vi.fn()}
     />
   );
 
-  expect(screen.getByAltText('GAIA')).toBeInTheDocument();
+  expect(screen.getByAltText('')).toBeInTheDocument();
   expect(
     screen.getByRole('heading', {level: 1, name: 'my-app'})
   ).toBeInTheDocument();
   expect(screen.getByText('/Users/you/projects/my-app')).toBeInTheDocument();
-  expect(screen.getByText('Scanned 3 sessions · 23 specs')).toBeInTheDocument();
+  // The exact relative suffix depends on wall-clock time relative to the
+  // fixture's fixed `scannedAt` (useRelativeTime.test.ts pins the exact
+  // bucketing); only the static counts are asserted verbatim here.
+  expect(
+    screen.getByText(/^Scanned 3 sessions, 23 specs, updated /)
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole('tab', {name: 'Work', selected: true})
+  ).toBeInTheDocument();
+  expect(screen.getByRole('button', {name: 'Refresh'})).toBeInTheDocument();
+});
 
-  // The refresh button keeps a stable accessible name ("Refresh data");
-  // its visible text is a stacked "Last update" label over the ticking
-  // relative time, whose exact wording depends on wall-clock time relative
-  // to the fixed fixture timestamp (useRelativeTime.test.ts pins the exact
-  // bucketing), so only the static label is asserted verbatim here.
-  const refreshButton = screen.getByRole('button', {name: 'Refresh data'});
-  expect(refreshButton).toHaveTextContent('Last update');
-  expect(refreshButton).not.toHaveTextContent(/^Last update$/);
+test('the identity button resets to the Work tab and drops every other query param', () => {
+  window.history.pushState(null, '', '/?tab=activity&entry=spec-1&filter=spec');
 
-  fireEvent.click(refreshButton);
+  render(
+    <DashboardHeader
+      activeTab="activity"
+      activity={activityPopulated}
+      costs={costsPopulated}
+      isRefreshing={false}
+      onSelectTab={vi.fn()}
+      refresh={vi.fn()}
+    />
+  );
+
+  fireEvent.click(screen.getByRole('button', {name: /my-app/}));
+
+  const params = new URLSearchParams(window.location.search);
+
+  expect(params.get('tab')).toBe('work');
+  expect(params.has('entry')).toBe(false);
+  expect(params.has('filter')).toBe(false);
+});
+
+test('clicking a tab reports it to onSelectTab', () => {
+  const onSelectTab = vi.fn();
+
+  render(
+    <DashboardHeader
+      activeTab="work"
+      activity={activityPopulated}
+      costs={costsPopulated}
+      isRefreshing={false}
+      onSelectTab={onSelectTab}
+      refresh={vi.fn()}
+    />
+  );
+
+  fireEvent.click(screen.getByRole('tab', {name: 'Sessions'}));
+
+  expect(onSelectTab).toHaveBeenCalledWith('sessions');
+});
+
+test('the refresh button calls refresh and holds a stable accessible name while idle', () => {
+  const refresh = vi.fn();
+
+  render(
+    <DashboardHeader
+      activeTab="work"
+      activity={activityPopulated}
+      costs={costsPopulated}
+      isRefreshing={false}
+      onSelectTab={vi.fn()}
+      refresh={refresh}
+    />
+  );
+
+  const button = screen.getByRole('button', {name: 'Refresh'});
+
+  expect(button).toBeEnabled();
+  fireEvent.click(button);
   expect(refresh).toHaveBeenCalledTimes(1);
 });
 
-test('the title button resets to the Work tab and drops every other query param (feedback)', () => {
-  window.history.pushState(null, '', '/?tab=activity&entry=spec-1&work=plans');
-
+test('while a refetch is in flight, refresh is disabled and its own label becomes "Refreshing"', () => {
   render(
     <DashboardHeader
+      activeTab="work"
       activity={activityPopulated}
       costs={costsPopulated}
+      isRefreshing={true}
+      onSelectTab={vi.fn()}
       refresh={vi.fn()}
     />
   );
 
-  fireEvent.click(screen.getByRole('button', {name: /gaia dashboard/i}));
+  // The accessible name change itself IS the announcement (DESIGN-SPEC C-08):
+  // there is no separate live region for this.
+  const button = screen.getByRole('button', {name: 'Refreshing'});
 
-  const params = new URLSearchParams(window.location.search);
-  expect(params.get('tab')).toBe('work');
-  expect(params.has('entry')).toBe(false);
-  expect(params.has('work')).toBe(false);
+  expect(button).toBeDisabled();
+  expect(
+    screen.queryByRole('button', {name: 'Refresh'})
+  ).not.toBeInTheDocument();
 });
 
-test('shows the project start date as the earlier of cost and activity history', () => {
-  render(
-    <DashboardHeader
-      activity={activityPopulated}
-      costs={costsPopulated}
-      refresh={vi.fn()}
-    />
-  );
+test('TopBarSkeleton renders a real, operable tab strip even before data has resolved', () => {
+  const onSelectTab = vi.fn();
 
-  // activitySince (2026-05-05T08:00:00Z) precedes costSince (2026-07-03); the
-  // 08:00Z time keeps it on the 5th across US zones, so the date is stable.
-  expect(screen.getByText('Project started 2026-05-05')).toBeInTheDocument();
-  expect(screen.queryByText(/Cost tracking began/)).not.toBeInTheDocument();
+  render(<TopBarSkeleton activeTab="sessions" onSelectTab={onSelectTab} />);
+
+  const tab = screen.getByRole('tab', {name: 'Work'});
+
+  expect(tab).not.toHaveAttribute('aria-hidden');
+  fireEvent.click(tab);
+  expect(onSelectTab).toHaveBeenCalledWith('work');
+  expect(
+    screen.getByRole('tab', {name: 'Sessions', selected: true})
+  ).toBeInTheDocument();
 });
 
-test('derives the project start from activity alone when there is no cost history', () => {
-  render(
-    <DashboardHeader
-      activity={activityEmpty}
-      costs={costsEmpty}
-      refresh={vi.fn()}
-    />
+test('TopBarSkeleton hides only its identity and refresh placeholders from assistive tech', () => {
+  render(<TopBarSkeleton activeTab="work" onSelectTab={vi.fn()} />);
+
+  expect(screen.getByTestId('header-identity-skeleton')).toBeInTheDocument();
+  expect(screen.getByTestId('identity-skeleton-region')).toHaveAttribute(
+    'aria-hidden',
+    'true'
   );
-
-  expect(screen.getByText(/^Project started /)).toBeInTheDocument();
-  // Freshness still populates from activity alone (empty-project state).
-  expect(screen.getByText('Scanned 2 sessions · 0 specs')).toBeInTheDocument();
-});
-
-test('the skeleton mirrors the identity block max width so the data swap does not reflow', () => {
-  const {unmount} = render(<DashboardHeaderSkeleton />);
-  const skeletonIdentity = screen.getByTestId('header-identity-skeleton');
-  const skeletonWidthClass = [...skeletonIdentity.classList].find((name) =>
-    name.startsWith('max-w-')
-  );
-
-  unmount();
-
-  render(
-    <DashboardHeader
-      activity={activityPopulated}
-      costs={costsPopulated}
-      refresh={vi.fn()}
-    />
-  );
-  const realIdentity = screen.getByText('/Users/you/projects/my-app');
-
-  expect(skeletonWidthClass).toBeDefined();
-  expect(realIdentity).toHaveClass(skeletonWidthClass as string);
+  // No accessible "Refresh" control exists yet: the real button is not
+  // rendered until identity/freshness data has resolved.
+  expect(
+    screen.queryByRole('button', {name: /refresh/i})
+  ).not.toBeInTheDocument();
 });

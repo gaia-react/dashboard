@@ -28,11 +28,15 @@ test('formatProjectStart picks the earlier of the two start dates', () => {
   ).toBe('2026-05-05');
 });
 
-test('formatFreshnessLine states session count and spec count', () => {
-  expect(formatFreshnessLine({sessionCount: 3, specsTotal: 23})).toBe(
-    'Scanned 3 sessions · 23 specs'
-  );
-  expect(formatFreshnessLine({sessionCount: 1, specsTotal: 1})).toBe(
-    'Scanned 1 session · 1 spec'
-  );
+test('formatFreshnessLine states session count, spec count, and recency', () => {
+  expect(
+    formatFreshnessLine({
+      relative: '2 minutes ago',
+      sessionCount: 3,
+      specsTotal: 23,
+    })
+  ).toBe('Scanned 3 sessions, 23 specs, updated 2 minutes ago');
+  expect(
+    formatFreshnessLine({relative: 'Just now', sessionCount: 1, specsTotal: 1})
+  ).toBe('Scanned 1 session, 1 spec, updated Just now');
 });

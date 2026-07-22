@@ -35,14 +35,30 @@ test('renders one accent bar per datum with label and value at the tip', () => {
   expect(opusBar).toHaveClass('motion-reduce:transition-none');
 });
 
+test('all chart text is text-label, never an arbitrary smaller size', () => {
+  render(<HorizontalBars data={modelTotals} formatValue={formatValue} />);
+
+  expect(screen.getByText('claude-opus-4')).toHaveClass('text-label');
+  expect(screen.getByText('claude-opus-4')).not.toHaveClass('text-xs');
+  expect(screen.getByText('8.2M')).toHaveClass('text-label');
+  expect(screen.getByText('8.2M')).not.toHaveClass('text-xs');
+});
+
+test('rows are 30px tall so 13px labels do not collide', () => {
+  render(<HorizontalBars data={modelTotals} formatValue={formatValue} />);
+
+  // Four rows at ROW_HEIGHT 30.
+  expect(screen.getByRole('img')).toHaveAttribute('height', '120');
+});
+
 test('bar lengths are proportional to values on a shared linear scale', () => {
   render(<HorizontalBars data={modelTotals} formatValue={formatValue} />);
 
-  // width 480, label column 128, value column 56: plot area is 296px.
-  // Max (8.2M) fills the plot; its tip label sits at 128 + 296 + 6.
+  // width 480, label column 148, value column 56: plot area is 276px.
+  // Max (8.2M) fills the plot; its tip label sits at 148 + 276 + 6.
   expect(screen.getByText('8.2M')).toHaveAttribute('x', '430');
-  // 3.1M / 8.2M * 296 = 111.9; tip label at 128 + 111.9 + 6.
-  expect(screen.getByText('3.1M')).toHaveAttribute('x', '245.9');
+  // 3.1M / 8.2M * 276 = 104.34; tip label at 148 + 104.34 + 6.
+  expect(screen.getByText('3.1M')).toHaveAttribute('x', '258.34');
 });
 
 test('a row with bucket detail shows a tooltip on hover and hides on leave', () => {

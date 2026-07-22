@@ -1,6 +1,7 @@
 import type {FC} from 'react';
 import {useState} from 'react';
 import {twJoin} from 'tailwind-merge';
+import ChartEmpty from '~/components/ChartEmpty';
 import {
   buildSeriesColorMap,
   groupTailSeries,
@@ -11,6 +12,7 @@ import ChartTooltip from '~/components/Charts/ChartTooltip';
 import {donutArcPath, donutSegments} from '~/components/Charts/donut-arc';
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import {formatModelName} from '~/data/format/model-name';
+import {chartFocusRing, opacityTransition} from '~/styles/class-names';
 
 export type DonutProps = {
   /** Model id to token count for one event; null or empty means no breakdown. */
@@ -82,12 +84,7 @@ const Donut: FC<DonutProps> = ({
     );
 
   if (data === null || total <= 0) {
-    return (
-      <div className="flex min-h-24 flex-col justify-center gap-1">
-        <p className="text-label text-fg-dim">{emptyTitle}</p>
-        <p className="text-label text-fg-mute max-w-prose">{emptyReason}</p>
-      </div>
-    );
+    return <ChartEmpty reason={emptyReason} title={emptyTitle} />;
   }
 
   const grouped = groupTailSeries([data], MAX_SEGMENTS);
@@ -145,7 +142,9 @@ const Donut: FC<DonutProps> = ({
                     aria-label={`${labelForKey(arc.key)}: ${formatNumber(value)}, ${formatShare(arc.share)}`}
                     className={twJoin(
                       colorMap[arc.key].fillClassName,
-                      'focus-visible:outline-accent transition-opacity duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 motion-reduce:transition-none',
+                      'focus:outline-none',
+                      chartFocusRing,
+                      opacityTransition,
                       hovered?.key === arc.key && 'opacity-80'
                     )}
                     d={donutArcPath({

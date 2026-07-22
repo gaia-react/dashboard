@@ -1,6 +1,7 @@
 import type {FC, KeyboardEvent} from 'react';
 import {useRef} from 'react';
 import {twJoin} from 'tailwind-merge';
+import {colorTransition, focusRing} from '~/styles/class-names';
 
 /**
  * A horizontal tab strip following the WAI-ARIA tabs pattern: one tab stop
@@ -27,12 +28,23 @@ type Props = {
   onSelect: (id: string) => void;
 };
 
-const tablistClass = 'border-border flex gap-1 border-b';
-const tabBaseClass =
-  '-mb-px border-b-2 px-4 py-2.5 font-mono text-xs tracking-[0.15em] uppercase transition-colors focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none';
+/**
+ * DESIGN-SPEC C-07: sentence case at `text-label`, no eyebrow treatment. The
+ * strip is `overflow-x-auto` below `lg` so three tabs never wrap on a 320px
+ * viewport, and it sits flush with the top bar's `lg:h-16` row above it.
+ */
+const tablistClass =
+  'flex items-stretch gap-1 overflow-x-auto lg:-mb-px lg:h-16 lg:overflow-visible';
+const tabBaseClass = twJoin(
+  'text-label flex items-center border-b-2 px-4 py-2 whitespace-nowrap lg:py-0',
+  colorTransition,
+  focusRing
+);
+/** The active tab's border stays `accent` even on hover; only inactive tabs
+ * pick up a hover border, so hover never reads as selection. */
 const tabActiveClass = 'border-accent text-fg';
 const tabInactiveClass =
-  'border-transparent text-fg-dim hover:border-border-soft hover:text-fg';
+  'border-transparent text-fg-dim hover:border-border hover:text-fg active:text-fg';
 
 const Tabs: FC<Props> = ({activeId, items, label, onSelect}) => {
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);

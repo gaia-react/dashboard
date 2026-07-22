@@ -60,18 +60,34 @@ test('a null-valued phase is skipped from the bar and named in a footnote, never
   render(
     <SegmentedBar
       formatValue={formatValue}
-      label="Elapsed by phase"
+      label="Cost by phase"
       values={{execute: null, plan: 40, spec: 60}}
     />
   );
 
-  const bar = screen.getByRole('img', {name: 'Elapsed by phase'});
+  const bar = screen.getByRole('img', {name: 'Cost by phase'});
 
   expect(within(bar).getAllByTestId(/^segmented-bar-fill-/u)).toHaveLength(2);
   expect(screen.queryByText('Execute')).not.toBeInTheDocument();
   expect(
     screen.getByText(/Execute phase recorded no cost/u)
   ).toBeInTheDocument();
+});
+
+test('emptyMeasureLabel names the actual measure, not always "cost"', () => {
+  render(
+    <SegmentedBar
+      emptyMeasureLabel="elapsed time"
+      formatValue={formatValue}
+      label="Elapsed by phase"
+      values={{execute: null, plan: 40, spec: 60}}
+    />
+  );
+
+  expect(
+    screen.getByText(/Execute phase recorded no elapsed time/u)
+  ).toBeInTheDocument();
+  expect(screen.queryByText(/recorded no cost/u)).not.toBeInTheDocument();
 });
 
 test('hovering a bar segment dims it and highlights its matching legend row', () => {

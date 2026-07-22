@@ -36,9 +36,9 @@ export type PeriodSpendBucket = {
 
 /**
  * Minimal shape `buildPeriodSpend` reads for the recorded series; every
- * `CostEntry` satisfies this structurally (same precedent as CostTable/
- * sort.ts's `SortableCostEntry`), so the section passes `CostEntry[]`
- * directly and tests build lightweight fixtures without the full schema.
+ * `CostEntry` satisfies this structurally, so the section passes
+ * `CostEntry[]` directly and tests build lightweight fixtures without the
+ * full schema.
  */
 export type SpendEntry = {
   sortAt: string;

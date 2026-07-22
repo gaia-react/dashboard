@@ -1,4 +1,6 @@
 import type {FC} from 'react';
+import {twJoin} from 'tailwind-merge';
+import {colorTransition, focusRing} from '~/styles/class-names';
 
 type Props = {
   message: string;
@@ -7,8 +9,23 @@ type Props = {
 };
 
 /**
- * Section-level failure panel. Amber per DESIGN.md (no dedicated error red);
- * a plain refetch is the retry (PLAN D3).
+ * The C-08 ghost-button vocabulary plus the border and top margin C-31 adds,
+ * so Retry looks like every other button in the console rather than like a
+ * form control that only appears when something breaks.
+ */
+const retryClass = twJoin(
+  'text-label text-fg-dim border-border hover:bg-bg-elev-2 hover:text-fg active:bg-bg-elev-2 mt-4 inline-flex items-center gap-2 rounded-sm border px-3 py-1.5',
+  colorTransition,
+  focusRing
+);
+
+/**
+ * Section-level failure panel (DESIGN-SPEC C-31). Amber per DESIGN.md (this
+ * system has no error red); a plain refetch is the retry (PLAN D3).
+ *
+ * The title's old mono, tracked, all-caps eyebrow treatment is gone: that
+ * pattern is banned outright (DESIGN-SPEC 9.1), and an error heading is
+ * exactly where a legible one matters most.
  */
 const ErrorState: FC<Props> = ({
   message,
@@ -16,16 +33,10 @@ const ErrorState: FC<Props> = ({
   title = 'Something went wrong',
 }) => (
   <div className="border-warn-2 bg-bg-elev rounded-md border p-6" role="alert">
-    <p className="text-warn-soft font-mono text-xs tracking-[0.2em] uppercase">
-      {title}
-    </p>
-    <p className="text-fg-dim mt-2 text-sm">{message}</p>
+    <p className="text-title text-warn-soft">{title}</p>
+    <p className="text-body text-fg-dim mt-2">{message}</p>
     {onRetry && (
-      <button
-        className="border-border text-fg hover:border-warn-2 focus-visible:outline-accent mt-4 rounded-sm border px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
-        onClick={onRetry}
-        type="button"
-      >
+      <button className={retryClass} onClick={onRetry} type="button">
         Retry
       </button>
     )}

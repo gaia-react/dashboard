@@ -1,0 +1,148 @@
+{
+  "project": {
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {
+    "status": "ok",
+    "id": "sha256:6d17ab141d05c333"
+  },
+  "coverage": {
+    "costSince": "2026-06-01T00:00:00Z"
+  },
+  "kpis": {
+    "recordedDollars": 2.0,
+    "specs": {
+      "merged": 0,
+      "total": 0
+    },
+    "plans": {
+      "merged": 0,
+      "total": 1
+    }
+  },
+  "entries": [
+    {
+      "key": "PLAN-009",
+      "entryType": "plan",
+      "id": "PLAN-009",
+      "title": "Split the session scanner into two passes.",
+      "status": "ready",
+      "sortAt": "2026-07-16T10:00:00Z",
+      "source": "native",
+      "partial": false,
+      "github": null,
+      "totals": {
+        "totalTokens": 900000,
+        "recordedDollars": 2.0,
+        "durationSeconds": 2400
+      },
+      "phases": [
+        {
+          "kind": "plan",
+          "source": "native",
+          "recordedDollars": 2.0,
+          "durationSeconds": 900,
+          "totalTokens": 400000,
+          "byModel": {
+            "claude-opus-4-8": 250000,
+            "claude-sonnet-4-6": 150000
+          },
+          "byAgentType": {
+            "general-purpose": 400000
+          },
+          "audit": {
+            "dollars": 0.5,
+            "elapsedSeconds": 180,
+            "intensity": null,
+            "lenses": ["COV", "DP"],
+            "totalTokens": 120000
+          }
+        },
+        {
+          "kind": "execute",
+          "source": "native",
+          "recordedDollars": null,
+          "durationSeconds": 1500,
+          "totalTokens": 500000,
+          "byModel": {
+            "claude-sonnet-4-6": 500000
+          },
+          "byAgentType": {
+            "general-purpose": 500000
+          },
+          "audit": {
+            "dollars": 0.3,
+            "elapsedSeconds": 120,
+            "intensity": null,
+            "lenses": ["RT", "constructor"],
+            "totalTokens": 80000
+          }
+        }
+      ],
+      "sessions": [
+        {
+          "sessionId": "1f0b3c2a-55d1-4a77-9e14-6c8b0d2f4e31",
+          "kind": "plan",
+          "logFound": true
+        }
+      ]
+    },
+    {
+      "key": "PLAN-010",
+      "entryType": "plan",
+      "id": "PLAN-010",
+      "title": "A phase that recorded a real, measured zero, not a missing figure.",
+      "status": "ready",
+      "sortAt": "2026-07-17T10:00:00Z",
+      "source": "native",
+      "partial": false,
+      "github": null,
+      "totals": {
+        "totalTokens": 120000,
+        "recordedDollars": 0,
+        "durationSeconds": 180
+      },
+      "phases": [
+        {
+          "kind": "plan",
+          "source": "native",
+          "recordedDollars": 0,
+          "durationSeconds": 180,
+          "totalTokens": 120000,
+          "byModel": {
+            "claude-sonnet-4-6": 120000
+          },
+          "byAgentType": {
+            "general-purpose": 120000
+          },
+          "audit": {
+            "dollars": 0.25,
+            "elapsedSeconds": 60,
+            "intensity": null,
+            "lenses": ["COV"],
+            "totalTokens": 40000
+          }
+        }
+      ],
+      "sessions": []
+    }
+  ],
+  "adHocReviews": [],
+  "commandEvents": [],
+  "parseHealth": {
+    "counters": [
+      {
+        "source": "cost.jsonl",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 12,
+        "linesSkipped": 0
+      }
+    ],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

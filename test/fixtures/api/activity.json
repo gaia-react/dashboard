@@ -30,6 +30,19 @@
       "gitBranch": "spec-023-cost-artifacts",
       "attribution": {"entryType": "spec", "key": "SPEC-023"},
       "dollars": {"basis": "recorded", "value": 14.35, "lowerBound": false}
+    },
+    {
+      "sessionId": "4269af7e-5591-43e4-9f81-2d5fdc316812",
+      "title": "Session-scan groundwork",
+      "startedAt": "2026-06-20T09:00:00Z",
+      "endedAt": "2026-06-20T09:06:40Z",
+      "durationSeconds": 400,
+      "models": ["claude-opus-4-8"],
+      "totalTokens": 5000,
+      "turnCount": 4,
+      "gitBranch": "plan-002-session-scan",
+      "attribution": {"entryType": "plan", "key": "PLAN-002"},
+      "dollars": {"basis": "recorded", "value": 0.3, "lowerBound": false}
     }
   ],
   "parseHealth": {

@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, test, vi} from 'vitest';
 import App from '~/components/App';
+import {activityResponseSchema, costsResponseSchema} from '~/data/schemas/api';
 import activityFixture from '../../../../test/fixtures/api/activity.json';
 import costsFixture from '../../../../test/fixtures/api/costs.json';
 
@@ -48,19 +49,17 @@ const callsTo = (fetchMock: ReturnType<typeof vi.fn>, prefix: string): number =>
 const busyStateFor = (label: string): null | string =>
   screen.getByRole('region', {name: label}).getAttribute('aria-busy');
 
-const expectAllBusy = (labels: string[], busy: boolean): void => {
-  for (const label of labels) {
-    expect(busyStateFor(label)).toBe(String(busy));
-  }
-};
+const resolvedFetch = (): ReturnType<typeof vi.fn> =>
+  stubFetch({
+    '/api/activity': async () => jsonResponse(activityFixture),
+    '/api/costs': async () => jsonResponse(costsFixture),
+  });
 
-// The KPI row sits above the tab strip; the Work tab (default) shows the
-// specs & plans cost table. Sections on the other tabs are not mounted until
-// their tab is active.
-const workTabLabels = ['Key metrics', 'Specs and plans'];
-// Parse health is intentionally omitted: it only renders when a data problem
-// exists (feedback), so it is not an always-present region.
-const activityTabLabels = [
+// The KPI row sits inside the Sessions and Insights panels only (DESIGN-SPEC
+// 1.4: the Work tab has no KPI row, the selected event's own figures live in
+// the detail panel's metric strip instead).
+const insightsTabLabels = [
+  'Key metrics',
   'Highlights',
   'Model Usage',
   'Cost trend',
@@ -72,7 +71,16 @@ afterEach(() => {
   window.history.replaceState(null, '', '/');
 });
 
-test('renders the GAIA wordmark', () => {
+test('the api fixtures satisfy the response contract this suite renders against', () => {
+  // The honesty check: App/useDashboardData read these fixtures with no
+  // runtime parse, so a fixture that drifted out of contract shape would
+  // otherwise fail with a cryptic rendering error three phases from now
+  // rather than a clear Zod error here.
+  expect(() => costsResponseSchema.parse(costsFixture)).not.toThrow();
+  expect(() => activityResponseSchema.parse(activityFixture)).not.toThrow();
+});
+
+test('renders the GAIA wordmark before any data has resolved', () => {
   stubFetch({
     '/api/activity': async () => createDeferred().promise,
     '/api/costs': async () => createDeferred().promise,
@@ -80,10 +88,10 @@ test('renders the GAIA wordmark', () => {
 
   render(<App />);
 
-  expect(screen.getByText('Dashboard')).toBeInTheDocument();
+  expect(screen.getByAltText('')).toBeInTheDocument();
 });
 
-test('defaults to the Work tab, mounting only its sections', () => {
+test('defaults to the Work tab, mounting only its panel, with no KPI row', () => {
   stubFetch({
     '/api/activity': async () => createDeferred().promise,
     '/api/costs': async () => createDeferred().promise,
@@ -94,7 +102,10 @@ test('defaults to the Work tab, mounting only its sections', () => {
   expect(
     screen.getByRole('tab', {name: 'Work', selected: true})
   ).toBeInTheDocument();
-  expectAllBusy(workTabLabels, true);
+  expect(busyStateFor('Events')).toBe('true');
+  expect(
+    screen.queryByRole('region', {name: 'Key metrics'})
+  ).not.toBeInTheDocument();
   // Other tabs' sections are not in the DOM until selected.
   expect(
     screen.queryByRole('region', {name: 'Sessions'})
@@ -104,11 +115,8 @@ test('defaults to the Work tab, mounting only its sections', () => {
   ).not.toBeInTheDocument();
 });
 
-test('selecting a tab updates the URL and swaps the mounted sections', async () => {
-  stubFetch({
-    '/api/activity': async () => jsonResponse(activityFixture),
-    '/api/costs': async () => jsonResponse(costsFixture),
-  });
+test("selecting a tab updates the URL, swaps the mounted panel, and renders that panel's KPI row", async () => {
+  resolvedFetch();
 
   render(<App />);
 
@@ -118,30 +126,28 @@ test('selecting a tab updates the URL and swaps the mounted sections', async () 
     expect(window.location.search).toBe('?tab=activity');
   });
 
-  for (const label of activityTabLabels) {
+  for (const label of insightsTabLabels) {
     expect(screen.getByRole('region', {name: label})).toBeInTheDocument();
   }
   expect(
-    screen.queryByRole('region', {name: 'Specs and plans'})
+    screen.queryByRole('region', {name: 'Events'})
   ).not.toBeInTheDocument();
 });
 
 test('honors the tab in the URL on first render', () => {
   window.history.replaceState(null, '', '/?tab=sessions');
-  stubFetch({
-    '/api/activity': async () => jsonResponse(activityFixture),
-    '/api/costs': async () => jsonResponse(costsFixture),
-  });
+  resolvedFetch();
 
   render(<App />);
 
   expect(
     screen.getByRole('tab', {name: 'Sessions', selected: true})
   ).toBeInTheDocument();
+  expect(screen.getByRole('region', {name: 'Key metrics'})).toBeInTheDocument();
   expect(screen.getByRole('region', {name: 'Sessions'})).toBeInTheDocument();
 });
 
-test('the Work cost table paints while the activity scan is still pending', async () => {
+test('the Work events pane paints while the activity scan is still pending', async () => {
   const activityDeferred = createDeferred();
   stubFetch({
     '/api/activity': async () => activityDeferred.promise,
@@ -151,21 +157,18 @@ test('the Work cost table paints while the activity scan is still pending', asyn
   render(<App />);
 
   await waitFor(() => {
-    expect(busyStateFor('Specs and plans')).toBe('false');
+    expect(busyStateFor('Events')).toBe('false');
   });
-  // The KPI row needs activity too, so it stays busy until the scan lands.
-  expect(busyStateFor('Key metrics')).toBe('true');
+  // The list itself is real content, not a skeleton, entirely off /api/costs.
+  expect(screen.getByRole('button', {name: /SPEC-023/})).toBeInTheDocument();
 
   await act(async () => {
     activityDeferred.resolve(jsonResponse(activityFixture));
     await activityDeferred.promise;
   });
-  await waitFor(() => {
-    expectAllBusy(workTabLabels, false);
-  });
 });
 
-test('Cost trend waits for both resources, unlike the costs-only sections it used to match', async () => {
+test('Cost trend on the Insights tab waits for both resources', async () => {
   const activityDeferred = createDeferred();
   stubFetch({
     '/api/activity': async () => activityDeferred.promise,
@@ -179,8 +182,6 @@ test('Cost trend waits for both resources, unlike the costs-only sections it use
   await waitFor(() => {
     expect(window.location.search).toBe('?tab=activity');
   });
-  // The ad-hoc series needs activity.sessions, so Cost trend now gates like
-  // the both-resource "Highlights" section, not a costs-only one.
   expect(busyStateFor('Cost trend')).toBe('true');
 
   await act(async () => {
@@ -192,7 +193,7 @@ test('Cost trend waits for both resources, unlike the costs-only sections it use
   });
 });
 
-test('the header shows a skeleton until BOTH resources resolve, then the real identity', async () => {
+test('the top bar shows a skeleton with a real, operable tab strip until BOTH resources resolve', async () => {
   const activityDeferred = createDeferred();
   stubFetch({
     '/api/activity': async () => activityDeferred.promise,
@@ -201,40 +202,38 @@ test('the header shows a skeleton until BOTH resources resolve, then the real id
 
   render(<App />);
 
-  expect(screen.getByText('/Users/you/projects/project')).toBeInTheDocument();
-
-  await waitFor(() => {
-    expect(busyStateFor('Specs and plans')).toBe('false');
-  });
-  expect(screen.getByText('/Users/you/projects/project')).toBeInTheDocument();
+  expect(screen.getByTestId('top-bar-skeleton')).toBeInTheDocument();
+  expect(screen.queryByRole('heading', {level: 1})).not.toBeInTheDocument();
+  // The tab strip is real and operable even while the identity is a
+  // placeholder (DESIGN-SPEC C-07: tabs are present before data resolves).
+  expect(
+    screen.getByRole('tab', {name: 'Work', selected: true})
+  ).toBeInTheDocument();
 
   await act(async () => {
     activityDeferred.resolve(jsonResponse(activityFixture));
     await activityDeferred.promise;
   });
 
-  const identity = await screen.findByText('/Users/you/projects/my-app');
-
-  expect(identity).toHaveClass('text-sm', 'text-fg-dim');
+  expect(screen.queryByTestId('top-bar-skeleton')).not.toBeInTheDocument();
   expect(
-    screen.queryByText('/Users/you/projects/project')
-  ).not.toBeInTheDocument();
-  expect(screen.getByText('Scanned 2 sessions · 23 specs')).toBeInTheDocument();
+    screen.getByRole('heading', {level: 1, name: 'my-app'})
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/^Scanned 2 sessions, 23 specs, updated /)
+  ).toBeInTheDocument();
 });
 
 test('the refresh button refetches both endpoints', async () => {
-  const fetchMock = stubFetch({
-    '/api/activity': async () => jsonResponse(activityFixture),
-    '/api/costs': async () => jsonResponse(costsFixture),
-  });
+  const fetchMock = resolvedFetch();
 
   render(<App />);
 
   await waitFor(() => {
-    expectAllBusy(workTabLabels, false);
+    expect(busyStateFor('Events')).toBe('false');
   });
 
-  fireEvent.click(screen.getByRole('button', {name: 'Refresh data'}));
+  fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
 
   await waitFor(() => {
     expect(callsTo(fetchMock, '/api/costs')).toBe(2);
@@ -242,7 +241,7 @@ test('the refresh button refetches both endpoints', async () => {
   expect(callsTo(fetchMock, '/api/activity')).toBe(2);
 });
 
-test('a costs failure surfaces an error with a retry on every mounted section that needs costs', async () => {
+test('a costs failure surfaces one error with a retry, on the one Work-tab region that needs costs', async () => {
   let costsCalls = 0;
   const fetchMock = stubFetch({
     '/api/activity': async () => jsonResponse(activityFixture),
@@ -258,19 +257,70 @@ test('a costs failure surfaces an error with a retry on every mounted section th
   render(<App />);
 
   await waitFor(() => {
-    // On the Work tab, "Key metrics" (both-resource) and "Specs and plans"
-    // (costs-only) both surface the costs failure.
-    expect(screen.getAllByRole('alert')).toHaveLength(2);
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
   });
-  expect(screen.getAllByRole('alert')[0]).toHaveTextContent(
-    'connection refused'
-  );
+  expect(screen.getByRole('alert')).toHaveTextContent('connection refused');
 
-  fireEvent.click(screen.getAllByRole('button', {name: 'Retry'})[0]);
+  fireEvent.click(screen.getByRole('button', {name: 'Retry'}));
 
   await waitFor(() => {
-    expect(screen.getByText('/Users/you/projects/my-app')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /SPEC-023/})).toBeInTheDocument();
   });
   expect(screen.queryAllByRole('alert')).toHaveLength(0);
   expect(callsTo(fetchMock, '/api/costs')).toBe(2);
+});
+
+test('the coverage disclosure renders on the Insights tab when cost and activity history diverge, nowhere else', async () => {
+  resolvedFetch();
+
+  render(<App />);
+
+  expect(screen.queryByText(/^Project started /)).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('tab', {name: 'Insights'}));
+  await waitFor(() => {
+    expect(window.location.search).toBe('?tab=activity');
+  });
+
+  // activitySince (2026-05-05T00:00:00Z) precedes costSince (2026-07-03).
+  expect(screen.getByText('Project started 2026-05-05')).toBeInTheDocument();
+});
+
+test('the Sessions attribution badge jumps to the Work tab with that event selected', async () => {
+  resolvedFetch();
+  window.history.pushState(null, '', '/?tab=sessions');
+
+  render(<App />);
+  await waitFor(() => {
+    expect(screen.getByRole('region', {name: 'Sessions'})).toBeInTheDocument();
+  });
+
+  fireEvent.click(screen.getByRole('link', {name: 'PLAN-002'}));
+
+  const params = new URLSearchParams(window.location.search);
+
+  expect(params.get('tab')).toBe('work');
+  expect(params.get('entry')).toBe('PLAN-002');
+  expect(
+    await screen.findByRole('heading', {level: 2, name: 'PLAN-002'})
+  ).toBeInTheDocument();
+});
+
+test('a Work event\'s "View in sessions" link jumps to the Sessions tab and lands on that session', async () => {
+  resolvedFetch();
+
+  render(<App />);
+  // SPEC-023 (the default selection) carries a linked session that only
+  // resolves once /api/activity lands.
+  await screen.findByRole('link', {name: 'View in sessions'});
+
+  fireEvent.click(screen.getByRole('link', {name: 'View in sessions'}));
+
+  const params = new URLSearchParams(window.location.search);
+
+  expect(params.get('tab')).toBe('sessions');
+  expect(params.get('id')).toBe('3158fe6d-4480-42d3-8e70-1c4ecbfc2057');
+  expect(
+    await screen.findByText('Wire cost telemetry into the ledger')
+  ).toBeInTheDocument();
 });

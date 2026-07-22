@@ -26,20 +26,25 @@ export type InsightsProps = {
 export const sectionChromeClassName =
   'border-border bg-bg-elev flex flex-col gap-6 rounded-md border p-6';
 
-export const eyebrowClassName =
-  'text-secondary-soft font-mono text-xs tracking-[0.2em] uppercase';
+export const eyebrowClassName = 'text-label text-fg-dim';
 
 export const headingClassName = 'text-fg text-title font-medium';
 const captionClassName = 'text-fg-mute text-sm';
 const statTileClassName =
   'bg-bg-elev-2 border-border-soft flex flex-col gap-1 rounded-md border p-4';
-const statLabelClassName =
-  'text-fg-mute font-mono text-[0.65rem] tracking-[0.15em] uppercase';
+// fg-mute -> fg-dim (DESIGN-SPEC section 10, defect 3): these captions sit on
+// statTileClassName's bg-elev-2 surface, where fg-mute measures 4.15:1 and
+// fails AA. This one-token swap was applied by W10. The per-section eyebrow
+// (DESIGN-SPEC 9.1) and the stat/list labels below were later swapped to the
+// mandated `text-label text-fg-dim` replacement by the P3 integrator, per
+// DESIGN-SPEC 9.1's unconditional "must return nothing" acceptance grep; the
+// rest of this file's layout and composition is otherwise untouched, P4
+// scope.
+const statLabelClassName = 'text-label text-fg-dim';
 const statValueClassName =
   'text-fg truncate font-mono text-metric-sm tabular-nums';
-const statSubtextClassName = 'text-fg-mute text-xs';
-const listLabelClassName =
-  'text-fg-mute font-mono text-[0.65rem] tracking-[0.15em] uppercase';
+const statSubtextClassName = 'text-fg-dim text-xs';
+const listLabelClassName = 'text-label text-fg-dim';
 const keyBadgeClassName =
   'border-border-soft text-fg-mute shrink-0 rounded-sm border px-1.5 py-0.5 font-mono text-[0.6rem] tracking-wide';
 

@@ -107,20 +107,26 @@ export const groupTailSeries = (
   const namedKeys = orderedKeys.slice(0, limit - 1);
   const tailKeys = new Set(orderedKeys.slice(limit - 1));
   const foldedRows = rows.map((row) => {
-    const folded: Record<string, number> = {};
+    const folded = new Map<string, number>();
     let otherTotal = 0;
 
     for (const [key, value] of Object.entries(row)) {
       if (tailKeys.has(key)) {
         otherTotal += value;
       } else {
-        folded[key] = value;
+        folded.set(key, value);
       }
     }
 
-    folded[OTHER_SERIES_KEY] = otherTotal;
+    folded.set(OTHER_SERIES_KEY, otherTotal);
 
-    return folded;
+    // Object.fromEntries defines each own property directly (CreateDataProperty),
+    // rather than assigning through `folded[key] = value`, which would silently
+    // no-op for a series name of '__proto__' by writing through the inherited
+    // accessor instead of creating an own property. Same class of bug already
+    // fixed in Icon/icon-map.ts and format/lenses.ts; series names are untrusted
+    // strings straight from ../gaia data.
+    return Object.fromEntries(folded);
   });
 
   return {

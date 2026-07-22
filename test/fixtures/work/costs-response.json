@@ -1,0 +1,275 @@
+{
+  "project": {
+    "name": "my-app",
+    "root": "/Users/you/projects/my-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {"status": "ok", "id": "sha256:6d17ab141d05c333"},
+  "coverage": {"costSince": "2026-06-01T00:00:00Z"},
+  "kpis": {
+    "recordedDollars": 41.19,
+    "specs": {"merged": 1, "total": 2},
+    "plans": {"merged": 1, "total": 2}
+  },
+  "entries": [
+    {
+      "key": "SPEC-032",
+      "entryType": "spec",
+      "id": "SPEC-032",
+      "title": "Audit cost tracking and the recorded-spend drill-down.",
+      "status": "merged",
+      "sortAt": "2026-07-14T09:00:00Z",
+      "source": "native",
+      "partial": false,
+      "github": {"type": "pr", "number": 741, "repo": "gaia-react/gaia"},
+      "totals": {
+        "totalTokens": 4200000,
+        "recordedDollars": 12.34,
+        "durationSeconds": 5400
+      },
+      "phases": [
+        {
+          "kind": "spec",
+          "source": "native",
+          "recordedDollars": 3.1,
+          "durationSeconds": 1200,
+          "totalTokens": 900000,
+          "byModel": {"claude-opus-4-8": 700000, "claude-sonnet-4-6": 200000},
+          "byAgentType": {"general-purpose": 600000, "task-docs-wiki": 300000},
+          "audit": {
+            "dollars": 0.92,
+            "elapsedSeconds": 240,
+            "intensity": "deep",
+            "lenses": ["COV", "FG", "RT", "SEC"],
+            "totalTokens": 210000
+          }
+        },
+        {
+          "kind": "plan",
+          "source": "native",
+          "recordedDollars": 2.24,
+          "durationSeconds": 900,
+          "totalTokens": 700000,
+          "byModel": {"claude-opus-4-8": 500000, "claude-sonnet-4-6": 200000},
+          "byAgentType": {"general-purpose": 700000}
+        },
+        {
+          "kind": "execute",
+          "source": "native",
+          "recordedDollars": 7.0,
+          "durationSeconds": 3300,
+          "totalTokens": 2600000,
+          "byModel": {"claude-sonnet-4-6": 2600000},
+          "byAgentType": {"general-purpose": 2100000, "task-tests": 500000}
+        }
+      ],
+      "sessions": [
+        {
+          "sessionId": "3158fe6d-4480-42d3-8e70-1c4ecbfc2057",
+          "kind": "spec",
+          "logFound": true
+        },
+        {
+          "sessionId": "9a41c0b2-7f3d-4a11-b0c8-52e6d9f7a331",
+          "kind": "execute",
+          "logFound": false
+        }
+      ]
+    },
+    {
+      "key": "SPEC-018",
+      "entryType": "spec",
+      "id": "SPEC-018",
+      "title": "Session transcript scanner.",
+      "status": "ready",
+      "sortAt": "2026-07-10T08:30:00Z",
+      "source": "native",
+      "partial": false,
+      "github": null,
+      "totals": {
+        "totalTokens": 1100000,
+        "recordedDollars": 4.5,
+        "durationSeconds": 1800
+      },
+      "phases": [
+        {
+          "kind": "execute",
+          "source": "native",
+          "recordedDollars": 4.5,
+          "durationSeconds": 1800,
+          "totalTokens": 1100000,
+          "byModel": {"claude-sonnet-4-6": 1100000},
+          "byAgentType": {"general-purpose": 1100000}
+        }
+      ],
+      "sessions": [
+        {
+          "sessionId": "c7d2e8f1-0b44-4d90-8a6e-1f2c3d4e5a6b",
+          "kind": "execute",
+          "logFound": true
+        }
+      ]
+    },
+    {
+      "key": "PLAN-004",
+      "entryType": "plan",
+      "id": "PLAN-004",
+      "title": "Backfill the pre-telemetry ledger rows.",
+      "status": "merged",
+      "sortAt": "2026-07-08T11:15:00Z",
+      "source": "backfill",
+      "partial": true,
+      "github": null,
+      "totals": {
+        "totalTokens": 320000,
+        "recordedDollars": null,
+        "durationSeconds": null
+      },
+      "phases": [
+        {
+          "kind": "plan",
+          "source": "backfill",
+          "recordedDollars": null,
+          "durationSeconds": null,
+          "totalTokens": 120000,
+          "byModel": null,
+          "byAgentType": null
+        },
+        {
+          "kind": "execute",
+          "source": "backfill",
+          "recordedDollars": null,
+          "durationSeconds": null,
+          "totalTokens": 200000,
+          "byModel": null,
+          "byAgentType": null
+        }
+      ],
+      "sessions": []
+    },
+    {
+      "key": "slug:offline-mode",
+      "entryType": "plan-slug",
+      "id": null,
+      "title": "offline-mode",
+      "status": null,
+      "sortAt": "2026-07-06T07:45:00Z",
+      "source": "backfill",
+      "partial": false,
+      "github": null,
+      "totals": {
+        "totalTokens": 80000,
+        "recordedDollars": 0,
+        "durationSeconds": 0
+      },
+      "phases": [
+        {
+          "kind": "execute",
+          "source": "backfill",
+          "recordedDollars": 0,
+          "durationSeconds": 0,
+          "totalTokens": 80000,
+          "byModel": null,
+          "byAgentType": null
+        }
+      ],
+      "sessions": []
+    }
+  ],
+  "adHocReviews": [
+    {
+      "at": "2026-07-13T14:20:00Z",
+      "durationSeconds": 420,
+      "recordedDollars": 1.87,
+      "reviewId": "7b0a1c2d-3e4f-5061-7283-94a5b6c7d8e9",
+      "sessionId": "51f0aa9c-2d3e-4f50-6172-8394a5b6c7d8",
+      "totalTokens": 260000
+    },
+    {
+      "at": "2026-07-11T16:05:00Z",
+      "durationSeconds": null,
+      "recordedDollars": null,
+      "reviewId": null,
+      "sessionId": "e3f4a5b6-c7d8-49e0-b1c2-d3e4f5061728",
+      "totalTokens": 90000
+    }
+  ],
+  "commandEvents": [
+    {
+      "at": "2026-07-15T11:49:55Z",
+      "byAgentType": {"general-purpose": 410000},
+      "byModel": {"claude-sonnet-4-6": 410000},
+      "command": "gaia-debt",
+      "durationSeconds": 1320,
+      "github": {"type": "pr", "number": 769, "repo": "gaia-react/gaia"},
+      "recordedDollars": 3.05,
+      "runId": "gaia-debt-20260715T114955Z-7b0a",
+      "sessionId": "aa11bb22-cc33-44dd-88ee-ff0011223344",
+      "totalTokens": 410000
+    },
+    {
+      "at": "2026-07-12T10:02:00Z",
+      "byAgentType": {"general-purpose": 150000},
+      "byModel": {"claude-opus-4-8": 150000},
+      "command": "gaia-forensics",
+      "durationSeconds": 600,
+      "github": {"type": "issue", "number": 412, "repo": "gaia-react/gaia"},
+      "recordedDollars": 2.11,
+      "runId": "gaia-forensics-20260712T100200Z-4c1d",
+      "sessionId": "bb22cc33-dd44-55ee-99ff-001122334455",
+      "totalTokens": 150000
+    },
+    {
+      "at": "2026-07-09T13:31:00Z",
+      "byAgentType": null,
+      "byModel": null,
+      "command": "gaia-debt",
+      "durationSeconds": null,
+      "github": null,
+      "recordedDollars": null,
+      "runId": null,
+      "sessionId": "cc33dd44-ee55-66ff-a011-223344556677",
+      "totalTokens": 45000
+    },
+    {
+      "at": "2026-07-07T09:12:00Z",
+      "byAgentType": {"general-purpose": 30000},
+      "byModel": {"claude-haiku-4-6": 30000},
+      "command": "gaia-teleport",
+      "durationSeconds": 180,
+      "github": null,
+      "recordedDollars": 0,
+      "runId": "gaia-teleport-20260707T091200Z-9e2f",
+      "sessionId": "dd44ee55-ff66-7701-b122-334455667788",
+      "totalTokens": 30000
+    }
+  ],
+  "parseHealth": {
+    "counters": [
+      {
+        "source": "cost.jsonl",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 351,
+        "linesSkipped": 0
+      },
+      {
+        "source": "specs/ledger.json",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 2,
+        "linesSkipped": 0
+      },
+      {
+        "source": "plans/ledger.json",
+        "filesScanned": 1,
+        "filesUnparseable": 0,
+        "linesRead": 2,
+        "linesSkipped": 0
+      }
+    ],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}

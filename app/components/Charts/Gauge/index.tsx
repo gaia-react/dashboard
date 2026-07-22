@@ -1,4 +1,5 @@
 import type {FC} from 'react';
+import ChartEmpty from '~/components/ChartEmpty';
 import {
   clampShare,
   meterWidthPercent,
@@ -45,12 +46,7 @@ const Gauge: FC<GaugeProps> = ({
         'The enclosing phase recorded no cost, so the audit share of it cannot be computed.'
       : `The enclosing phase recorded no cost, so the audit share of it cannot be computed. The audit itself cost ${formatValue(value)}.`);
 
-    return (
-      <div className="flex min-h-24 flex-col justify-center gap-1">
-        <p className="text-label text-fg-dim">{emptyTitle}</p>
-        <p className="text-label text-fg-mute max-w-prose">{reason}</p>
-      </div>
-    );
+    return <ChartEmpty reason={reason} title={emptyTitle} />;
   }
 
   const share = clampShare(value, max);

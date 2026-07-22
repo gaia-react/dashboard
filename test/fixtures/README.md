@@ -93,8 +93,9 @@ Each workstream owns and authors the fixtures for its slice. Drop files here:
 | `empty-project/`| P2    | Fresh-adopter composite: rate table only, no `.gaia/local`, two ad hoc sessions; handlers must render empty-but-intentional                                                                                                                       |
 | `cost-entries/` | W5    | Cost-entries aggregation: multi-session spec totals, slug-row titling/ordering traps, per-source badges, cumulative no-final groups                                                                                                               |
 | `cost-ledger/`  | Phase 8 W3 | cost.jsonl: `command`/`review` as known kinds, all three `github` shapes (pr/issue/absent), `run_id` keying and its no-`run_id` fallback                                                                                                     |
-| `api/`          | W9    | Canned PLAN section 3 `CostsResponse`/`ActivityResponse` envelopes for data-hook and page-shell tests                                                                                                                                             |
+| `api/`          | Phase 8 P3 integrator | Canned PLAN section 3 `CostsResponse`/`ActivityResponse` envelopes for data-hook and page-shell tests. Now schema-parsed by at least one test (`App/tests/index.test.tsx`); see "`api/`" below. |
 | `charts/`       | W8    | Chart-kit input slices: heatmap days, model totals, weekly stacks, trend entries                                                                                                                                                                  |
+| `work/`         | Phase 8 K3 / W9 | `CostsResponse` envelopes for the Work tab's event list, filters, sort, and detail panel: a populated project, an empty project, and (`work/detail/`) audit-specific cases. Every file is schema-parsed in the test that reads it. |
 
 ## Present fixtures
 
@@ -204,7 +205,7 @@ scenario map: `mini-project/README.md`.
   `command` row with no `run_id` (base-key fallback), and all three `github`
   artifact shapes (`pr`, `issue`, absent). Raw telemetry; keeps buckets.
 
-### `api/` (W9)
+### `api/` (Phase 5 W9; Phase 8 v2 P2 converted the shape, Phase 8 v2 P3 owns and schema-parses it)
 
 - `api/costs.json`: canned `/api/costs` response (project identity, rate-table
   status, coverage, KPIs, cost entries) driving `useDashboardData` and page-shell
@@ -216,15 +217,27 @@ scenario map: `mini-project/README.md`.
   `activityResponseSchema` in `schemas/api.ts`, including the real
   `parseHealth` shape); the App composition test round-trips both through
   their schemas at load time so a future drift fails loudly.
-- Phase 8 v2: the integrator converted both from the bucket-shaped response
+- Phase 8 v2 P2: the integrator converted both from the bucket-shaped response
   shape (`totals.buckets`, `kpis.totalBuckets`, `modelWeekly[].outputByModel`)
   to the scalar contract (`totalTokens`, `tokensByModel`), and added the
-  now-required `github: null` on the cost entry. Unlike every other directory
-  in this table, no Phase 8 task file claimed this one, even though
-  `App/tests/index.test.tsx` and `useDashboardData.test.ts` read it directly
-  and do NOT parse it through the schema first (no honesty check), so a stale
-  fixture here fails as a confusing runtime `TypeError` deep in a component,
-  not a clear Zod error at fixture load.
+  now-required `github: null` on the cost entry. At that point this directory
+  was owned by nobody, and both `App/tests/index.test.tsx` and
+  `useDashboardData.test.ts` read the fixtures directly with no schema-parse
+  first, so a drift here failed as a confusing runtime `TypeError` deep in a
+  component rather than a clear Zod error at fixture load. **Two test files
+  crashed against exactly this gap by the end of P2.**
+- Phase 8 v2 P3: this directory is now owned by the P3 integrator, and the
+  gap above is closed. `App/tests/index.test.tsx`'s
+  `'the api fixtures satisfy the response contract this suite renders
+  against'` test calls `costsResponseSchema.parse(costsFixture)` and
+  `activityResponseSchema.parse(activityFixture)` and asserts neither throws,
+  so any future drift in either file fails loudly and specifically at that
+  one test instead of surfacing as an unrelated component crash. P3 also
+  rewrote `costs.json` (added `commandEvents`, a second cost entry) and
+  `activity.json` (added a second session attributed to that entry) to give
+  the Work tab's default-selection and cross-tab-jump tests real data to
+  select against; `useDashboardData.test.ts` still reads both files directly
+  and relies on the App-level parse above rather than repeating it.
 
 ### `charts/` (W8)
 
@@ -237,3 +250,48 @@ scenario map: `mini-project/README.md`.
 - `charts/trend-entries.json`: mixed spec/plan entries, some measured in
   dollars and some in tokens, for `TrendBars` dual-encoding tests (each unit
   normalized to its own max, never a shared $-axis).
+
+### `work/` (Phase 8 v2 K3, extended by W9 and the P3 integrator)
+
+`CostsResponse` envelopes for the Work tab (unified event list, filters, sort,
+and detail panel). Every file here is read through `costsResponseSchema.parse`
+in the test(s) that load it, not imported raw; `EventDetail/tests/detail-fixtures.ts`
+is the shared reader other Work suites reuse rather than re-implementing.
+
+- `work/costs-response.json`: 4 cost entries (a 3-phase spec with an audit,
+  lenses, intensity, and two sessions; a spec with one execute phase and no
+  audit; an all-null-`byModel` backfill plan with `partial: true`; a
+  plan-slug row with `id`/`status` null and a genuine `$0.00` / `0s` recorded
+  zero), 2 ad hoc reviews (one with a `reviewId`, one without), and 4 command
+  events (a `gaia-debt` row with a PR artifact, a `gaia-forensics` row with an
+  issue artifact, a `gaia-debt` row with `github: null` and `runId: null`, and
+  an unrecognized `gaia-teleport` command). Drives `events.ts`, `sort.ts`,
+  `event-meta.ts`, the leaf chips, `EventList`, and `EventFilters`.
+- `work/costs-empty.json`: structurally valid, zero entries/reviews/commands.
+  Drives the event list's "no events at all" empty state and proves a
+  zero-count `EventFilters` never disables the "All events" option.
+- `work/detail/audit-cases.json`: entries the base fixture above does not
+  cover, for `EventDetail`'s audit-block and audit-share-meter tests.
+  `PLAN-009` carries an audit on two phases (plan and execute), with the
+  execute phase's own cost recorded `null` so its audit-share meter must
+  render the empty state rather than a meter computed against a missing
+  denominator; one lens on each phase is a plain acronym (`COV`, resolved
+  differently per phase kind) and one (`constructor`) collides with
+  `Object.prototype`, proving `resolveLensName` renders it verbatim rather
+  than falling through to an inherited member. `PLAN-010` (added at the P3
+  gate) carries one phase with a real, measured `recordedDollars: 0` (not a
+  missing figure) alongside a real audit cost, distinguishing the
+  audit-share meter's "phase cost is `null`" empty branch from its "phase
+  cost is exactly `0`" empty branch (DESIGN-SPEC 7.4: both render the empty
+  state; neither renders a 0% meter).
+
+### Retired: `cost-table/`
+
+Deleted at the Phase 8 v2 P3 gate along with the components it backed
+(`Sections/CostTable`, `Sections/AdHocReviews`, `hooks/useCollapse.ts`; see
+DESIGN-SPEC section 9.3). `cost-table/entries-empty.json`,
+`cost-table/entries-populated.json`, and `cost-table/sessions.json` are gone;
+their coverage is superseded by `work/` above and by `App`'s and `Work`'s own
+suites reading `api/costs.json` / `api/activity.json`. If a future diff
+resurrects a `cost-table/` reference, that is a stale import of deleted code,
+not a fixture gap to fill.

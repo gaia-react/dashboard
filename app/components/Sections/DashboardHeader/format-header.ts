@@ -51,14 +51,17 @@ export const formatProjectStart = (
 };
 
 export type FreshnessLineInput = {
+  /** `useRelativeTime(scannedAt)`'s output, e.g. "Just now" / "2 minutes ago". */
+  relative: string;
   sessionCount: number;
   specsTotal: number;
 };
 
 /**
- * Scan-summary line: session/spec counts (SPEC 6.1). Recency now lives on
- * the refresh button (feedback), via `useRelativeTime`, so this line no
- * longer carries a "just now" tail.
+ * Scan-summary line (DESIGN-SPEC C-04): session/spec counts, plus recency.
+ * v1 kept recency on the refresh button; v2 moves it here, because a control
+ * whose accessible name changes every 60 seconds is confusing (DESIGN-SPEC
+ * 1.3).
  */
 export const formatFreshnessLine = (input: FreshnessLineInput): string =>
-  `Scanned ${pluralize(input.sessionCount, 'session')} · ${pluralize(input.specsTotal, 'spec')}`;
+  `Scanned ${pluralize(input.sessionCount, 'session')}, ${pluralize(input.specsTotal, 'spec')}, updated ${input.relative}`;

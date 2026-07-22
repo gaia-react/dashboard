@@ -31,7 +31,10 @@ type Props = {
   width?: number;
 };
 
-const ROW_HEIGHT = 26;
+/** 30 rather than 26, and the `labelWidth` default 148 rather than 128: all
+ * chart text is `text-label` (13px) in v2, and the v1 sizes let 13px category
+ * labels collide with each other and with the bars (DESIGN-SPEC 6.6). */
+const ROW_HEIGHT = 30;
 const BAR_THICKNESS = 16;
 const VALUE_GAP = 6;
 const VALUE_SPACE = 56;
@@ -47,7 +50,7 @@ const HorizontalBars: FC<Props> = ({
   data,
   formatValue = formatCompactNumber,
   label,
-  labelWidth = 128,
+  labelWidth = 148,
   width = 480,
 }) => {
   const [hovered, setHovered] = useState<HoveredBar>();
@@ -88,7 +91,7 @@ const HorizontalBars: FC<Props> = ({
           return (
             <g key={datum.label}>
               <text
-                className="fill-fg-dim text-xs"
+                className="fill-fg-dim text-label"
                 textAnchor="end"
                 x={labelWidth - 8}
                 y={centerY + 4}
@@ -109,7 +112,7 @@ const HorizontalBars: FC<Props> = ({
                 data-testid={`horizontal-bar-${datum.label}`}
               />
               <text
-                className="fill-fg text-xs"
+                className="fill-fg text-label"
                 x={round(labelWidth + barLength + VALUE_GAP)}
                 y={centerY + 4}
               >

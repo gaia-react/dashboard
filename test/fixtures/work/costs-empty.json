@@ -1,0 +1,31 @@
+{
+  "project": {
+    "name": "fresh-app",
+    "root": "/Users/you/projects/fresh-app",
+    "claudeConfigDir": "/Users/you/.claude"
+  },
+  "rateTable": {"status": "missing", "id": null},
+  "coverage": {"costSince": null},
+  "kpis": {
+    "recordedDollars": null,
+    "specs": {"merged": 0, "total": 0},
+    "plans": {"merged": 0, "total": 0}
+  },
+  "entries": [],
+  "adHocReviews": [],
+  "commandEvents": [],
+  "parseHealth": {
+    "counters": [
+      {
+        "source": "cost.jsonl",
+        "filesScanned": 0,
+        "filesUnparseable": 0,
+        "linesRead": 0,
+        "linesSkipped": 0
+      }
+    ],
+    "notes": [],
+    "unknownKinds": [],
+    "unknownStatuses": []
+  }
+}
