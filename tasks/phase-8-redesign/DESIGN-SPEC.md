@@ -438,6 +438,9 @@ Declared once, imported everywhere. Put them in
 export const focusRing =
   'focus-visible:outline-accent rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2';
 
+export const chartFocusRing =
+  'focus-visible:outline-accent focus-visible:outline-2 focus-visible:outline-offset-1';
+
 export const colorTransition =
   'transition-colors duration-150 ease-out motion-reduce:transition-none';
 
@@ -449,6 +452,15 @@ export const shellInset =
 
 export const numeric = 'font-mono tabular-nums';
 ```
+
+**There are two focus rings, and that is deliberate.** `focusRing` is the UI
+control ring (2px offset, with `rounded-sm`); `chartFocusRing` is the chart-mark
+ring, which section 3's shared chart state table specifies at
+`outline-offset-1` so it hugs the mark rather than colliding with its neighbors,
+and which takes no radius because the shape is the mark's own. This file listed
+five constants through P2 while section 3 required a sixth; K3 added it at P3.
+Do not "fix" one into the other, and do not sweep the existing charts onto
+`focusRing`.
 
 ---
 
@@ -585,7 +597,9 @@ elements plus a count line, in a sticky header.
       <select className={selectClass} …>…</select>
     </label>
   </div>
-  <p className="text-label text-fg-mute" aria-live="polite">{n} events</p>
+  <p className="text-label text-fg-mute" aria-live="polite">
+    {n} {n === 1 ? 'event' : 'events'}
+  </p>
 </div>
 ```
 
@@ -596,6 +610,12 @@ const selectClass = `border-border bg-bg-elev text-fg text-label w-full rounded-
 Native `<select>` with `<optgroup>`, never a custom popover. `color-scheme: dark`
 on `:root` is what makes the native popup match the console; do not restyle
 `<option>` per-element.
+
+**The count line pluralizes.** It shipped as the literal `{n} events` and read
+"1 events" on a one-event filter. This is the only string the Work tab speaks
+aloud, so the plural is the whole message rather than a polish item. Zero takes
+the plural (`0 events`), which is correct English and what every locale this
+product ships in expects.
 
 **Filter vocabulary**, exactly:
 
@@ -613,6 +633,12 @@ All events (145)
   Wiki (2)
   Review (44)
 ```
+
+**The numbers above are illustrative, not a contract.** They were measured once
+at P0 and `../gaia` is an actively developed repo whose telemetry has grown three
+times since. What is binding is the option **order**, the two optgroups, and the
+zero-count `disabled` rule. Never assert these literals in a test or an
+acceptance check; re-derive them from the response.
 
 Counts are live for the current project. An option whose count is `0` renders
 `disabled`: it teaches that the category exists without letting the user navigate
@@ -909,6 +935,13 @@ plus `border-border border mt-4`.
 | L | Retry shows `Retrying` and `motion-safe:animate-spin` on its icon |
 | E | Not applicable. A failed retry re-renders the same error with an updated message. |
 
+**X and L depend on §10 defect 7 and were not shippable before P4.** The
+component takes no prop that could drive them, and no caller could thread
+refetch state while `ApiResourceState` had no variant carrying stale data
+alongside `status: 'loading'`. P3 shipped D, H, F, A only, deliberately. W12
+owns the hook change and these two states together; neither is meaningful
+without the other.
+
 #### C-32 Skeleton
 `app/components/Skeleton/index.tsx`. Unchanged: the `shimmer` class and the
 block component both stay exactly as they are. They are already correct
@@ -988,6 +1021,13 @@ Structure unchanged except two fixes:
   independently scrolling detail pane has its tooltip clipped by the pane's
   `overflow-y-auto`.
 
+**The prop ships and is tested; no caller passes it yet.** W9 added it at P3 but
+owned no chart that renders a tooltip near the pane top, so `Donut` still calls
+`ChartTooltip` without it and the clipping this prop exists to prevent can still
+happen. **P4's W11 wires the `Donut` call site** (the centroid y-threshold check
+at `Donut/index.tsx:184`). An unwired prop is a defect wearing a fix's clothes;
+this note stands until the call site lands.
+
 Text steps from `text-xs` to `text-label`. States D only.
 
 ---
@@ -1007,11 +1047,12 @@ Text steps from `text-xs` to `text-label`. States D only.
   >
     {/* Row 1: identity and state */}
     <span className="flex items-center gap-2">
-      <Icon className={tone.icon} name={event.type} size={16} />
       <TypeChip tone={tone} type={event.type} />
       <span className="flex-1" />
       {event.source.kind === 'command' ?
-        <ArtifactChip artifact={event.artifact} />
+        <span className="text-label text-fg-dim whitespace-nowrap">
+          {event.artifact === null ? NO_DATA_LABEL : artifactLabel(event.artifact)}
+        </span>
       : <StatusText status={event.status} />}
     </span>
 
@@ -1035,11 +1076,30 @@ Text steps from `text-xs` to `text-label`. States D only.
 </li>
 ```
 
+**Two corrections landed at P4, both against shipped code.**
+
+- **Row 1 carries one glyph, not two.** This snippet originally put a standalone
+  `<Icon name={event.type} size={16} />` beside a `<TypeChip>` that C-13 already
+  fills with the same glyph, so the identical icon rendered twice about 8px
+  apart. W8 shipped it literally under the "DESIGN-SPEC wins" rule and asserted
+  the doubling in a test rather than hiding it. The standalone icon is dropped:
+  §4.2 already names the chip's icon plus word plus tone as the redundant triple,
+  and a second copy adds no channel. The chip carries the tone.
+- **There is no `ArtifactChip`.** It appeared in this snippet but in no C-01 to
+  C-46 inventory entry, and it could not have been built as named: `ArtifactLink`
+  (C-16) is an `<a>`, and an `<a>` inside this card's `<button>` is invalid HTML
+  and breaks C-11's roving-focus model. The card renders the artifact as
+  **non-interactive text** via `artifactLabel()` (`PR #769`, `Issue #412`, or
+  `NO_DATA_LABEL` for the 4 of 33 `gaia-debt` rows with no `github`), and the
+  clickable link lives in the detail header, where §5.4 row 8 already puts it.
+  This is a slot in C-12's row 1, not a component; nothing new enters the
+  inventory.
+
 ### 4.2 What appears where, and why
 
 | Row | Content | Type step | Rationale |
 | --- | --- | --- | --- |
-| 1 | Type icon in tone, type chip in tone-soft, status (or artifact link for commands) right-aligned | `text-label` | Category first: the tone plus the icon plus the word is the redundant triple that survives greyscale. |
+| 1 | Type chip (icon plus word, in tone), status (or artifact text for commands) right-aligned | `text-label` | Category first: the tone plus the icon plus the word is the redundant triple that survives greyscale, and the chip carries all three. |
 | 2 | Identifier (`SPEC-032`, `gaia-debt`, or the run id) | `text-title`, mono, `truncate` | The handle the user came looking for, and the largest thing on the card. Mono because it is an identifier, not prose. |
 | 3 | Title / intent / subject | `text-body`, `fg-dim`, `line-clamp-2` | The subject, subordinate to the handle. Two lines maximum so card heights stay within one step of each other. |
 | 4 | Start date, recorded cost, elapsed | `text-label`, mono, tabular | The three figures the ledger records. Fixed three-track grid, never a flex row: the column positions are what identify a value when it renders as a dash. |
@@ -1108,10 +1168,19 @@ type, and nothing precedes it except identity.
 
 ### 5.3 Chart sections
 
-At base through `lg`, chart sections stack one per `PanelSection`. At `xl:` the
-model-mix donut and the agent-type bars share one section as a two-column grid
-(`xl:grid xl:grid-cols-2 xl:gap-8`), because the detail pane is wide enough that
-stacking wastes it. Everything else stays full width at every breakpoint.
+The model-mix donut and the agent-type bars share **one** `PanelSection`
+carrying `gap-8 xl:grid xl:grid-cols-2`. Below `xl:` the two stack inside that
+section, separated by space; at `xl:` they sit side by side, because the detail
+pane is wide enough that stacking wastes it. Everything else stays full width at
+every breakpoint.
+
+This paragraph originally asked for two hairline-separated `PanelSection`s that
+merge into one at `xl:`. **CSS cannot express that**: a hairline between two
+sections and a two-column grid inside one section are different element trees,
+and a media query cannot restructure the DOM. One section with a responsive grid
+is the shipped resolution; the cost is that the two charts are separated by space
+rather than by a rule at narrow widths, which is the correct trade in a panel
+whose whole grammar is hairline-divided sections.
 
 ### 5.4 Which sections appear for which event type
 
@@ -1137,7 +1206,7 @@ that can never apply is not shown as empty.
 
 **Ad-hoc reviews get a reduced composition** (header, metric strip, one linked
 session) because `adHocReviewSchema` carries no `byModel` or `byAgentType`. A
-permanently empty donut on 44 of 145 events would read as a bug. If the contract
+permanently empty donut on roughly a third of all events would read as a bug. If the contract
 later gains those fields, reviews adopt rows 3 and 4 with no other change.
 
 **Entry-level model mix.** `CostEntry` carries `byModel` per phase, not per
@@ -1229,9 +1298,14 @@ thickness 24). Rendered at `size-32 shrink-0 sm:size-40`.
 **Segment gap.** `padAngle` default `0.02` radians, which yields roughly 2px of
 surface between arcs at r=58. The gap is geometric: never a stroke around a mark.
 
-**Colors.** `buildSeriesColorMap` over `groupTailSeries(rows, 5)`. Five named
+**Colors.** `buildSeriesColorMap` over `groupTailSeries(rows, 6)`. Five named
 models maximum plus `other`, so the ring never exceeds six segments. The tail
 folds into `other` in `fill-fg-mute`.
+
+`groupTailSeries`'s `limit` is the **total** segment cap, named keys plus
+`other`, not a named-only cap. This paragraph said `5` from P0 through P3 while
+claiming six segments, which is an arithmetic error: 5 yields four named plus
+`other`. W2 built to the stated outcome and passed 6, which is correct.
 
 **Center.** Total tokens, compact, at
 `fill-fg font-mono text-metric-sm tabular-nums` on the first `<text>` and the
@@ -1259,8 +1333,23 @@ it. Below `sm` the legend goes underneath and the ring centers.
 | Case | Render |
 | --- | --- |
 | `byModel === null` or `{}` | `ChartEmpty`, copy in §7.4 |
-| Exactly one model | `SegmentedBar` with one segment plus the model name, not a donut. A one-slice donut is a filled circle that encodes nothing. |
+| Exactly one model | A single-series bar plus the model name, not a donut. A one-slice donut is a filled circle that encodes nothing. |
 | Two or more models | The donut |
+
+**The single-model bar is not `SegmentedBar`.** This section originally named
+it, which contradicts §6.4: `SegmentedBar` is defined as the three fixed,
+ordered phase keys with a fixed ordinal ramp and accepts no arbitrary series.
+W9 shipped a local `SingleSeriesBar` in
+`Work/EventDetail/ChartSections/index.tsx` that borrows §6.4's visual vocabulary
+verbatim (same `h-3` bar, same `rounded-full` fill, same `gap-0.5` surface gap,
+same legend row shape) and carries an `aria-label` reading `{model}: {tokens},
+100%`. That is the shipped contract.
+
+Widening `SegmentedBar` to take an ordered series list and collapsing the two is
+the better end state, but it is a chart-kit refactor reaching into the Work
+tab's detail panel, not a restyle. It is **not** P4 work; it belongs to P5
+polish or later. Recorded so the duplication reads as a deliberate deferral
+rather than an oversight.
 
 ### 6.2 Gauge
 
@@ -1490,8 +1579,12 @@ the refresh button (C-08), and it is on a control.
 
 On refetch, hold the previous render rather than flashing a skeleton:
 `AsyncSection` already only shows the skeleton on `status === 'loading'`, and
-`useDashboardData` must keep the resolved data while refetching. Verify this at
-integration; a skeleton flash on every refresh press is a defect.
+`useDashboardData` must keep the resolved data while refetching.
+
+This was verified in P1 and it **fails**: see §10 defect 7. `ApiResourceState`
+has no variant that carries stale data alongside `loading`, so this requirement
+is unimplementable without a change to the union itself. W12 owns that change in
+P4. Until it lands, every refresh press blanks the console.
 
 ### 7.4 Per-chart empty states
 
@@ -1537,6 +1630,13 @@ recorded no figure, never a zero.` Once per surface, never per cell.
 `formatDateTime`). The event card's row 4 needs a date without a time; the full
 `formatDateTime` is roughly 22 characters and does not fit a 20rem card. W6 owns
 this file and must add it alongside the moved formatters.
+
+**Status: it never landed there.** W6 did not write it in P2, and W8 defined it
+locally in `Work/EventList/EventCard/index.tsx` at P3 with a comment naming its
+intended home, because `app/data/**` was closed to P3. This section is right
+about where the function belongs, so the code moves to meet it rather than the
+other way round: **P4's W12 moves it verbatim into `app/data/format/units.ts`
+and repoints the one import.**
 
 ---
 
@@ -1598,6 +1698,15 @@ variants (`tracking-[0.2em]`, `text-[0.6rem]`, `text-[0.625rem]`, and every
 
 **Replacement:** a plain sentence-case label at `text-label text-fg-dim`. Not one
 uppercase treatment survives; v2 spends zero of its one-per-surface allowance.
+
+**Sentence case means sentence case, including Title Case survivors.** The
+eyebrow sweep replaced the class strings but left one string's capitalization
+alone: `ModelMix`'s `Model Usage`, which is also the section's `aria-label` and
+is asserted verbatim by four tests. It becomes **`Model usage`** in P4, owned by
+W11, along with the region label in `App/index.tsx` and those assertions. Any
+other Title Case heading found under `app/components/**` gets the same
+treatment; proper nouns and identifiers (`SPEC-032`, `GAIA`, `PR`) keep their
+capitalization.
 
 **Acceptance grep, must return nothing:**
 ```bash
@@ -1674,18 +1783,23 @@ grep -rn "Fresh input\|Cache write\|Cache read\|cacheRead\|outputByModel" app/co
 
 ## 10. Defects found, not fixed
 
-Recorded here rather than fixed, per the shaping brief's constraint.
+Recorded here rather than fixed, per the shaping brief's constraint. Each entry
+carries its current status; four of the seven are now closed.
 
-1. **`ChartTooltip` carries `shadow-lg`** (`ChartTooltip/index.tsx:29`), which
-   has violated The Flat-Forever Rule since v1. Fix is in §9.4, owned by W2.
-2. **The base link hover fails AA on elevated surfaces.** `a:hover` resolves to
-   `accent-2` at 4.27:1 against `bg-elev`. Fix is in §2.4, owned by K1.
-3. **`fg-mute` fails AA on `bg-elev-2`** at 4.15:1. This is latent in v1 wherever
-   `text-fg-mute` sits on a `bg-elev-2` table header or chip
+1. **RESOLVED in P1.** **`ChartTooltip` carries `shadow-lg`**
+   (`ChartTooltip/index.tsx:29`), which had violated The Flat-Forever Rule since
+   v1. Fix is in §9.4; W2 deleted it and the P1 integrator confirmed the grep.
+2. **RESOLVED in P1.** **The base link hover fails AA on elevated surfaces.**
+   `a:hover` resolved to `accent-2` at 4.27:1 against `bg-elev`. K1 stepped it to
+   `accent-soft` per §2.4.
+3. **RESOLVED in P3.** **`fg-mute` fails AA on `bg-elev-2`** at 4.15:1. It was
+   latent in v1 wherever `text-fg-mute` sat on a `bg-elev-2` table header or chip
    (`CostTable`'s `TableHead`, `Insights`'s `statTileClassName`,
-   `ExpandedDetail`'s `auditLensClass`). Most of those die with the retirement
-   list; `Insights` does not, and W10 must step its stat-tile captions from
-   `fg-mute` to `fg-dim`.
+   `ExpandedDetail`'s `auditLensClass`). Most died with the retirement list;
+   `Insights` did not, and the P3 integrator stepped its stat-tile captions to
+   `fg-dim`. **P4 must not re-route this to W11 as open work.** The rule it comes
+   from (§2.2, no `fg-mute` on any surface that can raise to `bg-elev-2`) stays
+   binding on every new component.
 4. **Chart series colors are assigned by rank**, not by entity
    (`buildSeriesColorMap` maps palette slots to position in a total-sorted key
    list). Nothing in v2 filters a model list, so no recolor-on-filter can occur,
@@ -1700,10 +1814,16 @@ Recorded here rather than fixed, per the shaping brief's constraint.
    spec follows the README, so §5.5 and §7 say roughly half of spec and plan
    events have no audit. If the exact figure matters to any copy, re-derive it
    from `../gaia/.gaia/local/telemetry/cost.jsonl` before P3.
-7. **`useDashboardData` refetch behavior is unverified.** If it clears its data
-   while refetching, every refresh press flashes skeletons across the whole
-   console. §7.3 requires holding the previous render; the integrator must
-   confirm it rather than assume it.
+7. **CONFIRMED REAL in P1, owned by W12 in P4.** **`useApiResource` flashes
+   skeletons on every refresh.** `refetch()` calls `setState({status:
+   'loading'})` synchronously, and `ApiResourceState` is a discriminated union
+   with **no variant carrying stale data alongside `loading`**, so holding the
+   previous render is structurally impossible, not merely unimplemented.
+   `useDashboardData.refresh()` calls it for both resources, so one press blanks
+   the whole console. This contradicts §7.3 and it is a hook and type change
+   (`app/hooks/useApiResource.ts`, `app/hooks/useDashboardData.ts`), not a
+   component tweak. It is also the prerequisite for C-31's X and L states. It was
+   unowned from P1 through P3; **P4's W12 owns it.**
 
 ---
 
@@ -1748,8 +1868,8 @@ above and listed here so the orchestrator can surface it at the P0 checkpoint.
    plan phase.
 9. **Ad-hoc reviews get a reduced detail composition** (no donut, no agent-type
    bars) because `adHocReviewSchema` carries no `byModel` or `byAgentType`.
-   Rendering two permanently empty charts on 44 of 145 events would read as a
-   bug. This is the same judgment as the README's "fold reviews into Maintenance"
+   Rendering two permanently empty charts on roughly a third of all events would
+   read as a bug. This is the same judgment as the README's "fold reviews into Maintenance"
    call and should be confirmed at the same checkpoint.
 10. **The detail panel swap is instant, with no crossfade.** Selection follows
     arrow-key focus, so any transition would fire on every keypress.

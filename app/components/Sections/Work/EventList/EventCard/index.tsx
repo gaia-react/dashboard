@@ -1,8 +1,7 @@
 import type {FC, Ref} from 'react';
 import {twMerge} from 'tailwind-merge';
-import Icon from '~/components/Icon';
 import {artifactLabel} from '~/components/Sections/Work/ArtifactLink';
-import {EVENT_ICONS, EVENT_TONES} from '~/components/Sections/Work/event-meta';
+import {EVENT_TONES} from '~/components/Sections/Work/event-meta';
 import type {GaiaEvent} from '~/components/Sections/Work/events';
 import StatusText from '~/components/Sections/Work/StatusText';
 import TypeChip from '~/components/Sections/Work/TypeChip';
@@ -93,12 +92,11 @@ type Props = {
  *   border: the tone border is reserved for selection, and moving it on hover
  *   makes hover read as selection.
  *
- * The command row's artifact renders as **text, not a link**. DESIGN-SPEC 4.1
- * names it `ArtifactChip` while C-16 describes `ArtifactLink`; an `<a>` inside
- * a `<button>` is invalid HTML and a nested-interactive defect, so the card
- * names the artifact and the detail panel owns the clickable link. 4 of 33
- * `gaia-debt` rows carry no `github` at all, and those render the dash rather
- * than a disabled or broken link.
+ * The command row's artifact renders as **text, not a link** (DESIGN-SPEC 4.1):
+ * an `<a>` inside this card's `<button>` is invalid HTML and a
+ * nested-interactive defect, so the card names the artifact and the detail
+ * header owns the clickable link. 4 of 33 `gaia-debt` rows carry no `github`
+ * at all, and those render the dash rather than a disabled or broken link.
  */
 const EventCard: FC<Props> = ({
   event,
@@ -129,11 +127,6 @@ const EventCard: FC<Props> = ({
         type="button"
       >
         <span className={eventCardClasses.identity}>
-          <Icon
-            className={tone.icon}
-            name={EVENT_ICONS[event.type]}
-            size={16}
-          />
           <TypeChip tone={tone} type={event.type} />
           <span className="flex-1" />
           {event.source.kind === 'command' ?

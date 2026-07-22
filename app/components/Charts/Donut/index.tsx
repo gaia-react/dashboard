@@ -33,12 +33,8 @@ const VIEW_BOX_SIZE = 160;
 const CENTER = VIEW_BOX_SIZE / 2;
 /**
  * Five named models maximum plus "other", so the ring never exceeds six
- * segments (DESIGN-SPEC 6.1). DESIGN-SPEC's own text calls this
- * `groupTailSeries(rows, 5)`, but groupTailSeries's `limit` is the total
- * segment cap (named keys plus "other"), not a named-only cap: passing 5
- * there yields four named keys plus "other", five total. Passing 6 is what
- * actually keeps five named models and caps the ring at six segments, which
- * is the stated outcome; see W2's contractAmbiguity note.
+ * segments (DESIGN-SPEC 6.1). `groupTailSeries`'s `limit` is the total
+ * segment cap, named keys plus "other", not a named-only cap.
  */
 const MAX_SEGMENTS = 6;
 const PAD_ANGLE = 0.02;

@@ -63,13 +63,15 @@ const renderCard = (event: GaiaEvent, overrides: Overrides = {}) =>
 test('the card carries the identity triple: tone icon, chip word, and handle', () => {
   renderCard(byKey('SPEC-032'));
 
-  // DESIGN-SPEC 4.1 renders a standalone tone icon AND a `TypeChip`, and
-  // C-13 puts an icon inside that chip, so the glyph renders twice. Asserted
-  // explicitly rather than queried loosely, so the redundancy is visible and
-  // not latent; it is reported as a contract ambiguity.
+  // The glyph renders exactly once, inside the chip (DESIGN-SPEC 4.1). The
+  // standalone icon the spec originally put beside the chip was dropped at
+  // P4: 4.2 already calls the chip's icon plus word plus tone the redundant
+  // triple, and a second copy of the same glyph 8px away is noise. Asserted
+  // by length, so a reintroduced duplicate fails here rather than passing a
+  // loose query.
   const icons = screen.getAllByTestId('icon-spec');
 
-  expect(icons).toHaveLength(2);
+  expect(icons).toHaveLength(1);
   expect(icons[0]).toHaveClass(EVENT_TONES.spec.icon);
   expect(screen.getByTestId('type-chip')).toBeInTheDocument();
   expect(screen.getByText('Spec')).toBeInTheDocument();
@@ -229,7 +231,7 @@ test('a command with no github reference renders the dash, never a broken link',
 test('an unrecognized command degrades to the unknown tone and never breaks', () => {
   renderCard(byType('unknown'));
 
-  expect(screen.getAllByTestId('icon-unknown')).toHaveLength(2);
+  expect(screen.getAllByTestId('icon-unknown')).toHaveLength(1);
   expect(screen.getByText('Unknown')).toBeInTheDocument();
   expect(screen.getByRole('button')).toBeInTheDocument();
 });

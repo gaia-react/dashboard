@@ -65,6 +65,10 @@ const sortLabelFor = (sort: EventSortId): string =>
  * native element already carries the keyboard and screen-reader behavior a
  * rebuild would have to re-earn (PRODUCT.md principle 3).
  *
+ * The count line pluralizes (DESIGN-SPEC C-10). It is the one string this tab
+ * speaks aloud, and "1 events" in a screen-reader announcement is not a
+ * rounding error, it is the whole message.
+ *
  * The count line is the Work tab's **only** live region (DESIGN-SPEC 11.13):
  * a filter change is otherwise imperceptible to a screen-reader user, while
  * selection changes are user-initiated and the detail panel's heading labels
@@ -152,7 +156,7 @@ const EventFilters: FC<Props> = ({
         </label>
       </div>
       <p aria-live="polite" className={eventFiltersClasses.count}>
-        {visibleCount} events
+        {visibleCount} {visibleCount === 1 ? 'event' : 'events'}
       </p>
     </div>
   );

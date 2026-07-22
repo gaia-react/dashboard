@@ -130,6 +130,19 @@ test('the count line is a polite live region reporting the visible count', () =>
   expect(count).toHaveClass('text-label');
 });
 
+test('the count line pluralizes, so a one-event filter never says "1 events"', () => {
+  renderFilters({visibleCount: 1});
+
+  expect(screen.getByText('1 event')).toBeInTheDocument();
+  expect(screen.queryByText('1 events')).not.toBeInTheDocument();
+});
+
+test('the count line says "0 events", not "0 event"', () => {
+  renderFilters({visibleCount: 0});
+
+  expect(screen.getByText('0 events')).toBeInTheDocument();
+});
+
 test('choosing a category reports the resolved filter id', () => {
   const onFilterChange = vi.fn();
 
