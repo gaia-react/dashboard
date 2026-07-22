@@ -251,6 +251,19 @@ scenario map: `mini-project/README.md`.
   dollars and some in tokens, for `TrendBars` dual-encoding tests (each unit
   normalized to its own max, never a shared $-axis).
 
+### `insights/` (Phase 8 v2 W7; extended by Phase 8 v2 P4 W11)
+
+Client-response fixtures for the `Insights` section (`CostsResponse` /
+`ActivityResponse` pairs, scalar contract only, see "Phase 8 v2: buckets are a
+raw-telemetry concept only" above). `activity-populated.json`,
+`costs-populated.json`, `activity-empty.json`, `costs-empty.json`.
+
+- Phase 8 v2 P4: W11 extended `activity-populated.json` with a second
+  `modelWeekly` week so the busiest-model sparkline (DESIGN-SPEC 6.3, C-38)
+  has the two-or-more-points its guard requires; the most-active-day
+  sparkline already had two `heatmap` days. Both sparklines render in the
+  populated-data test as a result. The fixture's other shapes are unchanged.
+
 ### `work/` (Phase 8 v2 K3, extended by W9 and the P3 integrator)
 
 `CostsResponse` envelopes for the Work tab (unified event list, filters, sort,

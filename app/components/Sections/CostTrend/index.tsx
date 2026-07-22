@@ -29,7 +29,7 @@ export const eyebrowClassName = 'text-label text-fg-dim';
 
 export const headingClassName = 'text-fg text-title font-medium';
 
-export const captionClassName = 'text-fg-mute text-sm';
+export const captionClassName = 'text-fg-mute text-body';
 
 const MONTH_LABEL_OPTIONS: Intl.DateTimeFormatOptions = {
   month: 'short',

@@ -53,27 +53,49 @@ export type WeeklySeriesData = {
   weeklyData: WeeklyStackDatum[];
 };
 
-/** Stacked by-week total-tokens series per model. */
+/**
+ * Stacked by-week total-tokens series per model.
+ *
+ * Builds `values` and `seriesLabels` via `Object.fromEntries` rather than
+ * bracket assignment on an object literal (`values[seriesKey] = totalTokens`):
+ * a model id that collides with an `Object.prototype` member (`__proto__`,
+ * `constructor`, ...) would otherwise silently no-op the assignment (the
+ * `__proto__` setter ignores non-object values) and lose that model's data.
+ * `Object.fromEntries` defines each entry as an own property directly
+ * (`CreateDataProperty`), sidestepping the setter entirely. Same class of bug
+ * already fixed in Icon/icon-map.ts, format/lenses.ts, and chart-palette.ts's
+ * groupTailSeries; model ids here are untrusted strings straight from
+ * `../gaia` data.
+ */
 export const buildModelWeeklyData = (
   modelWeekly: ActivityResponse['modelWeekly']
 ): WeeklySeriesData => {
-  const seriesLabels: Record<string, string> = {};
+  const labelEntries = new Map<string, string>();
   const weeklyData = modelWeekly.map((week) => {
-    const values: Record<string, number> = {};
     const realEntries = Object.entries(week.tokensByModel).filter(([model]) =>
       isRealModel(model)
     );
 
-    for (const [model, totalTokens] of realEntries) {
+    for (const [model] of realEntries) {
       const seriesKey = escapeSeriesKey(model);
 
-      values[seriesKey] = totalTokens;
       // The series key stays raw (chart identity); only the label is humanized.
-      seriesLabels[seriesKey] = formatModelName(model);
+      labelEntries.set(seriesKey, formatModelName(model));
     }
 
-    return {values, week: week.weekStart};
+    return {
+      values: Object.fromEntries(
+        realEntries.map(([model, totalTokens]) => [
+          escapeSeriesKey(model),
+          totalTokens,
+        ])
+      ),
+      week: week.weekStart,
+    };
   });
 
-  return {seriesLabels, weeklyData};
+  return {
+    seriesLabels: Object.fromEntries(labelEntries),
+    weeklyData,
+  };
 };

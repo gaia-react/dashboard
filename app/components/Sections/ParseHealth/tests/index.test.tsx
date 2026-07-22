@@ -100,3 +100,27 @@ test('surfaces notes verbatim, including a cost.md phase the backfill missed', (
   ).toBeInTheDocument();
   expect(card.getByText(/unsupported schema_version 2/)).toBeInTheDocument();
 });
+
+test('the unknown-value badges and body text move onto the five-token type scale (C-35)', () => {
+  render(
+    <ParseHealth
+      activityParseHealth={activityDirty}
+      costsParseHealth={costsDirty}
+    />
+  );
+
+  const card = within(screen.getByTestId('parse-health'));
+
+  expect(card.getByText('review')).toHaveClass('text-label');
+  expect(card.getByText(/2 \/ 482 lines skipped/)).toHaveClass('text-body');
+
+  const noteList = card
+    .getAllByRole('list')
+    .find((list) =>
+      within(list).queryByText(
+        /SPEC-014 has an archived cost\.md phase section/
+      )
+    );
+
+  expect(noteList).toHaveClass('text-body');
+});

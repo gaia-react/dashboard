@@ -121,6 +121,33 @@ test('renders a defined empty state when the source map is null', () => {
   expect(screen.getByText('No model breakdown')).toBeInTheDocument();
 });
 
+test('the tooltip flips below the arc when its centroid sits near the top of the ring (DESIGN-SPEC C-46)', () => {
+  render(<Donut data={{'model-a': 1, 'model-b': 99}} locale="en-US" />);
+
+  // model-a's 1% sliver sits just before the wrap back to 12 o'clock
+  // (centroid y ~22, under the 56px threshold): placement flips to "below".
+  const topArc = screen.getByRole('graphics-symbol', {
+    name: 'model-a: 1, 1%',
+  });
+
+  fireEvent.mouseEnter(topArc);
+  expect(screen.getByRole('tooltip')).toHaveStyle({
+    transform: 'translate(-50%, 0.5rem)',
+  });
+  fireEvent.mouseLeave(topArc);
+
+  // model-b's 99% sweep centers near 6 o'clock (centroid y ~138, above the
+  // threshold): placement stays the "above" default.
+  const bottomArc = screen.getByRole('graphics-symbol', {
+    name: 'model-b: 99, 99%',
+  });
+
+  fireEvent.mouseEnter(bottomArc);
+  expect(screen.getByRole('tooltip')).toHaveStyle({
+    transform: 'translate(-50%, calc(-100% - 0.5rem))',
+  });
+});
+
 test('renders a defined empty state when every value is zero', () => {
   render(
     <Donut

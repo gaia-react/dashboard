@@ -3,9 +3,7 @@ import {expect, test, vi} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {EVENT_TONES} from '~/components/Sections/Work/event-meta';
-import EventCard, {
-  formatDateShort,
-} from '~/components/Sections/Work/EventList/EventCard';
+import EventCard from '~/components/Sections/Work/EventList/EventCard';
 import type {GaiaEvent} from '~/components/Sections/Work/events';
 import {buildEvents} from '~/components/Sections/Work/events';
 import {NO_DATA_LABEL} from '~/data/format/units';
@@ -202,12 +200,6 @@ test('the started column carries a date without a time', () => {
 
   expect(started).toHaveTextContent(/^Started .*2026/u);
   expect(started).not.toHaveTextContent(/:/);
-});
-
-test('formatDateShort renders a medium date and no time', () => {
-  expect(formatDateShort('2026-07-14T09:00:00Z', 'en-US')).toMatch(
-    /^[A-Z][a-z]{2} \d{1,2}, 2026$/u
-  );
 });
 
 test('a command card names its artifact without nesting a link inside the button', () => {

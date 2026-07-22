@@ -3,7 +3,6 @@ import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {
   costEntryAnchorId,
-  costViewForEntryType,
   countSessionsByAttribution,
   filterSessions,
   formatSessionDateTime,
@@ -158,18 +157,10 @@ test('costEntryAnchorId slugs the cost-entry key for SPEC/PLAN/slug rows', () =>
   );
 });
 
-test('costViewForEntryType maps entry types to the specs/plans view', () => {
-  expect(costViewForEntryType('spec')).toBe('specs');
-  expect(costViewForEntryType('plan')).toBe('plans');
-  expect(costViewForEntryType('plan-slug')).toBe('plans');
-});
-
-test('workTabHref builds the Work-tab deep link for an entry', () => {
-  expect(workTabHref('SPEC-001', 'spec')).toBe(
-    '?tab=work&work=specs&entry=SPEC-001'
-  );
-  expect(workTabHref('slug:vintage-plan', 'plan-slug')).toBe(
-    '?tab=work&work=plans&entry=slug%3Avintage-plan'
+test('workTabHref builds the Work-tab deep link for an entry, with no work= param', () => {
+  expect(workTabHref('SPEC-001')).toBe('?tab=work&entry=SPEC-001');
+  expect(workTabHref('slug:vintage-plan')).toBe(
+    '?tab=work&entry=slug%3Avintage-plan'
   );
 });
 

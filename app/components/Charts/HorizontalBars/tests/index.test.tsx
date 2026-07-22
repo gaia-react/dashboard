@@ -44,6 +44,14 @@ test('all chart text is text-label, never an arbitrary smaller size', () => {
   expect(screen.getByText('8.2M')).not.toHaveClass('text-xs');
 });
 
+test('the bar opacity transition carries ease-out via the shared constant', () => {
+  render(<HorizontalBars data={modelTotals} formatValue={formatValue} />);
+
+  expect(screen.getByTestId('horizontal-bar-claude-opus-4')).toHaveClass(
+    'ease-out'
+  );
+});
+
 test('rows are 30px tall so 13px labels do not collide', () => {
   render(<HorizontalBars data={modelTotals} formatValue={formatValue} />);
 

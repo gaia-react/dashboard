@@ -1,5 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {
+  formatDateShort,
   formatDateTime,
   formatDollars,
   formatDollarsCell,
@@ -50,6 +51,14 @@ describe('formatDateTime', () => {
   test('renders a medium date with a short time', () => {
     expect(formatDateTime('2026-06-10T09:00:00Z', 'en-US')).toMatch(
       /Jun 10, 2026/
+    );
+  });
+});
+
+describe('formatDateShort', () => {
+  test('renders a medium date and no time', () => {
+    expect(formatDateShort('2026-07-14T09:00:00Z', 'en-US')).toMatch(
+      /^[A-Z][a-z]{2} \d{1,2}, 2026$/u
     );
   });
 });

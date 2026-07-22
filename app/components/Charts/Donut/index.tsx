@@ -38,6 +38,10 @@ const CENTER = VIEW_BOX_SIZE / 2;
  */
 const MAX_SEGMENTS = 6;
 const PAD_ANGLE = 0.02;
+/** Below this centroid `y`, the tooltip flips to `placement="below"` so it
+ * does not clip against the top of the independently scrolling detail pane
+ * (DESIGN-SPEC C-46, section 6.1). */
+const TOOLTIP_BELOW_THRESHOLD = 56;
 
 type HoveredSegment = {
   content: TooltipContent;
@@ -177,7 +181,14 @@ const Donut: FC<DonutProps> = ({
           </text>
         </svg>
         {hovered && (
-          <ChartTooltip {...hovered.content} x={hovered.x} y={hovered.y} />
+          <ChartTooltip
+            {...hovered.content}
+            placement={
+              hovered.y < TOOLTIP_BELOW_THRESHOLD ? 'below' : undefined
+            }
+            x={hovered.x}
+            y={hovered.y}
+          />
         )}
       </div>
       {hasLegend && (

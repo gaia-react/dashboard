@@ -29,3 +29,13 @@ test('supports opacity steps for single-hue ramps', () => {
 
   expect(screen.getByText('up to 125K')).toBeInTheDocument();
 });
+
+test('item text is text-label, never the legacy smaller size', () => {
+  render(
+    <ChartLegend
+      items={[{label: 'claude-opus-4', swatchClassName: 'bg-accent'}]}
+    />
+  );
+
+  expect(screen.getByText('claude-opus-4')).toHaveClass('text-label');
+});

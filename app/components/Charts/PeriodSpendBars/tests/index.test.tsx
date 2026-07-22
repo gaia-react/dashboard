@@ -133,6 +133,29 @@ test('a keyboard-only user can reach the same tooltip via focus', () => {
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 });
 
+test('labels are text-label, never the legacy arbitrary size', () => {
+  renderChart();
+
+  expect(screen.getByText('2026-06-08')).toHaveClass('text-label');
+  expect(screen.getByText('$0')).toHaveClass('text-label');
+});
+
+test('the baseline gets a taller bottom margin so 13px period labels do not collide', () => {
+  renderChart();
+
+  // height 180 (default), BOTTOM_MARGIN 24: the $0 tick sits at
+  // yScale(0) + 3 = plotBottom + 3 = (180 - 24) + 3 = 159.
+  expect(screen.getByText('$0')).toHaveAttribute('y', '159');
+});
+
+test('bar opacity transitions carry ease-out via the shared constant', () => {
+  renderChart();
+
+  expect(screen.getByTestId('period-bar-recorded-2026-06-22')).toHaveClass(
+    'ease-out'
+  );
+});
+
 test('empty data renders no groups and does not crash', () => {
   render(
     <PeriodSpendBars

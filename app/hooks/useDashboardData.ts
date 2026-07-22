@@ -4,6 +4,8 @@ import {useApiResource} from '~/hooks/useApiResource';
 export type DashboardData<CostsData, ActivityData> = {
   activity: ApiResource<ActivityData>;
   costs: ApiResource<CostsData>;
+  /** True while either resource is refetching. */
+  isRefreshing: boolean;
   refresh: () => void;
 };
 
@@ -30,5 +32,10 @@ export const useDashboardData = <
     activity.refetch();
   };
 
-  return {activity, costs, refresh};
+  return {
+    activity,
+    costs,
+    isRefreshing: costs.isRefreshing || activity.isRefreshing,
+    refresh,
+  };
 };

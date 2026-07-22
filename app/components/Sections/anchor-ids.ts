@@ -1,5 +1,3 @@
-import type {CostEntry} from '~/data/schemas/api';
-
 /**
  * Cross-tab jump-link conventions (DESIGN-SPEC 1.4 / 5.6, Phase 8 v2).
  * SessionsList's attribution badge links to the matching Work event, and a
@@ -32,27 +30,16 @@ export const sessionAnchorId = (sessionId: string): string =>
 export const sessionsTabHref = (sessionId: string): string =>
   `?tab=sessions&id=${encodeURIComponent(sessionId)}`;
 
-/** The v1 CostTable view (specs vs plans) an entry's type belonged to: a
- * plan-slug is a pre-ledger plan, grouped with plans. Still used to shape
- * `workTabHref`'s `?work=` value below, even though the v2 Work tab itself
- * no longer reads that param (see this file's `workTabHref` doc comment). */
-export const costViewForEntryType = (
-  entryType: CostEntry['entryType']
-): 'plans' | 'specs' => (entryType === 'spec' ? 'specs' : 'plans');
-
 /**
  * The deep link a "View in cost table" jump navigates to: the Work tab with
  * the entry targeted via `?entry=`, no lingering session filter (symmetric
  * to `sessionsTabHref`). The v2 Work tab's own selection logic
- * (`Work/selection.ts`) reads `?entry=` and ignores `?work=` entirely.
+ * (`Work/selection.ts`) reads `?entry=` only.
  *
- * `?work=` still gets emitted below, deliberately: it was the v1 CostTable's
- * specs/plans toggle, and `SessionsList/tests/format.test.ts` asserts this
- * exact href string. Dropping it would be a P4 cleanup (SessionsList is not
- * this task's file), not a functional requirement.
+ * P4 (W12) dropped the vestigial `?work=` value this used to carry: it was
+ * the v1 CostTable's specs/plans toggle, nothing in v2 reads it, and the
+ * entry type it was derived from (`costViewForEntryType`, formerly exported
+ * here) had no other caller once it was gone.
  */
-export const workTabHref = (
-  costEntryKey: string,
-  entryType: CostEntry['entryType']
-): string =>
-  `?tab=work&work=${costViewForEntryType(entryType)}&entry=${encodeURIComponent(costEntryKey)}`;
+export const workTabHref = (costEntryKey: string): string =>
+  `?tab=work&entry=${encodeURIComponent(costEntryKey)}`;

@@ -5,8 +5,6 @@ import {sortAlphabetically} from '~/data/sort';
 
 export {costEntryAnchorId} from '~/components/Sections/anchor-ids';
 
-export {costViewForEntryType} from '~/components/Sections/anchor-ids';
-
 export {sessionAnchorId} from '~/components/Sections/anchor-ids';
 
 export {workTabHref} from '~/components/Sections/anchor-ids';

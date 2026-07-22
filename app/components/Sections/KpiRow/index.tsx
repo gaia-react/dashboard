@@ -2,25 +2,33 @@ import type {FC, ReactNode} from 'react';
 import {twJoin} from 'tailwind-merge';
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
 import type {DashboardTabId} from '~/components/Sections/dashboard-tabs';
-import {formatDollars} from '~/components/Sections/KpiRow/format-kpi';
 import {countSessionsByAttribution} from '~/components/Sections/SessionsList/format';
 import {shimmer} from '~/components/Skeleton';
+import {formatDollars} from '~/data/format/units';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 
 type Props = {
   activity: ActivityResponse;
   costs: CostsResponse;
-  /** Which tab is active; the tile set is contextual to it. */
-  tab: DashboardTabId;
+  /** Which tab is active; the tile set is contextual to it. The Work tab has
+   * no KPI row (DESIGN-SPEC 1.4): 'work' is excluded structurally so the
+   * dead default branch cannot come back by accident. */
+  tab: Exclude<DashboardTabId, 'work'>;
 };
 
 const gridClass = 'grid grid-cols-2 gap-4 lg:grid-cols-4';
 const tileClass =
   'bg-bg-elev border-border-soft flex flex-col gap-1 rounded-md border p-4';
 const labelClass = 'text-label text-fg-dim';
-const valueClass = 'text-title font-medium text-fg';
-const sublabelClass = 'text-fg-mute text-xs';
-const noteClass = 'text-warn-soft text-xs';
+/** C-34: every numeral tile value. */
+const metricValueClass = 'text-metric font-mono text-fg tabular-nums';
+/** EstimatedAdHocTile's "Not available" is prose, not a numeral: 2.25rem of
+ * a two-word sentence wraps in a quarter-width tile and reads as an error
+ * message, so it stays at the old heading size rather than stepping to
+ * `metricValueClass` with the real figures. Do not "finish the job" here. */
+const proseValueClass = 'text-title font-medium text-fg';
+const sublabelClass = 'text-label text-fg-mute';
+const noteClass = 'text-label text-warn-soft';
 
 type KpiTileProps = {
   children: ReactNode;
@@ -43,8 +51,8 @@ const RecordedSpendTile: FC<{costs: CostsResponse}> = ({costs}) => {
 
   return (
     <KpiTile label="Recorded spend">
-      <p className={valueClass}>{formatDollars(recordedDollars)}</p>
-      <p className={sublabelClass}>Recorded, spec &amp; plan work</p>
+      <p className={metricValueClass}>{formatDollars(recordedDollars)}</p>
+      <p className={sublabelClass}>Recorded, all GAIA events</p>
       {recordedDollars === 0 && (
         <p className={noteClass}>No recorded cost yet</p>
       )}
@@ -58,7 +66,7 @@ const EstimatedAdHocTile: FC<{activity: ActivityResponse}> = ({activity}) => {
   if (estimatedAdHocDollars === null) {
     return (
       <KpiTile label="Estimated ad hoc spend">
-        <p className={valueClass}>Not available</p>
+        <p className={proseValueClass}>Not available</p>
         <p className={sublabelClass}>Estimated, rate table unusable</p>
       </KpiTile>
     );
@@ -72,7 +80,7 @@ const EstimatedAdHocTile: FC<{activity: ActivityResponse}> = ({activity}) => {
 
   return (
     <KpiTile label="Estimated ad hoc spend">
-      <p className={valueClass}>
+      <p className={metricValueClass}>
         {showLowerBound && '≥'}
         {formatDollars(estimatedAdHocDollars.value)}
       </p>
@@ -87,33 +95,20 @@ const EstimatedAdHocTile: FC<{activity: ActivityResponse}> = ({activity}) => {
   );
 };
 
-const MergedRatioTile: FC<{
-  label: string;
-  merged: number;
-  total: number;
-}> = ({label, merged, total}) => (
-  <KpiTile label={label}>
-    <p className={valueClass}>
-      {merged} / {total}
-    </p>
-    <p className={sublabelClass}>Merged</p>
-  </KpiTile>
-);
-
 const CountTile: FC<{label: string; sublabel: string; value: number}> = ({
   label,
   sublabel,
   value,
 }) => (
   <KpiTile label={label}>
-    <p className={valueClass}>{value}</p>
+    <p className={metricValueClass}>{value}</p>
     <p className={sublabelClass}>{sublabel}</p>
   </KpiTile>
 );
 
 const TotalTokensTile: FC<{activity: ActivityResponse}> = ({activity}) => (
   <KpiTile label="Total tokens">
-    <p className={valueClass}>
+    <p className={metricValueClass}>
       {formatCompactNumber(activity.kpis.totalTokens)}
     </p>
     <p className={sublabelClass}>All activity</p>
@@ -122,10 +117,12 @@ const TotalTokensTile: FC<{activity: ActivityResponse}> = ({activity}) => (
 
 /**
  * SPEC section 6.2, contextual per tab (feedback): the top-block tiles sit
- * above the tab strip and change with the active tab. Work leads with spend
- * and the specs/plans merge ratios; Sessions drops those for session counts
- * and the GAIA-vs-ad-hoc split; Activity pairs volume with spend. Spend is
- * never summed across recorded and estimated (SPEC section 5 rule 3).
+ * above the tab strip and change with the active tab. Sessions leads with
+ * session counts and the GAIA-vs-ad-hoc split; Insights pairs volume with
+ * spend. Spend is never summed across recorded and estimated (SPEC section 5
+ * rule 3). The Work tab has no KPI row (DESIGN-SPEC 1.4): its own
+ * specs/plans merge ratio lived here as the default branch until P4 deleted
+ * it as unreachable.
  */
 const KpiRow: FC<Props> = ({activity, costs, tab}) => {
   if (tab === 'sessions') {
@@ -149,35 +146,16 @@ const KpiRow: FC<Props> = ({activity, costs, tab}) => {
     );
   }
 
-  if (tab === 'activity') {
-    return (
-      <div className={gridClass}>
-        <CountTile
-          label="Active days"
-          sublabel="Days with any activity"
-          value={activity.kpis.activeDays}
-        />
-        <TotalTokensTile activity={activity} />
-        <RecordedSpendTile costs={costs} />
-        <EstimatedAdHocTile activity={activity} />
-      </div>
-    );
-  }
-
   return (
     <div className={gridClass}>
+      <CountTile
+        label="Active days"
+        sublabel="Days with any activity"
+        value={activity.kpis.activeDays}
+      />
+      <TotalTokensTile activity={activity} />
       <RecordedSpendTile costs={costs} />
       <EstimatedAdHocTile activity={activity} />
-      <MergedRatioTile
-        label="Specs"
-        merged={costs.kpis.specs.merged}
-        total={costs.kpis.specs.total}
-      />
-      <MergedRatioTile
-        label="Plans"
-        merged={costs.kpis.plans.merged}
-        total={costs.kpis.plans.total}
-      />
     </div>
   );
 };
@@ -195,9 +173,9 @@ export const KpiRowSkeleton: FC = () => (
     {Array.from({length: TILE_COUNT}, (unused, index) => (
       <div key={index} className={tileClass} role="group">
         <p className={twJoin(labelClass, shimmer)}>Recorded spend</p>
-        <p className={twJoin(valueClass, shimmer)}>$0.00</p>
+        <p className={twJoin(metricValueClass, shimmer)}>$0.00</p>
         <p className={twJoin(sublabelClass, shimmer)}>
-          Recorded, spec &amp; plan
+          Recorded, all GAIA events
         </p>
       </div>
     ))}

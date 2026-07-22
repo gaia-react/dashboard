@@ -61,7 +61,7 @@ const resolvedFetch = (): ReturnType<typeof vi.fn> =>
 const insightsTabLabels = [
   'Key metrics',
   'Highlights',
-  'Model Usage',
+  'Model usage',
   'Cost trend',
   'Activity',
 ];
@@ -111,7 +111,7 @@ test('defaults to the Work tab, mounting only its panel, with no KPI row', () =>
     screen.queryByRole('region', {name: 'Sessions'})
   ).not.toBeInTheDocument();
   expect(
-    screen.queryByRole('region', {name: 'Model Usage'})
+    screen.queryByRole('region', {name: 'Model usage'})
   ).not.toBeInTheDocument();
 });
 
@@ -239,6 +239,59 @@ test('the refresh button refetches both endpoints', async () => {
     expect(callsTo(fetchMock, '/api/costs')).toBe(2);
   });
   expect(callsTo(fetchMock, '/api/activity')).toBe(2);
+});
+
+test('the refresh press holds the previous render instead of flashing skeletons (defect 7)', async () => {
+  const costsDeferred = createDeferred();
+  let costsCalls = 0;
+  const fetchMock = stubFetch({
+    '/api/activity': async () => jsonResponse(activityFixture),
+    '/api/costs': async () => {
+      costsCalls += 1;
+
+      return costsCalls === 1 ?
+          jsonResponse(costsFixture)
+        : costsDeferred.promise;
+    },
+  });
+
+  render(<App />);
+  window.history.pushState(null, '', '/?tab=sessions');
+  fireEvent.click(screen.getByRole('tab', {name: 'Sessions'}));
+
+  await waitFor(() => {
+    expect(screen.getByRole('region', {name: 'Sessions'})).toBeInTheDocument();
+  });
+
+  fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
+
+  await waitFor(() => {
+    expect(callsTo(fetchMock, '/api/costs')).toBe(2);
+  });
+
+  // The costs request is now in flight, but the Sessions region must still
+  // show its real content: the skeleton never flashes back in, and the
+  // region's own aria-busy stays false because `state.status` never
+  // reverted to 'loading'.
+  expect(
+    screen.queryByTestId('sessions-list-skeleton')
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole('region', {name: 'Sessions'})).toHaveAttribute(
+    'aria-busy',
+    'false'
+  );
+  expect(
+    screen.getByText('Wire cost telemetry into the ledger')
+  ).toBeInTheDocument();
+  expect(screen.getByRole('button', {name: 'Refreshing'})).toBeInTheDocument();
+
+  await act(async () => {
+    costsDeferred.resolve(jsonResponse(costsFixture));
+    await costsDeferred.promise;
+  });
+  await waitFor(() => {
+    expect(screen.getByRole('button', {name: 'Refresh'})).toBeInTheDocument();
+  });
 });
 
 test('a costs failure surfaces one error with a retry, on the one Work-tab region that needs costs', async () => {

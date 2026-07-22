@@ -5,6 +5,9 @@ import type {ApiResourceState} from '~/hooks/useApiResource';
 type Props<TData> = {
   children: (data: TData) => ReactNode;
   errorTitle?: string;
+  /** Forwarded to ErrorState's C-31 X/L states: true while a retry triggered
+   * through `onRetry` is in flight. */
+  isRetrying?: boolean;
   label: string;
   onRetry?: () => void;
   skeleton: ReactNode;
@@ -19,6 +22,7 @@ type Props<TData> = {
 const AsyncSection = <TData,>({
   children,
   errorTitle,
+  isRetrying,
   label,
   onRetry,
   skeleton,
@@ -35,6 +39,7 @@ const AsyncSection = <TData,>({
     )}
     {state.status === 'error' && (
       <ErrorState
+        isRetrying={isRetrying}
         message={state.message}
         onRetry={onRetry}
         title={errorTitle}

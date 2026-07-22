@@ -18,7 +18,7 @@ const ChartLegend: FC<{items: LegendItem[]}> = ({items}) => (
     {items.map((item) => (
       <li
         key={item.label}
-        className="text-fg-dim flex items-center gap-1.5 text-xs"
+        className="text-fg-dim text-label flex items-center gap-1.5"
       >
         <span
           aria-hidden={true}

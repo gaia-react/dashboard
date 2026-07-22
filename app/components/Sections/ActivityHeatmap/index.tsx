@@ -22,7 +22,7 @@ export const eyebrowClassName = 'text-label text-fg-dim';
 
 export const headingClassName = 'text-fg text-title font-medium';
 
-export const captionClassName = 'text-fg-mute text-sm';
+export const captionClassName = 'text-fg-mute text-body';
 
 /**
  * Screen-reader-only fallback table (accessibility rule: keyboard/AT users

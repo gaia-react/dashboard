@@ -59,6 +59,24 @@ test('error: renders the error primitive wired to onRetry', () => {
   expect(onRetry).toHaveBeenCalledTimes(1);
 });
 
+test("error: forwards isRetrying to ErrorState so C-31's X and L states are reachable", () => {
+  render(
+    <AsyncSection
+      isRetrying={true}
+      label="Sessions"
+      onRetry={vi.fn()}
+      skeleton={<Skeleton className="h-20" />}
+      state={{message: 'Session scan failed', status: 'error'}}
+    >
+      {renderRows}
+    </AsyncSection>
+  );
+
+  const button = screen.getByRole('button', {name: 'Retrying'});
+
+  expect(button).toBeDisabled();
+});
+
 test('keeps the same section element when content replaces the skeleton', () => {
   const {rerender} = render(
     <AsyncSection

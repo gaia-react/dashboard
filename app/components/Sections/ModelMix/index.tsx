@@ -25,8 +25,8 @@ export const eyebrowClassName = 'text-label text-fg-dim';
 
 export const headingClassName = 'text-fg text-title font-medium';
 
-export const captionClassName = 'text-fg-mute text-sm';
-const chartHeadingClassName = 'text-fg-dim text-sm font-medium';
+export const captionClassName = 'text-fg-mute text-body';
+const chartHeadingClassName = 'text-fg-dim text-label font-medium';
 
 /**
  * SPEC 6.5: total tokens per model (horizontal bars) and a stacked by-week
@@ -50,7 +50,7 @@ const ModelMix: FC<ModelMixProps> = ({locale, modelTotals, modelWeekly}) => {
   return (
     <div className={sectionChromeClassName}>
       <header>
-        <p className={eyebrowClassName}>Model Usage</p>
+        <p className={eyebrowClassName}>Model usage</p>
         <h2 className={headingClassName}>Which models do the work</h2>
         <p className={captionClassName}>
           Tokens per model, in total and week by week.
@@ -95,7 +95,7 @@ export const ModelMixSkeleton: FC = () => (
     data-testid="model-mix-skeleton"
   >
     <header>
-      <p className={twMerge(eyebrowClassName, shimmer)}>Model Usage</p>
+      <p className={twMerge(eyebrowClassName, shimmer)}>Model usage</p>
       <h2 className={twMerge(headingClassName, shimmer)}>
         Which models do the work
       </h2>

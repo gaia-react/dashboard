@@ -70,13 +70,11 @@ const TabPanel: FC<{
  *
  * There is no KPI row on the Work tab (DESIGN-SPEC 1.4): the selected
  * event's own Cost / Elapsed / Total tokens live in its detail panel's
- * metric strip. `KpiRow` still renders on Sessions and Insights, inside
- * those panels; its `tab === 'work'` branch is therefore unreachable here
- * and stays that way until P4 removes it (out of this task's file
- * ownership).
+ * metric strip. `KpiRow` renders on Sessions and Insights only; its prop
+ * type excludes 'work' so the dead branch cannot come back by accident.
  */
 const App = () => {
-  const {activity, costs, refresh} = useDashboardData<
+  const {activity, costs, isRefreshing, refresh} = useDashboardData<
     CostsResponse,
     ActivityResponse
   >();
@@ -84,12 +82,6 @@ const App = () => {
   const tab = resolveTabId(params.get('tab'));
 
   const headerState = combineResourceStates(costs.state, activity.state);
-  // useApiResource.refetch() sets {status: 'loading'} immediately, so an
-  // in-flight refresh is indistinguishable from the initial load here. That
-  // is a known, deferred defect (DESIGN-SPEC section 10, defect 7, P4's to
-  // fix): the button is wired off the resource statuses as they are.
-  const isRefreshing =
-    costs.state.status === 'loading' || activity.state.status === 'loading';
 
   // Switching tabs clears every other param (feedback): a filter or
   // deep-link left over from the previous tab must not leak into the next.
@@ -104,12 +96,9 @@ const App = () => {
   };
 
   // A cross-tab jump to one cost entry (the Sessions attribution badge)
-  // lands on the Work tab with its event selected, symmetric to
-  // viewSession. `table` still lands in `?work=`, which the v2 Work tab
-  // ignores (anchor-ids.ts): SessionsList's own format test asserts that
-  // exact href, and SessionsList is P4 scope, not this task's.
-  const viewEntry = (key: string, table?: 'plans' | 'specs'): void => {
-    resetQueryParams({entry: key, tab: 'work', work: table ?? null});
+  // lands on the Work tab with its event selected, symmetric to viewSession.
+  const viewEntry = (key: string): void => {
+    resetQueryParams({entry: key, tab: 'work'});
   };
 
   const projectStart =
@@ -148,6 +137,7 @@ const App = () => {
         {tab === 'sessions' && (
           <TabPanel className={documentPanelClass} tab="sessions">
             <AsyncSection
+              isRetrying={isRefreshing}
               label="Key metrics"
               onRetry={refresh}
               skeleton={<KpiRowSkeleton />}
@@ -159,6 +149,7 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
+              isRetrying={isRefreshing}
               label="Sessions"
               onRetry={refresh}
               skeleton={<SessionsListSkeleton />}
@@ -183,6 +174,7 @@ const App = () => {
             )}
 
             <AsyncSection
+              isRetrying={isRefreshing}
               label="Key metrics"
               onRetry={refresh}
               skeleton={<KpiRowSkeleton />}
@@ -194,6 +186,7 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
+              isRetrying={isRefreshing}
               label="Highlights"
               onRetry={refresh}
               skeleton={<InsightsSkeleton />}
@@ -205,7 +198,8 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
-              label="Model Usage"
+              isRetrying={isRefreshing}
+              label="Model usage"
               onRetry={refresh}
               skeleton={<ModelMixSkeleton />}
               state={activity.state}
@@ -219,6 +213,7 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
+              isRetrying={isRefreshing}
               label="Cost trend"
               onRetry={refresh}
               skeleton={<CostTrendSkeleton />}
@@ -230,6 +225,7 @@ const App = () => {
             </AsyncSection>
 
             <AsyncSection
+              isRetrying={isRefreshing}
               label="Activity"
               onRetry={refresh}
               skeleton={<ActivityHeatmapSkeleton />}

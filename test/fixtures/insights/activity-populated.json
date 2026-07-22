@@ -40,6 +40,10 @@
     {
       "weekStart": "2026-06-01",
       "tokensByModel": {"claude-opus-4-8": 4000, "claude-sonnet-5": 6000}
+    },
+    {
+      "weekStart": "2026-06-08",
+      "tokensByModel": {"claude-opus-4-8": 1000, "claude-sonnet-5": 500}
     }
   ],
   "sessions": [

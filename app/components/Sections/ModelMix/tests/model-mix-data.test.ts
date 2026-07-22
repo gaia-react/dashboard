@@ -68,6 +68,36 @@ test('buildModelWeeklyData excludes <synthetic> from every week and reads total 
   });
 });
 
+// Regression (the Icon/icon-map.ts, format/lenses.ts, chart-palette.ts
+// groupTailSeries bug class): the previous implementation built `values` and
+// `seriesLabels` via bare bracket assignment on an object literal
+// (`values[seriesKey] = totalTokens`). A model id that collides with
+// `Object.prototype.__proto__` silently no-ops that assignment instead of
+// creating an own property (the setter ignores non-object values), losing
+// the model's data. Built via JSON.parse so "__proto__" is a genuine own
+// property on the source data (CreateDataProperty); an object literal with
+// `__proto__:` in the source sets the prototype instead and proves nothing.
+test('a model id shaped like a prototype property survives into the built series, not silently dropped', () => {
+  const tokensByModel = JSON.parse(
+    '{"__proto__": 12, "claude-opus-4-8": 4}'
+  ) as Record<string, number>;
+
+  const {seriesLabels, weeklyData} = buildModelWeeklyData([
+    {tokensByModel, weekStart: '2026-06-01'},
+  ]);
+
+  const values = weeklyData[0]?.values ?? {};
+
+  // Reflect.get, not `values.__proto__` / `values['__proto__']`: both member
+  // forms trip no-proto (and its autofixer flips bracket back to dot,
+  // re-triggering the same error), even though this reads the own property
+  // built above, not the deprecated accessor.
+  expect(Object.hasOwn(values, '__proto__')).toBe(true);
+  expect(Reflect.get(values, '__proto__')).toBe(12);
+  expect(values['claude-opus-4-8']).toBe(4);
+  expect(Reflect.get(seriesLabels, '__proto__')).toBe('__proto__');
+});
+
 test('a real model literally named "other" is escaped to a non-colliding key with its true label preserved', () => {
   const {seriesLabels, weeklyData} = buildModelWeeklyData(
     otherCollision.modelWeekly

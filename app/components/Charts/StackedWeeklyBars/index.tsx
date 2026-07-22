@@ -17,6 +17,7 @@ import {
   formatCompactNumber,
   niceTicks,
 } from '~/components/Charts/scale-helpers';
+import {opacityTransition} from '~/styles/class-names';
 
 export type WeeklyStackDatum = {
   /** Per-series values for this week, keyed by series id. */
@@ -46,11 +47,16 @@ type Props = {
 
 const TOP_MARGIN = 8;
 const BOTTOM_MARGIN = 20;
-const LEFT_MARGIN = 44;
+/** 56 rather than 44: all chart text is `text-label` (13px) in v2, and 13px
+ * tick labels need more room than the v1 10px size gave them (DESIGN-SPEC
+ * 6.6). */
+const LEFT_MARGIN = 56;
 const RIGHT_MARGIN = 8;
 const SEGMENT_GAP = 2;
 const MAX_BAR_WIDTH = 24;
-const MAX_WEEK_LABELS = 8;
+/** 6 rather than 8: fewer, wider-spaced week labels at 13px avoid collision
+ * (DESIGN-SPEC 6.6). */
+const MAX_WEEK_LABELS = 6;
 
 /**
  * Stacked vertical bars on a week band scale (model mix over time, SPEC 6.5).
@@ -134,7 +140,7 @@ const StackedWeeklyBars: FC<Props> = ({
                 y2={yScale(tick)}
               />
               <text
-                className="fill-fg-mute text-[0.625rem] tabular-nums"
+                className="fill-fg-mute text-label tabular-nums"
                 textAnchor="end"
                 x={LEFT_MARGIN - 6}
                 y={yScale(tick) + 3}
@@ -172,7 +178,7 @@ const StackedWeeklyBars: FC<Props> = ({
               <g key={datum.week}>
                 {segments.map((segment, segmentIndex) => {
                   const segmentClass = twJoin(
-                    'transition-opacity duration-150 motion-reduce:transition-none',
+                    opacityTransition,
                     colorMap[segment.key].fillClassName,
                     hovered?.index === index && 'opacity-80'
                   );
@@ -201,7 +207,7 @@ const StackedWeeklyBars: FC<Props> = ({
                 })}
                 {index % weekLabelStep === 0 && (
                   <text
-                    className="fill-fg-mute text-[0.625rem]"
+                    className="fill-fg-mute text-label"
                     textAnchor="middle"
                     x={barX + barWidth / 2}
                     y={height - 6}

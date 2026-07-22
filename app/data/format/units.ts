@@ -60,5 +60,20 @@ export const formatDateTime = (iso: string, locale?: string): string =>
   : new Intl.DateTimeFormat(locale, DATE_TIME_OPTIONS)
   ).format(new Date(iso));
 
+const DATE_SHORT_OPTIONS: Intl.DateTimeFormatOptions = {dateStyle: 'medium'};
+const defaultDateShortFormat = new Intl.DateTimeFormat(
+  undefined,
+  DATE_SHORT_OPTIONS
+);
+
+/** A date with no time (DESIGN-SPEC 7.6): the Work event card's row 4 needs
+ * this because the full `formatDateTime` runs about 22 characters and does
+ * not fit a 20rem card. */
+export const formatDateShort = (iso: string, locale?: string): string =>
+  (locale === undefined ?
+    defaultDateShortFormat
+  : new Intl.DateTimeFormat(locale, DATE_SHORT_OPTIONS)
+  ).format(new Date(iso));
+
 export const formatTokens = (value: number, locale?: string): string =>
   formatCompactNumber(value, locale);

@@ -168,26 +168,26 @@ test('an ?id= jump pages to and highlights the target row', () => {
   expect(targetRow).toHaveClass('ring-1');
 });
 
-test('the attribution badge links to the matching entry on the Work tab', () => {
+test('the attribution badge links to the matching entry on the Work tab, with no work= param', () => {
   render(<SessionsList sessions={sessions} />);
 
   expect(screen.getByRole('link', {name: 'SPEC-001'})).toHaveAttribute(
     'href',
-    '?tab=work&work=specs&entry=SPEC-001'
+    '?tab=work&entry=SPEC-001'
   );
   expect(screen.getByRole('link', {name: 'slug:vintage-plan'})).toHaveAttribute(
     'href',
-    '?tab=work&work=plans&entry=slug%3Avintage-plan'
+    '?tab=work&entry=slug%3Avintage-plan'
   );
 });
 
-test('clicking the attribution badge calls onViewEntry with the entry key and table', () => {
+test('clicking the attribution badge calls onViewEntry with just the entry key', () => {
   const onViewEntry = vi.fn();
   render(<SessionsList onViewEntry={onViewEntry} sessions={sessions} />);
 
   fireEvent.click(screen.getByRole('link', {name: 'SPEC-001'}));
 
-  expect(onViewEntry).toHaveBeenCalledWith('SPEC-001', 'specs');
+  expect(onViewEntry).toHaveBeenCalledWith('SPEC-001');
 });
 
 test("each session row carries the anchor id CostTable's jump-link points at", () => {
@@ -250,4 +250,35 @@ test('the skeleton mirrors the section chrome and is hidden from assistive tech'
     'aria-hidden',
     'true'
   );
+});
+
+test('captions, controls, and figures move onto the five-token type scale (DESIGN-SPEC 1.5)', () => {
+  render(<SessionsList sessions={sessions} />);
+
+  expect(screen.getByText(/54 sessions/)).toHaveClass('text-body');
+  expect(screen.getByText('Page 1 of 2')).toHaveClass('text-body');
+
+  expect(screen.getByLabelText('Type')).toHaveClass('text-label');
+  expect(screen.getByRole('button', {name: 'Next page'})).toHaveClass(
+    'text-label'
+  );
+  expect(screen.getByRole('link', {name: 'SPEC-001'})).toHaveClass(
+    'text-label'
+  );
+
+  const recordedRow = getSessionRow(RECORDED_SESSION_ID);
+
+  expect(within(recordedRow).getByText('Ship the ledger repair')).toHaveClass(
+    'text-body'
+  );
+  expect(within(recordedRow).getByText('$14.35')).toHaveClass('text-body');
+  expect(within(recordedRow).getByText('recorded')).toHaveClass('text-label');
+
+  const estimatedRow = getSessionRow(ESTIMATED_SESSION_ID);
+
+  expect(within(estimatedRow).getByText('~$2.10')).toHaveClass('text-body');
+
+  const noDataRow = getSessionRow(NO_DATA_SESSION_ID);
+
+  expect(within(noDataRow).getByText('-')).toHaveClass('text-label');
 });

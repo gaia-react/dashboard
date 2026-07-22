@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, test, vi} from 'vitest';
 import ErrorState from '~/components/ErrorState';
 
@@ -24,6 +24,28 @@ test('retries through the retry button', () => {
   expect(onRetry).toHaveBeenCalledTimes(1);
 });
 
+test('the retry button carries the refresh icon in its default state too (C-08 vocabulary)', () => {
+  render(<ErrorState message="boom" onRetry={() => undefined} />);
+
+  const button = screen.getByRole('button', {name: 'Retry'});
+
+  expect(within(button).getByTestId('icon-refresh')).toBeInTheDocument();
+});
+
+test('C-31 X/L: while a retry is in flight, retry disables, relabels, and spins its icon', () => {
+  render(
+    <ErrorState isRetrying={true} message="boom" onRetry={() => undefined} />
+  );
+
+  const button = screen.getByRole('button', {name: 'Retrying'});
+
+  expect(button).toBeDisabled();
+  expect(screen.queryByRole('button', {name: 'Retry'})).not.toBeInTheDocument();
+  expect(within(button).getByTestId('icon-refresh')).toHaveClass(
+    'motion-safe:animate-spin'
+  );
+});
+
 test('omits the retry button without a handler', () => {
   render(<ErrorState message="boom" />);
 
@@ -44,7 +66,7 @@ test('the title carries no uppercase eyebrow treatment', () => {
   expect(heading.className).not.toMatch(/font-mono/u);
 });
 
-test('the message renders at body size, not the old text-sm', () => {
+test('the message renders at body size, off the old smaller arbitrary size', () => {
   render(<ErrorState message="Session scan failed" />);
 
   expect(screen.getByText('Session scan failed')).toHaveClass('text-body');

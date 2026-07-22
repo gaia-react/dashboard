@@ -12,6 +12,7 @@ import {
   formatDayLabel,
 } from '~/components/Charts/date-helpers';
 import {formatCompactNumber} from '~/components/Charts/scale-helpers';
+import {chartFocusRing, opacityTransition} from '~/styles/class-names';
 
 export type HeatmapDay = {
   /** Local-timezone day key, YYYY-MM-DD. */
@@ -137,7 +138,7 @@ const CalendarHeatmap: FC<Props> = ({
           {monthLabels.map((month) => (
             <text
               key={`${month.label}-${month.weekIndex}`}
-              className="fill-fg-mute text-[0.625rem]"
+              className="fill-fg-mute text-label"
               x={LEFT_MARGIN + month.weekIndex * CELL_PITCH}
               y={12}
             >
@@ -147,7 +148,7 @@ const CalendarHeatmap: FC<Props> = ({
           {WEEKDAY_ROWS_TO_LABEL.map((row) => (
             <text
               key={row}
-              className="fill-fg-mute text-[0.625rem]"
+              className="fill-fg-mute text-label"
               x={0}
               y={TOP_MARGIN + row * CELL_PITCH + 9}
             >
@@ -170,7 +171,9 @@ const CalendarHeatmap: FC<Props> = ({
                   key={day}
                   aria-label={`${formatDayLabel(day, locale)}: ${formatCompactNumber(value, locale)} ${valueLabel}`}
                   className={twJoin(
-                    'focus-visible:outline-accent transition-opacity duration-150 hover:opacity-75 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 motion-reduce:transition-none',
+                    'hover:opacity-80 focus:outline-none',
+                    chartFocusRing,
+                    opacityTransition,
                     bucket === 0 ? 'fill-bg-elev' : 'fill-accent'
                   )}
                   fillOpacity={

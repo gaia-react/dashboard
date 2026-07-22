@@ -113,3 +113,31 @@ export const busiestModel = (
 /** Total recorded spec/plan work time, in seconds (nulls count as zero). */
 export const totalRecordedWorkSeconds = (entries: CostEntry[]): number =>
   entries.reduce((sum, entry) => sum + (entry.totals.durationSeconds ?? 0), 0);
+
+/**
+ * Each of the most recent `limit` heatmap days' total tokens, in date order
+ * (Sparkline series for the "Most active day" stat tile, DESIGN-SPEC 6.3).
+ * `heatmap` is already ascending by date (aggregate/activity.ts), so the
+ * last `limit` entries are both the most recent and already oldest-first.
+ */
+export const recentDailyTokenTotals = (
+  heatmap: ActivityResponse['heatmap'],
+  limit = 30
+): number[] => heatmap.slice(-limit).map((day) => day.totalTokens);
+
+/**
+ * One model's total tokens per week, in week order (Sparkline series for the
+ * "Busiest model" stat tile, DESIGN-SPEC 6.3). `model` is an arbitrary
+ * telemetry-sourced id; `Object.hasOwn` guards the lookup so a model named
+ * `__proto__`, `constructor`, or `toString` reads its real own value where
+ * one exists and 0 where it does not, never an inherited prototype value
+ * (the Icon/icon-map.ts, format/lenses.ts, chart-palette.ts groupTailSeries
+ * bug class).
+ */
+export const weeklyTokensForModel = (
+  modelWeekly: ActivityResponse['modelWeekly'],
+  model: string
+): number[] =>
+  modelWeekly.map((week) =>
+    Object.hasOwn(week.tokensByModel, model) ? week.tokensByModel[model] : 0
+  );

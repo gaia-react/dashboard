@@ -11,6 +11,7 @@ import {
   createLinearScale,
   formatCompactNumber,
 } from '~/components/Charts/scale-helpers';
+import {opacityTransition} from '~/styles/class-names';
 
 export type TrendBarDatum = {
   id: string;
@@ -40,7 +41,9 @@ type Props = {
 };
 
 const TOP_MARGIN = 8;
-const BOTTOM_MARGIN = 20;
+/** 24 rather than 20: a 13px edge label needs more clearance than the v1
+ * 10px size did (DESIGN-SPEC 6.6). */
+const BOTTOM_MARGIN = 24;
 const SIDE_MARGIN = 8;
 const MAX_BAR_WIDTH = 24;
 const TOKEN_BAR_OPACITY = 0.55;
@@ -143,6 +146,7 @@ const TrendBars: FC<Props> = ({
         <svg aria-label={label} height={height} role="img" width={width}>
           <line
             className="stroke-border"
+            data-testid="trend-baseline"
             strokeWidth={1}
             x1={SIDE_MARGIN}
             x2={width - SIDE_MARGIN}
@@ -159,7 +163,7 @@ const TrendBars: FC<Props> = ({
               <g key={datum.id}>
                 <path
                   className={twJoin(
-                    'transition-opacity duration-150 motion-reduce:transition-none',
+                    opacityTransition,
                     datum.kind === 'dollars' ? 'fill-accent' : 'fill-secondary',
                     hovered?.index === index && 'opacity-80'
                   )}
@@ -176,7 +180,7 @@ const TrendBars: FC<Props> = ({
                 />
                 {isEdge && (
                   <text
-                    className="fill-fg-mute text-[0.625rem]"
+                    className="fill-fg-mute text-label"
                     textAnchor="middle"
                     x={barX + barWidth / 2}
                     y={height - 6}

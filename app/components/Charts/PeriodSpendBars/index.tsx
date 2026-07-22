@@ -11,6 +11,7 @@ import {
   createLinearScale,
   niceTicks,
 } from '~/components/Charts/scale-helpers';
+import {opacityTransition} from '~/styles/class-names';
 
 export type PeriodBarDatum = {
   /** Estimated ad-hoc dollars for this period. */
@@ -41,7 +42,9 @@ type Props = {
 };
 
 const TOP_MARGIN = 8;
-const BOTTOM_MARGIN = 20;
+/** 24 rather than 20, for the same reason TrendBars gets it: a 13px baseline
+ * label does not fit under a 20px margin (DESIGN-SPEC 6.6). */
+const BOTTOM_MARGIN = 24;
 // Wider than StackedWeeklyBars' 44: full dollar amounts run longer than
 // compact numbers like "30M", and a right-anchored label that overruns x=0
 // clips its leading character.
@@ -141,7 +144,7 @@ const PeriodSpendBars: FC<Props> = ({
                 y2={yScale(tick)}
               />
               <text
-                className="fill-fg-mute text-[0.625rem] tabular-nums"
+                className="fill-fg-mute text-label tabular-nums"
                 textAnchor="end"
                 x={LEFT_MARGIN - 6}
                 y={yScale(tick) + 3}
@@ -160,7 +163,8 @@ const PeriodSpendBars: FC<Props> = ({
               <g key={datum.periodStart}>
                 <path
                   className={twJoin(
-                    'fill-accent transition-opacity duration-150 motion-reduce:transition-none',
+                    'fill-accent',
+                    opacityTransition,
                     isHovered && 'opacity-80'
                   )}
                   d={verticalBarPath({
@@ -173,7 +177,8 @@ const PeriodSpendBars: FC<Props> = ({
                 />
                 <path
                   className={twJoin(
-                    'fill-secondary transition-opacity duration-150 motion-reduce:transition-none',
+                    'fill-secondary',
+                    opacityTransition,
                     isHovered && 'opacity-80'
                   )}
                   d={verticalBarPath({
@@ -186,7 +191,7 @@ const PeriodSpendBars: FC<Props> = ({
                   fillOpacity={AD_HOC_BAR_OPACITY}
                 />
                 <text
-                  className="fill-fg-mute text-[0.625rem]"
+                  className="fill-fg-mute text-label"
                   textAnchor="middle"
                   x={band.position(datum.periodStart) + band.bandwidth / 2}
                   y={height - 6}

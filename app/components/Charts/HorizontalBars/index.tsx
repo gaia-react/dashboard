@@ -8,6 +8,7 @@ import {
   createLinearScale,
   formatCompactNumber,
 } from '~/components/Charts/scale-helpers';
+import {opacityTransition} from '~/styles/class-names';
 
 export type HorizontalBarDatum = {
   label: string;
@@ -100,7 +101,8 @@ const HorizontalBars: FC<Props> = ({
               </text>
               <path
                 className={twJoin(
-                  'fill-accent transition-opacity duration-150 motion-reduce:transition-none',
+                  'fill-accent',
+                  opacityTransition,
                   hoveredIndex === index && 'opacity-80'
                 )}
                 d={horizontalBarPath({

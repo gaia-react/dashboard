@@ -6,32 +6,12 @@ import type {GaiaEvent} from '~/components/Sections/Work/events';
 import StatusText from '~/components/Sections/Work/StatusText';
 import TypeChip from '~/components/Sections/Work/TypeChip';
 import {
+  formatDateShort,
   formatDollarsCell,
   formatDuration,
   NO_DATA_LABEL,
 } from '~/data/format/units';
 import {colorTransition, focusRing} from '~/styles/class-names';
-
-const DATE_SHORT_OPTIONS: Intl.DateTimeFormatOptions = {dateStyle: 'medium'};
-const defaultDateShortFormat = new Intl.DateTimeFormat(
-  undefined,
-  DATE_SHORT_OPTIONS
-);
-
-/**
- * A date with no time, for row 4 (DESIGN-SPEC 7.6). The full `formatDateTime`
- * runs about 22 characters and does not fit a 20rem card.
- *
- * DESIGN-SPEC 7.6 assigns this formatter to `app/data/format/units.ts` and
- * names W6 as its owner. It did not land there, and `app/data/**` is closed
- * in P3, so it lives here for now. Moving it to `units.ts` verbatim and
- * repointing this import is an integrator change, not a rewrite.
- */
-export const formatDateShort = (iso: string, locale?: string): string =>
-  (locale === undefined ?
-    defaultDateShortFormat
-  : new Intl.DateTimeFormat(locale, DATE_SHORT_OPTIONS)
-  ).format(new Date(iso));
 
 /**
  * Exported so `EventListSkeleton` can mirror the card box exactly. `surface`

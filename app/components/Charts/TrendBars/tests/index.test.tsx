@@ -89,3 +89,19 @@ test('a keyboard-only user can reach and trigger the same tooltip via focus', ()
   fireEvent.blur(bar);
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 });
+
+test('edge labels are text-label, never the legacy arbitrary size', () => {
+  renderChart();
+
+  const dollarsBar = screen.getByTestId('trend-bar-SPEC-001');
+
+  expect(dollarsBar).toHaveClass('ease-out');
+  expect(screen.getByText('SPEC-001')).toHaveClass('text-label');
+});
+
+test('the baseline gets a taller bottom margin so 13px edge labels do not collide', () => {
+  renderChart();
+
+  // height 180 - BOTTOM_MARGIN 24 = 156.
+  expect(screen.getByTestId('trend-baseline')).toHaveAttribute('y1', '156');
+});

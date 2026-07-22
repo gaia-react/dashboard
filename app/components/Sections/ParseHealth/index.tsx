@@ -13,7 +13,7 @@ const eyebrowClassName = 'text-label text-fg-dim';
 const headingClassName = 'text-fg text-title font-medium';
 const groupLabelClassName = 'text-label text-fg-dim';
 const badgeClassName =
-  'border-warn-2 text-warn-soft rounded-sm border px-2 py-0.5 text-xs';
+  'border-warn-2 text-warn-soft rounded-sm border px-2 py-0.5 text-label';
 
 /**
  * Parse-health footer (SPEC section 6.8). Only rendered when a data problem
@@ -58,7 +58,7 @@ const ParseHealth: FC<Props> = ({activityParseHealth, costsParseHealth}) => {
               className="border-border-soft rounded-sm border p-3"
             >
               <dt className={groupLabelClassName}>{counter.source}</dt>
-              <dd className="text-fg-dim mt-1 text-sm">
+              <dd className="text-fg-dim text-body mt-1">
                 {counter.linesSkipped} / {counter.linesRead} lines skipped ·{' '}
                 {counter.filesUnparseable} / {counter.filesScanned} files
                 unparseable
@@ -97,7 +97,7 @@ const ParseHealth: FC<Props> = ({activityParseHealth, costsParseHealth}) => {
       {notes.length > 0 && (
         <div>
           <p className={groupLabelClassName}>Notes</p>
-          <ul className="text-fg-dim mt-1 flex list-disc flex-col gap-1 pl-4 text-sm">
+          <ul className="text-fg-dim text-body mt-1 flex list-disc flex-col gap-1 pl-4">
             {notes.map((note) => (
               <li key={note}>{note}</li>
             ))}

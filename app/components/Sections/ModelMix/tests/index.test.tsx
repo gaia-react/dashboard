@@ -33,7 +33,7 @@ test('renders the section chrome, totals bars, and weekly stacks from fixture da
     />
   );
 
-  expect(screen.getByText('Model Usage')).toBeInTheDocument();
+  expect(screen.getByText('Model usage')).toBeInTheDocument();
   expect(
     screen.getByRole('heading', {name: 'Which models do the work'})
   ).toBeInTheDocument();
@@ -163,7 +163,7 @@ test('a real model literally named "other" does not collide with the kit\'s synt
 test('the skeleton mirrors the section chrome and is hidden from assistive tech', () => {
   render(<ModelMixSkeleton />);
 
-  expect(screen.getByText('Model Usage')).toBeInTheDocument();
+  expect(screen.getByText('Model usage')).toBeInTheDocument();
   expect(screen.getByTestId('model-mix-skeleton')).toHaveAttribute(
     'aria-hidden',
     'true'

@@ -110,6 +110,25 @@ test('shows a tooltip on keyboard focus and hides it on blur, mirroring hover', 
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 });
 
+test('month and weekday labels are text-label, never the legacy arbitrary size', () => {
+  renderHeatmap();
+
+  expect(screen.getByText('Jun')).toHaveClass('text-label');
+  expect(screen.getByText('Mon')).toHaveClass('text-label');
+});
+
+test('hovering a cell applies the shared 80% opacity step, not the old 75%', () => {
+  renderHeatmap();
+
+  const maxCell = screen.getByRole('graphics-symbol', {
+    name: 'Jul 3, 2026: 500K output tokens',
+  });
+
+  expect(maxCell).toHaveClass('hover:opacity-80');
+  expect(maxCell).not.toHaveClass('hover:opacity-75');
+  expect(maxCell).toHaveClass('ease-out');
+});
+
 test('a caller-provided tooltip overrides the default single-metric readout', () => {
   render(
     <CalendarHeatmap

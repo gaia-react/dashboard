@@ -93,7 +93,7 @@ test('costs paint while the activity scan is still pending', async () => {
   });
 });
 
-test('refresh refetches both endpoints', async () => {
+test('refresh refetches both endpoints and raises the combined isRefreshing while holding the render', async () => {
   const fetchMock = stubFetch({
     '/api/activity': async () => jsonResponse(activityFixture),
     '/api/costs': async () => jsonResponse(costsFixture),
@@ -107,19 +107,26 @@ test('refresh refetches both endpoints', async () => {
   await waitFor(() => {
     expect(result.current.costs.state.status).toBe('success');
   });
+  expect(result.current.isRefreshing).toBe(false);
 
   act(() => {
     result.current.refresh();
   });
 
-  expect(result.current.costs.state.status).toBe('loading');
-  expect(result.current.activity.state.status).toBe('loading');
+  // Holds the render (DESIGN-SPEC 7.3, defect 7): both resources stay
+  // 'success' with their previous data instead of flashing back to
+  // 'loading'; the combined isRefreshing carries the busy signal instead.
+  expect(result.current.costs.state.status).toBe('success');
+  expect(result.current.activity.state.status).toBe('success');
+  expect(result.current.isRefreshing).toBe(true);
+
   await waitFor(() => {
-    expect(result.current.costs.state.status).toBe('success');
+    expect(callsTo(fetchMock, '/api/costs')).toBe(2);
   });
   await waitFor(() => {
-    expect(result.current.activity.state.status).toBe('success');
+    expect(callsTo(fetchMock, '/api/activity')).toBe(2);
   });
-  expect(callsTo(fetchMock, '/api/costs')).toBe(2);
-  expect(callsTo(fetchMock, '/api/activity')).toBe(2);
+  await waitFor(() => {
+    expect(result.current.isRefreshing).toBe(false);
+  });
 });

@@ -40,9 +40,13 @@ const withEstimate = (
   kpis: {...activityPopulated.kpis, estimatedAdHocDollars},
 });
 
-test('work: recorded and estimated spend render as distinct, basis-labeled tiles', () => {
+test('activity: recorded and estimated spend render as distinct, basis-labeled tiles', () => {
   render(
-    <KpiRow activity={activityPopulated} costs={costsPopulated} tab="work" />
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="activity"
+    />
   );
 
   const recordedTile = screen.getByRole('group', {name: 'Recorded spend'});
@@ -61,9 +65,13 @@ test('work: recorded and estimated spend render as distinct, basis-labeled tiles
   expect(screen.queryByText(/56\.45/)).not.toBeInTheDocument();
 });
 
-test('work: renders a lower-bound marker on a non-zero estimated tile when flagged', () => {
+test('activity: renders a lower-bound marker on a non-zero estimated tile when flagged', () => {
   render(
-    <KpiRow activity={activityPopulated} costs={costsPopulated} tab="work" />
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="activity"
+    />
   );
 
   const estimatedTile = screen.getByRole('group', {
@@ -74,12 +82,12 @@ test('work: renders a lower-bound marker on a non-zero estimated tile when flagg
   expect(estimatedTile).toHaveTextContent(/lower bound/i);
 });
 
-test('work: a zero estimate never carries a lower-bound marker (W10)', () => {
+test('activity: a zero estimate never carries a lower-bound marker (W10)', () => {
   render(
     <KpiRow
       activity={withEstimate({lowerBound: true, value: 0})}
       costs={costsPopulated}
-      tab="work"
+      tab="activity"
     />
   );
 
@@ -92,12 +100,12 @@ test('work: a zero estimate never carries a lower-bound marker (W10)', () => {
   expect(estimatedTile).toHaveTextContent(/no ad hoc activity to estimate/i);
 });
 
-test('work: no lower-bound marker when the estimate is a firm figure', () => {
+test('activity: no lower-bound marker when the estimate is a firm figure', () => {
   render(
     <KpiRow
       activity={withEstimate({lowerBound: false, value: 10})}
       costs={costsPopulated}
-      tab="work"
+      tab="activity"
     />
   );
 
@@ -110,18 +118,17 @@ test('work: no lower-bound marker when the estimate is a firm figure', () => {
   expect(estimatedTile).not.toHaveTextContent(/lower bound/i);
 });
 
-test('work: specs and plans show the merged-over-total ratio', () => {
+test('neither tab renders a Specs or Plans tile: the merge ratio left with the deleted Work KPI row', () => {
   render(
-    <KpiRow activity={activityPopulated} costs={costsPopulated} tab="work" />
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="activity"
+    />
   );
 
-  const specsTile = screen.getByRole('group', {name: 'Specs'});
-  const plansTile = screen.getByRole('group', {name: 'Plans'});
-
-  expect(specsTile).toHaveTextContent('20 / 23');
-  expect(specsTile).toHaveTextContent(/merged/i);
-  expect(plansTile).toHaveTextContent('4 / 6');
-  expect(plansTile).toHaveTextContent(/merged/i);
+  expect(screen.queryByRole('group', {name: 'Specs'})).not.toBeInTheDocument();
+  expect(screen.queryByRole('group', {name: 'Plans'})).not.toBeInTheDocument();
 });
 
 test('sessions: shows session counts and the GAIA-vs-ad-hoc split, not specs or plans', () => {
@@ -186,7 +193,7 @@ test('the total-tokens tile is a plain number, no bucket-split disclosure', () =
 });
 
 test('empty: recorded and estimated tiles read as intentional, not broken', () => {
-  render(<KpiRow activity={activityEmpty} costs={costsEmpty} tab="work" />);
+  render(<KpiRow activity={activityEmpty} costs={costsEmpty} tab="activity" />);
 
   const recordedTile = screen.getByRole('group', {name: 'Recorded spend'});
 
@@ -201,10 +208,72 @@ test('empty: recorded and estimated tiles read as intentional, not broken', () =
   expect(estimatedTile).not.toHaveTextContent('$');
 });
 
+test('numeric values step to text-metric, the prose "Not available" stays at text-title (C-34)', () => {
+  render(
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="activity"
+    />
+  );
+
+  expect(screen.getByText('$14.35')).toHaveClass('text-metric');
+  expect(screen.getByText('$14.35')).toHaveClass('font-mono');
+  expect(screen.getByText('$14.35')).toHaveClass('tabular-nums');
+  expect(screen.getByText('≥$42.10')).toHaveClass('text-metric');
+
+  render(<KpiRow activity={activityEmpty} costs={costsEmpty} tab="activity" />);
+
+  const notAvailable = screen.getByText('Not available');
+
+  expect(notAvailable).toHaveClass('text-title');
+  expect(notAvailable).not.toHaveClass('text-metric');
+});
+
+test('sublabels and notes take text-label, off the old smaller arbitrary size', () => {
+  render(
+    <KpiRow
+      activity={withEstimate({lowerBound: true, value: 5})}
+      costs={costsPopulated}
+      tab="activity"
+    />
+  );
+
+  expect(screen.getByText('Recorded, all GAIA events')).toHaveClass(
+    'text-label'
+  );
+  expect(
+    screen.getByText('Lower bound: one or more models unpriced')
+  ).toHaveClass('text-label');
+});
+
+test('RecordedSpendTile reads "Recorded, all GAIA events" (P2 widened recordedDollars beyond spec & plan work)', () => {
+  render(
+    <KpiRow
+      activity={activityPopulated}
+      costs={costsPopulated}
+      tab="activity"
+    />
+  );
+
+  expect(screen.getByText('Recorded, all GAIA events')).toBeInTheDocument();
+  expect(
+    screen.queryByText('Recorded, spec & plan work')
+  ).not.toBeInTheDocument();
+});
+
 test('exports a skeleton for AsyncSection with a matching tile count', () => {
   render(<KpiRowSkeleton />);
 
   // The grid is aria-hidden while loading; `hidden: true` opts the role
   // query into elements normally excluded from the accessibility tree.
   expect(screen.getAllByRole('group', {hidden: true})).toHaveLength(4);
+});
+
+test("the skeleton mirrors RecordedSpendTile's real sublabel string, or the reveal shifts", () => {
+  render(<KpiRowSkeleton />);
+
+  expect(
+    screen.getAllByText('Recorded, all GAIA events', {selector: 'p'})
+  ).not.toHaveLength(0);
 });

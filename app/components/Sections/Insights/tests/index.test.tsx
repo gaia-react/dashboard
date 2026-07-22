@@ -2,7 +2,7 @@ import {render, screen, within} from '@testing-library/react';
 import {expect, test} from 'vitest';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import Insights from '~/components/Sections/Insights';
+import Insights, {InsightsSkeleton} from '~/components/Sections/Insights';
 import type {ActivityResponse, CostsResponse} from '~/data/schemas/api';
 import {activityResponseSchema, costsResponseSchema} from '~/data/schemas/api';
 
@@ -138,6 +138,103 @@ test('a fully empty dataset renders the intentional empty state, not a hollow la
   ).toBeInTheDocument();
   expect(screen.queryByText('Most active day')).not.toBeInTheDocument();
   expect(screen.queryAllByRole('list')).toHaveLength(0);
+});
+
+test('the most-active-day tile renders a sparkline of recent daily tokens, with a matching caption', () => {
+  render(
+    <Insights
+      activity={activityPopulated}
+      costs={costsPopulated}
+      locale="en-US"
+    />
+  );
+
+  // heatmap has 2 days (1000, 5000 total tokens): low 1K, high 5K, latest 5K.
+  expect(
+    screen.getByRole('img', {
+      name: '2 points, low 1K, high 5K, latest 5K',
+    })
+  ).toBeInTheDocument();
+  expect(screen.getByText('Daily tokens, last 2 days')).toBeInTheDocument();
+});
+
+test("the busiest-model tile renders a sparkline of that model's weekly tokens, with a fixed caption", () => {
+  render(
+    <Insights
+      activity={activityPopulated}
+      costs={costsPopulated}
+      locale="en-US"
+    />
+  );
+
+  // claude-sonnet-5 (the busiest model) carries 6000 then 500 across the
+  // fixture's two weeks: low 500, high 6K, latest 500.
+  expect(
+    screen.getByRole('img', {
+      name: '2 points, low 500, high 6K, latest 500',
+    })
+  ).toBeInTheDocument();
+  expect(screen.getByText('Weekly tokens for this model')).toBeInTheDocument();
+});
+
+test('the recorded-work-time tile never renders a sparkline (no series exists for it)', () => {
+  render(
+    <Insights
+      activity={activityPopulated}
+      costs={costsPopulated}
+      locale="en-US"
+    />
+  );
+
+  const workTimeTile = screen.getByTestId('insights-stat-work-time');
+
+  expect(within(workTimeTile).queryByRole('img')).not.toBeInTheDocument();
+});
+
+test('fewer than two points renders no sparkline and no caption (a busiest model with only one week of data)', () => {
+  const oneWeek: ActivityResponse = {
+    ...activityPopulated,
+    modelWeekly: activityPopulated.modelWeekly.slice(0, 1),
+  };
+
+  render(<Insights activity={oneWeek} costs={costsPopulated} locale="en-US" />);
+
+  expect(
+    screen.queryByText('Weekly tokens for this model')
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('img', {name: /latest 6K/})
+  ).not.toBeInTheDocument();
+});
+
+test('the sparkline caption uses fg-dim, not fg-mute, on the bg-elev-2 stat tile (AA contrast, DESIGN-SPEC 2.2/section 10 defect 3)', () => {
+  render(
+    <Insights
+      activity={activityPopulated}
+      costs={costsPopulated}
+      locale="en-US"
+    />
+  );
+
+  const caption = screen.getByText('Daily tokens, last 2 days');
+
+  expect(caption).toHaveClass('text-fg-dim');
+  expect(caption).not.toHaveClass('text-fg-mute');
+});
+
+test('the loading skeleton reserves sparkline space on the two tiles that get one and not on the third', () => {
+  render(<InsightsSkeleton />);
+
+  const activeDayTile = screen.getByTestId('insights-stat-active-day');
+  const modelTile = screen.getByTestId('insights-stat-busiest-model');
+  const workTimeTile = screen.getByTestId('insights-stat-work-time');
+
+  // 2 rows (value, subtext) for a plain tile, 4 (+ sparkline, + caption) for
+  // a tile that will grow one once real data lands; matching counts here is
+  // what keeps the skeleton-to-real swap from shifting the layout.
+  expect(within(activeDayTile).getAllByTestId('skeleton')).toHaveLength(4);
+  expect(within(modelTile).getAllByTestId('skeleton')).toHaveLength(4);
+  expect(within(workTimeTile).getAllByTestId('skeleton')).toHaveLength(2);
 });
 
 test('mixed data (activity present, no priced work) falls back per section instead of a broken layout', () => {
