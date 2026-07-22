@@ -172,6 +172,36 @@ today, displayed more visually"). Both render inside `documentRegionClass` with
 the shell inset and `flex flex-col gap-8 py-6 xl:gap-10`. Section chrome changes
 only per §3 and §9.
 
+**What P4 changes on these two tabs, and what it does not.** Added at P4 launch,
+because `Insights`, `ModelMix`, `ActivityHeatmap`, and `SessionsList` carry no
+C-inventory entry and this is the only place their contract lives.
+
+- **Every arbitrary type size goes.** `text-sm`, `text-xs`, `text-[0.625rem]`,
+  and `text-[0.6rem]` are all illegal; §2.3's five `--text-*` tokens are the
+  whole vocabulary. Section captions and body copy take `text-body`; labels,
+  badges, chips, select controls, pagination buttons, and chart text take
+  `text-label`.
+- **`Insights`'s stat tiles gain a sparkline** (C-38, `h-8 w-full`, below the
+  sublabel), and only where a real series exists in the response the tile is
+  already reading. A sparkline whose series is not the tile's own metric is
+  decoration. Fewer than two points renders nothing and reserves no space
+  (§7.4).
+- **The KPI tiles do not gain one in P4.** C-34 calls the sparkline optional; of
+  its tiles only Total tokens has a series in the contract, and deriving it
+  would mean one workstream importing another's new helper mid-phase. Deferred,
+  not forgotten.
+- **The label line above each section heading stays.** It is the eyebrow's
+  descendant, but it was already stripped to `text-label text-fg-dim` at P3 and
+  it is the section's only *visible* name (the `AsyncSection` label is an
+  `aria-label`). Whether a surface needs both `Highlights` and `What stood out`
+  is a composition question, and it goes to P5's critique rather than being
+  settled by a restyle agent.
+- **Sentence case, per §9.1.** `ModelMix`'s `Model Usage` becomes `Model usage`,
+  in the section heading, in `App`'s region label, and in every assertion.
+- **The `eyebrowClassName` identifier is not renamed.** Six section files export
+  it and two workstreams own those files; a cosmetic rename spanning both is how
+  two agents clobber one file. The class value is already correct.
+
 ---
 
 ## 2. Tokens and type scale
@@ -1007,8 +1037,16 @@ Shared chart state table:
 
 #### C-45 ChartLegend
 Unchanged in structure. One class change: item text steps from `text-xs` to
-`text-label`. States D only, except that a legend row cross-highlights to
-`text-fg` while its series is hovered in the chart (§6.4).
+`text-label`. States D only.
+
+**The `activeLabel` cross-highlight prop is not built in v2, decided at P4
+launch.** §6.4's cross-highlighting is `SegmentedBar`'s, and `SegmentedBar`
+renders its own legend rather than this one. Of C-45's four callers, `TrendBars`,
+`CalendarHeatmap`, and `PeriodSpendBars` have no series-level hover at all (their
+legends are fixed keys and opacity buckets), and `StackedWeeklyBars` hovers a
+whole week column, not a model series. Adding per-series hover to a stacked bar
+is a behavior change, not a restyle. Shipping the prop with no caller would
+repeat exactly the C-46 mistake this phase is closing.
 
 #### C-46 ChartTooltip
 Structure unchanged except two fixes:
@@ -1526,15 +1564,28 @@ two-column grid below `sm` and a four-column grid at `sm:` and above.
 | --- | --- |
 | `chart-palette.ts` | Append `fill-info`, `fill-moss` and `bg-info`, `bg-moss` at slots 7 and 8. `MAX_CONCURRENT_SERIES` 6 to 8. Existing slots 1 through 6 keep their order and their hues (§2.6). |
 | `ChartTooltip/index.tsx` | Delete `shadow-lg`. Add `placement`. `text-xs` to `text-label`. |
-| `ChartLegend/index.tsx` | `text-xs` to `text-label`. Add optional `activeLabel` for cross-highlighting. |
+| `ChartLegend/index.tsx` | `text-xs` to `text-label`. **No `activeLabel`**: no caller can drive it, see C-45. |
 | `HorizontalBars/index.tsx` | Chart text `text-xs` to `text-label`. Bump `ROW_HEIGHT` 26 to 30 and `labelWidth` default 128 to 148 so 13px labels do not collide. |
 | `StackedWeeklyBars/index.tsx` | Tick and week-label text `text-[0.625rem]` to `text-label`. `MAX_WEEK_LABELS` 8 to 6, and `LEFT_MARGIN` 44 to 56, both because 13px ticks need more room. `SEGMENT_GAP` stays 2. |
 | `TrendBars/index.tsx` | Edge-label text to `text-label`. `BOTTOM_MARGIN` 20 to 24. |
 | `CalendarHeatmap/index.tsx` | Month and weekday label text to `text-label`; thin month labels to every other month if they collide. The all-zero legend collapse stays a known limitation (§10). |
-| `PeriodSpendBars/index.tsx` | Label text to `text-label`. |
+| `PeriodSpendBars/index.tsx` | Label text to `text-label`. `BOTTOM_MARGIN` 20 to 24, for the same reason `TrendBars` gets it: a 13px baseline does not fit under a 20px margin. |
 
 Every one of these is a class or constant change. No chart's data contract
 changes except through the P2 schema work.
+
+**Two additions to this table, both P4 launch decisions.**
+
+- **`PeriodSpendBars`'s `BOTTOM_MARGIN`**, above. The table gave the bump to
+  `TrendBars` only; both charts render edge labels against a 20px bottom margin
+  and both were sized for 10px text.
+- **The five charts that still inline their own transition string** get the
+  shared constant. `TrendBars`, `CalendarHeatmap`, `HorizontalBars`,
+  `StackedWeeklyBars`, and `PeriodSpendBars` each carry a literal
+  `transition-opacity duration-150 motion-reduce:transition-none`, missing the
+  `ease-out` that `opacityTransition` (§2.8) carries. `CalendarHeatmap`
+  additionally inlines a literal copy of `chartFocusRing`. Fold all of them onto
+  the constants; that is what §2.8 exists for.
 
 ---
 
